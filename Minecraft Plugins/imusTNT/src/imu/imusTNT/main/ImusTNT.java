@@ -29,7 +29,7 @@ public class ImusTNT extends JavaPlugin
 		_managerTNT = new TNT_Mananger();
 		
 		getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName+" is Activated");
-		///getServer().getPluginManager().registerEvents(new imusTNT_events(), this);
+		getServer().getPluginManager().registerEvents(new imusTNT_events(), this);
 		
 		RegisterCommands();
 		// getServer().getPluginManager().registerEvents(new FishingEvent(this), this);
