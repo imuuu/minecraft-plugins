@@ -1,0 +1,9 @@
+name: imusGeneralStore
+author: imu
+version: 1.0
+main: imu.iGeneralStore.Main.Main
+api-version: 1.16
+softdepend: [Vault]
+commands:
+   igs:
+   

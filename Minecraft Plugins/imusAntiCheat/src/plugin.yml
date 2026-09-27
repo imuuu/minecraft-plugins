@@ -1,0 +1,7 @@
+name: imusAntiCheat
+author: imu
+version: 1.0
+main: imu.AC.Main.Main
+api-version: 1.18
+softdepend: [Vault, imusAPI,ProtocolLib]
+commands:
