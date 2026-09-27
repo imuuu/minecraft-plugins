@@ -23,14 +23,14 @@ public class Unanointment_Void_Stone extends Void_Stone
 
 //	private Enchantment[] _valid_armor_ench = 
 //		{
-//		    Enchantment.PROTECTION_ENVIRONMENTAL,
-//		    Enchantment.PROTECTION_FIRE,
-//		    Enchantment.PROTECTION_PROJECTILE,
-//		    Enchantment.PROTECTION_EXPLOSIONS,
+//		    Enchantment.PROTECTION,
+//		    Enchantment.FIRE_PROTECTION,
+//		    Enchantment.PROJECTILE_PROTECTION,
+//		    Enchantment.BLAST_PROTECTION,
 //		    Enchantment.THORNS,
 //		    Enchantment.DEPTH_STRIDER,
 //		    Enchantment.FROST_WALKER,
-//		    Enchantment.WATER_WORKER,
+//		    Enchantment.AQUA_AFFINITY,
 //		    Enchantment.,
 //		    Enchantment.UNBREAKING,
 //		    Enchantment.MENDING
@@ -38,13 +38,13 @@ public class Unanointment_Void_Stone extends Void_Stone
 //
 //		private Enchantment[] _valid_tool_ench = 
 //		{
-//		    Enchantment.DIG_SPEED,
+//		    Enchantment.EFFICIENCY,
 //		    Enchantment.SILK_TOUCH,
-//		    Enchantment.LOOT_BONUS_BLOCKS,
-//		    Enchantment.DURABILITY,
+//		    Enchantment.FORTUNE,
+//		    Enchantment.UNBREAKING,
 //		    Enchantment.MENDING,
 //		    Enchantment.UNBREAKING,
-//		    Enchantment.LOOT_BONUS_MOBS
+//		    Enchantment.LOOTING
 //		};
 	private final int _minimumLevel = 2;
 	private final int _allowEnchants = 1;

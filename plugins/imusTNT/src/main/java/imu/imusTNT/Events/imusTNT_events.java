@@ -47,7 +47,7 @@ public class imusTNT_events implements Listener
 	@EventHandler
     public void OnExplode(EntityExplodeEvent e) 
 	{
-        if (e.getEntityType() == EntityType.PRIMED_TNT) 
+        if (e.getEntityType() == EntityType.TNT) 
         {
         	
         	TNT_TYPE tnt_type = TNT_Mananger.Instance.GetTntType(e.getEntity());
@@ -66,7 +66,7 @@ public class imusTNT_events implements Listener
     		Entity entity = e.getEntity();
     		TNT_Mananger.Instance.SetMetadataExplode(entity);
     		List<Block> blocks = tnt.GetBlocks(e.getLocation());
-    		EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, e.getLocation(), blocks, 10);
+    		EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, e.getLocation(), blocks, 10f, e.getExplosionResult());
     		Bukkit.getServer().getPluginManager().callEvent(explodeEvent);
     		
     		if(explodeEvent.isCancelled()) return;
@@ -136,7 +136,7 @@ public class imusTNT_events implements Listener
 		
 		block.setType(Material.AIR);
 		e.setCancelled(true);
-		Entity entity = block.getWorld().spawnEntity(block.getLocation().add(0.5f, 0.1f, 0.5f), EntityType.PRIMED_TNT);
+		Entity entity = block.getWorld().spawnEntity(block.getLocation().add(0.5f, 0.1f, 0.5f), EntityType.TNT);
 		TNT_Mananger.Instance.SetMetadata(e.getPlayer(), block, entity);
 		
 		TNT_Mananger.Instance.GetTNT(tnt_type).OnIgnite(e.getPlayer(), entity);

@@ -306,7 +306,7 @@ public class ItemUtilToolsArmors
 		case LEATHER:
 			return Material.LEATHER;
 		case TURTLE:
-			return Material.SCUTE;
+			return Material.TURTLE_SCUTE;
 		case OTHER:
 			return Material.DIAMOND;
 		default:

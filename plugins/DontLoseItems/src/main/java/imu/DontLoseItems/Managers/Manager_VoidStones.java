@@ -62,7 +62,7 @@ public class Manager_VoidStones	implements Listener
 	private void InitMaxLevels()
 	{
 		MAX_ENCH_LEVEL.put(Enchantment.MENDING, 1);
-		MAX_ENCH_LEVEL.put(Enchantment.ARROW_INFINITE, 1);
+		MAX_ENCH_LEVEL.put(Enchantment.INFINITY, 1);
 		MAX_ENCH_LEVEL.put(Enchantment.BINDING_CURSE, 1);
 		MAX_ENCH_LEVEL.put(Enchantment.SILK_TOUCH, 1);
 		MAX_ENCH_LEVEL.put(Enchantment.VANISHING_CURSE, 1);

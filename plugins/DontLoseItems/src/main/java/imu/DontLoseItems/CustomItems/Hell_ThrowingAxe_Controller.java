@@ -25,9 +25,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
 
 import imu.DontLoseItems.CustomItems.Entities.Throwable_Axe;
 import imu.DontLoseItems.CustomItems.RarityItems.Hell_Double_Axe;
@@ -288,7 +285,7 @@ public final class Hell_ThrowingAxe_Controller
 		Projectile extra = LaunchExtraSnowball(player, throwForce);
 		
 		td.Projectile_AxePos = extra;
-		SendPacket_RemoveEntity(player, new Entity[] {projectile, extra});
+		HideCarriersAndSwing(player, new Entity[] {projectile, extra});
 		td.Projectile = projectile;
 		td.DAMAGE = GetDamage(player).GetDamage();
 		_throwable.add(td);
@@ -319,39 +316,18 @@ public final class Hell_ThrowingAxe_Controller
 		
 		return snowball;
 	}
-	private void SendPacket_RemoveEntity(Player player, Entity[] entitis)
+	/**
+	 * The snowballs only carry the throw's physics; the armor stand is what
+	 * players should see. Hide the snowballs from every client and play the
+	 * thrower's main-hand swing.
+	 */
+	private void HideCarriersAndSwing(Player player, Entity[] carriers)
 	{
-		PacketContainer destroyPacket = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-		PacketContainer useItem = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ANIMATION);
-
-
-		List<Integer> entityIds = new ArrayList<>();
-		for(Entity ent : entitis)
+		for(Entity ent : carriers)
 		{
-			entityIds.add(ent.getEntityId());
+			ent.setVisibleByDefault(false);
 		}
-
-		destroyPacket.getIntLists().write(0, entityIds);
-		
-		useItem.getIntegers().write(0, player.getEntityId());
-		useItem.getIntegers().write(1, 0);
-		
-		try
-		{
-			for (Player p : Bukkit.getOnlinePlayers()) 
-			{
-				if(p.getWorld() == player.getWorld())
-				{
-					ProtocolLibrary.getProtocolManager().sendServerPacket(p, destroyPacket);
-					ProtocolLibrary.getProtocolManager().sendServerPacket(p, useItem);
-				}
-			}
-		} 
-		catch (Exception e)
-		{
-			
-		}
-		
+		player.swingMainHand();
 	}
 	
 	

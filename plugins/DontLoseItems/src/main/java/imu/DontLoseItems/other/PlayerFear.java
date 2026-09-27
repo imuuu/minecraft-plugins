@@ -65,7 +65,7 @@ public class PlayerFear
     		damageGiven = GiveDamage(player, -1);
     		//player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false));
     		  		
-    		//player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 70 * _fearState, 1, false));
+    		//player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 70 * _fearState, 1, false));
     		if(_fearState > 2)
     		{
     			player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60 , 1, false));
@@ -77,7 +77,7 @@ public class PlayerFear
     			player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS,     	100, 10, false));
     			player.addPotionEffect(new PotionEffect(PotionEffectType.POISON,       	100, 0, false));
     			player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 		100 , 1, false));
-    			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 	100, 1, false));
+    			player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 	100, 1, false));
     		}
     		
     		if(_fearState > 4)
@@ -85,8 +85,8 @@ public class PlayerFear
     			player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 		200, 0, false));
     			player.addPotionEffect(new PotionEffect(PotionEffectType.POISON,   		200, 2, false));
     			player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 		200, 1, false));
-    			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 	200, 1, false));
-    			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,     		200, 1, false));
+    			player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 	200, 1, false));
+    			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,     		200, 1, false));
     		}
     		
     		
@@ -100,7 +100,7 @@ public class PlayerFear
     		damageGiven = GiveDamage(player, -2);
     		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, false));
     		player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 1, false));
-    		player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 150, 1, false));
+    		player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 150, 1, false));
     		_fearState = 2;
 		}
     	else if(_fearLevel >= 60)

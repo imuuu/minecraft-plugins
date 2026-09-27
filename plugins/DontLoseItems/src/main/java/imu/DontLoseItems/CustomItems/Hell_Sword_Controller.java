@@ -186,8 +186,8 @@ public final class Hell_Sword_Controller
 			{
 			case TO_TARGET:
 				dustOptions = new DustOptions(Color.fromBGR(169, 14, 245), 1.5f);
-				loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone().add(0,0.6f,0), 1, dustOptions);
-				loc.getWorld().spawnParticle(Particle.DRIP_LAVA, loc.clone().add(0,0.6f,0), 5, 0.3,0.2,0.3);
+				loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(0,0.6f,0), 1, dustOptions);
+				loc.getWorld().spawnParticle(Particle.DRIPPING_LAVA, loc.clone().add(0,0.6f,0), 5, 0.3,0.2,0.3);
 				armorStand.teleport(loc.clone().add(ar.Direction.clone().multiply(ar.MoveSpeed)));
 				break;
 			case DOT_DAMAGE:
@@ -199,7 +199,7 @@ public final class Hell_Sword_Controller
 				break;
 			case RETURNING:
 				dustOptions = new DustOptions(Color.fromBGR(255, 80, 144), 2f);
-				loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone().add(0,0.6f,0), 1, dustOptions);
+				loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(0,0.6f,0), 1, dustOptions);
 				
 				//if(ar.GetLastState() != Throwable_State.DOT_DAMAGE) break;
 				
@@ -207,7 +207,7 @@ public final class Hell_Sword_Controller
 				{
 					ar._entities.clear();
 				}
-				//loc.getWorld().spawnParticle(Particle.DRIP_LAVA, loc.clone().add(0,0.6f,0), 5, 0.3,0.2,0.3);
+				//loc.getWorld().spawnParticle(Particle.DRIPPING_LAVA, loc.clone().add(0,0.6f,0), 5, 0.3,0.2,0.3);
 				break;
 			
 			

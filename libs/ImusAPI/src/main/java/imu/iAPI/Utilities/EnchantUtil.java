@@ -26,22 +26,22 @@ public class EnchantUtil
         }
         
         Set<Enchantment> tier1Enchantments = new HashSet<>();
-        tier1Enchantments.add(Enchantment.WATER_WORKER); // Aqua Affinity
-        tier1Enchantments.add(Enchantment.DAMAGE_ARTHROPODS); // Bane of Arthropods
-        tier1Enchantments.add(Enchantment.PROTECTION_EXPLOSIONS); // Blast Protection
+        tier1Enchantments.add(Enchantment.AQUA_AFFINITY); // Aqua Affinity
+        tier1Enchantments.add(Enchantment.BANE_OF_ARTHROPODS); // Bane of Arthropods
+        tier1Enchantments.add(Enchantment.BLAST_PROTECTION); // Blast Protection
         tier1Enchantments.add(Enchantment.DEPTH_STRIDER); // Depth Strider
-        tier1Enchantments.add(Enchantment.DIG_SPEED); // Efficiency
-        tier1Enchantments.add(Enchantment.PROTECTION_FALL); // Feather Falling
+        tier1Enchantments.add(Enchantment.EFFICIENCY); // Efficiency
+        tier1Enchantments.add(Enchantment.FEATHER_FALLING); // Feather Falling
         tier1Enchantments.add(Enchantment.FIRE_ASPECT); // Fire Aspect
-        tier1Enchantments.add(Enchantment.PROTECTION_FIRE); // Fire Protection
+        tier1Enchantments.add(Enchantment.FIRE_PROTECTION); // Fire Protection
         
         tier1Enchantments.add(Enchantment.IMPALING); // Impaling       
         tier1Enchantments.add(Enchantment.KNOCKBACK); // Knockback
-        tier1Enchantments.add(Enchantment.ARROW_KNOCKBACK); // Punch
-        tier1Enchantments.add(Enchantment.OXYGEN); // Respiration
+        tier1Enchantments.add(Enchantment.PUNCH); // Punch
+        tier1Enchantments.add(Enchantment.RESPIRATION); // Respiration
         
-        tier1Enchantments.add(Enchantment.DAMAGE_UNDEAD); // Smite
-        tier1Enchantments.add(Enchantment.DURABILITY); // Unbreaking
+        tier1Enchantments.add(Enchantment.SMITE); // Smite
+        tier1Enchantments.add(Enchantment.UNBREAKING); // Unbreaking
         //tier1Enchantments.add(Enchantment.BINDING_CURSE); // Curse of Binding
         //tier1Enchantments.add(Enchantment.VANISHING_CURSE); // Curse of Vanishing
        
@@ -53,26 +53,26 @@ public class EnchantUtil
         tier2Enchantments.add(Enchantment.RIPTIDE); // Riptide
         tier2Enchantments.add(Enchantment.SWEEPING_EDGE); // Sweeping Edge
         tier2Enchantments.add(Enchantment.QUICK_CHARGE); // Quick Charge
-        tier2Enchantments.add(Enchantment.ARROW_FIRE); // Flame
-        tier2Enchantments.add(Enchantment.LUCK); // Luck of the Sea
+        tier2Enchantments.add(Enchantment.FLAME); // Flame
+        tier2Enchantments.add(Enchantment.LUCK_OF_THE_SEA); // Luck of the Sea
         tier2Enchantments.add(Enchantment.LURE); // Lure
-        tier2Enchantments.add(Enchantment.LOOT_BONUS_MOBS); // Looting
+        tier2Enchantments.add(Enchantment.LOOTING); // Looting
         tier2Enchantments.add(Enchantment.LOYALTY); // Loyalty
-        tier2Enchantments.add(Enchantment.PROTECTION_ENVIRONMENTAL); // Protection
-        tier2Enchantments.add(Enchantment.PROTECTION_PROJECTILE); // Projectile Protection
-        tier2Enchantments.add(Enchantment.DAMAGE_ALL); // Sharpness
+        tier2Enchantments.add(Enchantment.PROTECTION); // Protection
+        tier2Enchantments.add(Enchantment.PROJECTILE_PROTECTION); // Projectile Protection
+        tier2Enchantments.add(Enchantment.SHARPNESS); // Sharpness
         
         //extra
-        tier2Enchantments.add(Enchantment.DURABILITY);
+        tier2Enchantments.add(Enchantment.UNBREAKING);
         
         // Tier 3: Rare or Highly Valuable Enchantments
         Set<Enchantment> tier3Enchantments = new HashSet<>();       
         tier3Enchantments.add(Enchantment.MENDING); // Mending
         tier3Enchantments.add(Enchantment.THORNS); // Thorns
         tier3Enchantments.add(Enchantment.SILK_TOUCH); // Silk Touch
-        tier3Enchantments.add(Enchantment.ARROW_DAMAGE); // Power
-        tier3Enchantments.add(Enchantment.LOOT_BONUS_BLOCKS); // Fortune
-        tier3Enchantments.add(Enchantment.ARROW_INFINITE); // Infinity
+        tier3Enchantments.add(Enchantment.POWER); // Power
+        tier3Enchantments.add(Enchantment.FORTUNE); // Fortune
+        tier3Enchantments.add(Enchantment.INFINITY); // Infinity
         tier3Enchantments.add(Enchantment.FROST_WALKER); // Frost Walker
       
         //extra
@@ -91,46 +91,46 @@ public class EnchantUtil
         }
 
         Set<Enchantment> toolEnchantments = new HashSet<>();
-        toolEnchantments.add(Enchantment.DIG_SPEED);
+        toolEnchantments.add(Enchantment.EFFICIENCY);
         toolEnchantments.add(Enchantment.SILK_TOUCH);
-        toolEnchantments.add(Enchantment.DURABILITY);
-        toolEnchantments.add(Enchantment.LOOT_BONUS_BLOCKS);
+        toolEnchantments.add(Enchantment.UNBREAKING);
+        toolEnchantments.add(Enchantment.FORTUNE);
         toolEnchantments.add(Enchantment.MENDING);
         toolEnchantments.add(Enchantment.SWEEPING_EDGE);
-        toolEnchantments.add(Enchantment.LOOT_BONUS_MOBS);
+        toolEnchantments.add(Enchantment.LOOTING);
         toolEnchantments.add(Enchantment.KNOCKBACK);
         
         Set<Enchantment> armorEnchantments = new HashSet<>();
-        armorEnchantments.add(Enchantment.PROTECTION_ENVIRONMENTAL);
-        armorEnchantments.add(Enchantment.PROTECTION_FIRE);
-        armorEnchantments.add(Enchantment.PROTECTION_FALL);
-        armorEnchantments.add(Enchantment.PROTECTION_EXPLOSIONS);
-        armorEnchantments.add(Enchantment.PROTECTION_PROJECTILE);
-        armorEnchantments.add(Enchantment.OXYGEN);
-        armorEnchantments.add(Enchantment.WATER_WORKER);
+        armorEnchantments.add(Enchantment.PROTECTION);
+        armorEnchantments.add(Enchantment.FIRE_PROTECTION);
+        armorEnchantments.add(Enchantment.FEATHER_FALLING);
+        armorEnchantments.add(Enchantment.BLAST_PROTECTION);
+        armorEnchantments.add(Enchantment.PROJECTILE_PROTECTION);
+        armorEnchantments.add(Enchantment.RESPIRATION);
+        armorEnchantments.add(Enchantment.AQUA_AFFINITY);
         armorEnchantments.add(Enchantment.THORNS);
         armorEnchantments.add(Enchantment.DEPTH_STRIDER);
         armorEnchantments.add(Enchantment.FROST_WALKER);
         armorEnchantments.add(Enchantment.BINDING_CURSE);
         armorEnchantments.add(Enchantment.VANISHING_CURSE);
         armorEnchantments.add(Enchantment.MENDING);
-        armorEnchantments.add(Enchantment.DURABILITY);
+        armorEnchantments.add(Enchantment.UNBREAKING);
         
         Set<Enchantment> weaponEnchantments = new HashSet<>();
-        weaponEnchantments.add(Enchantment.DAMAGE_ALL);
-        weaponEnchantments.add(Enchantment.DAMAGE_UNDEAD);
-        weaponEnchantments.add(Enchantment.DAMAGE_ARTHROPODS);
+        weaponEnchantments.add(Enchantment.SHARPNESS);
+        weaponEnchantments.add(Enchantment.SMITE);
+        weaponEnchantments.add(Enchantment.BANE_OF_ARTHROPODS);
         weaponEnchantments.add(Enchantment.KNOCKBACK);
         weaponEnchantments.add(Enchantment.FIRE_ASPECT);
-        weaponEnchantments.add(Enchantment.LOOT_BONUS_MOBS);
+        weaponEnchantments.add(Enchantment.LOOTING);
         weaponEnchantments.add(Enchantment.SWEEPING_EDGE);
-        weaponEnchantments.add(Enchantment.ARROW_DAMAGE);
-        weaponEnchantments.add(Enchantment.ARROW_KNOCKBACK);
-        weaponEnchantments.add(Enchantment.ARROW_FIRE);
-        weaponEnchantments.add(Enchantment.ARROW_INFINITE);
+        weaponEnchantments.add(Enchantment.POWER);
+        weaponEnchantments.add(Enchantment.PUNCH);
+        weaponEnchantments.add(Enchantment.FLAME);
+        weaponEnchantments.add(Enchantment.INFINITY);
         weaponEnchantments.add(Enchantment.MENDING);
         weaponEnchantments.add(Enchantment.VANISHING_CURSE);
-        weaponEnchantments.add(Enchantment.DURABILITY);
+        weaponEnchantments.add(Enchantment.UNBREAKING);
         
         enchantmentsByCategory.put(ITEM_CATEGORY.TOOL, toolEnchantments);
         enchantmentsByCategory.put(ITEM_CATEGORY.ARMOR, armorEnchantments);

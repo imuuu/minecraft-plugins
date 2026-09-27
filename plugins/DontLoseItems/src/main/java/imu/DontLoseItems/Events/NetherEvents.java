@@ -76,6 +76,7 @@ import imu.iAPI.Other.ConfigMaker;
 import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ImusUtilities;
+import org.bukkit.ExplosionResult;
 
 
 public class NetherEvents implements Listener
@@ -541,25 +542,25 @@ public class NetherEvents implements Listener
 	        zombie.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 4, false, false));
 	          
 	        ItemStack helmet = new ItemStack(Material.IRON_HELMET);;
-	        helmet.addEnchantment(Enchantment.PROTECTION_PROJECTILE, 2);
-	        //helmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+	        helmet.addEnchantment(Enchantment.PROJECTILE_PROTECTION, 2);
+	        //helmet.addEnchantment(Enchantment.PROTECTION, 1);
 	        entity.getEquipment().setHelmet(helmet,false);
 	        
 	        ItemStack chestplate = new ItemStack(Material.DIAMOND_CHESTPLATE);;
-	        chestplate.addEnchantment(Enchantment.PROTECTION_PROJECTILE, 4);
-	        //chestplate.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+	        chestplate.addEnchantment(Enchantment.PROJECTILE_PROTECTION, 4);
+	        //chestplate.addEnchantment(Enchantment.PROTECTION, 1);
 	        zombie.getEquipment().setChestplate(chestplate, false);
 	        
 	        ItemStack legg = new ItemStack(Material.DIAMOND_LEGGINGS);;
-	        legg.addEnchantment(Enchantment.PROTECTION_PROJECTILE, 2);
-	        legg.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+	        legg.addEnchantment(Enchantment.PROJECTILE_PROTECTION, 2);
+	        legg.addEnchantment(Enchantment.PROTECTION, 1);
 	        zombie.getEquipment().setLeggings(legg, false);
 	        
 	        
 	        ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS);
 	        boots.addEnchantment(Enchantment.SOUL_SPEED, 3);
-	        boots.addEnchantment(Enchantment.PROTECTION_PROJECTILE, 2);
-	        //boots.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+	        boots.addEnchantment(Enchantment.PROJECTILE_PROTECTION, 2);
+	        //boots.addEnchantment(Enchantment.PROTECTION, 1);
 	        zombie.getEquipment().setBoots(boots,false);
 	        
 	        Metods._ins.setPersistenData(zombie, "SPEED_ZOMBIE", PersistentDataType.INTEGER, 1);
@@ -603,11 +604,11 @@ public class NetherEvents implements Listener
 			ItemMeta meta = stack.getItemMeta();
 	 
 		
-			meta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 0.02,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-			meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.attackSpeed", 10f, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-			//meta.addAttributeModifier(Attribute.GENERIC_ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-			//meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-			//meta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+			meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 0.02,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+			meta.addAttributeModifier(Attribute.ATTACK_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.attackSpeed", 10f, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+			//meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+			//meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+			//meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
 
 			stack.setItemMeta(meta);
 
@@ -912,7 +913,7 @@ public class NetherEvents implements Listener
 					@Override
 					public void run()
 					{
-						EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, hitLoc, blocks, 0);
+						EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, hitLoc, blocks, 0f, ExplosionResult.DESTROY);
 						Bukkit.getServer().getPluginManager().callEvent(explodeEvent);
 			    		
 			    		if(explodeEvent.isCancelled()) 

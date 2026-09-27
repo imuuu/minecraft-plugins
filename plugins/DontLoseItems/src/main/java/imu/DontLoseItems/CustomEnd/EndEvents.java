@@ -56,6 +56,7 @@ import imu.iAPI.Other.ConfigMaker;
 import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ImusUtilities;
+import org.bukkit.ExplosionResult;
 
 
 public class EndEvents implements Listener
@@ -440,7 +441,7 @@ public class EndEvents implements Listener
 				{
 					Player player = (Player)edbe.getDamager();
 					ItemStack stack = player.getInventory().getItemInMainHand();
-					looting = Metods._ins.GetItemStackEnchantCount(stack, Enchantment.LOOT_BONUS_MOBS);
+					looting = Metods._ins.GetItemStackEnchantCount(stack, Enchantment.LOOTING);
 				}
 				
 			}
@@ -679,7 +680,7 @@ public class EndEvents implements Listener
 					{
 						if(entity != null)
 						{
-							EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, hitLoc, blocks, 0);
+							EntityExplodeEvent explodeEvent = new EntityExplodeEvent(entity, hitLoc, blocks, 0f, ExplosionResult.DESTROY);
 							Bukkit.getServer().getPluginManager().callEvent(explodeEvent);
 				    		
 				    		if(explodeEvent.isCancelled()) 

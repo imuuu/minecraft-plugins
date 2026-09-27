@@ -118,7 +118,7 @@ public class EndEvent_SpecialCreepers extends EndEvent
 
 		Creeper creeper = (Creeper) e.getEntity();
 		
-		Entity crystal = creeper.getWorld().spawnEntity(creeper.getLocation().add(0,2,0), EntityType.ENDER_CRYSTAL);
+		Entity crystal = creeper.getWorld().spawnEntity(creeper.getLocation().add(0,2,0), EntityType.END_CRYSTAL);
 		
 		new BukkitRunnable() 
 		{		

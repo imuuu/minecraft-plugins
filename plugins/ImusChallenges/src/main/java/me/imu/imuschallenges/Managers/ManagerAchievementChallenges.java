@@ -24,6 +24,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class ManagerAchievementChallenges implements Listener
 {
@@ -185,7 +186,7 @@ public class ManagerAchievementChallenges implements Listener
             return;
         }
 
-        String advancementKey = advancement.getDisplay().getTitle();
+        String advancementKey = PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
         int points = ManagerAdvancement.getInstance().getPoints(player, advancement).getPoints();
         if (!_globalCompletedAdvancements.contains(advancementKey))
         {

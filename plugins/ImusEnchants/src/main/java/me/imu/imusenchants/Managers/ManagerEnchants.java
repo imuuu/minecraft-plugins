@@ -44,15 +44,15 @@ public class ManagerEnchants
 
     static 
     {
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.LOOT_BONUS_BLOCKS, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.LOOT_BONUS_MOBS, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.DURABILITY, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.ARROW_INFINITE, 1);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.FORTUNE, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.LOOTING, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.UNBREAKING, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.INFINITY, 1);
         MAX_ENCHANT_LEVEL_CAP.put(Enchantment.SILK_TOUCH, 1);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROTECTION_EXPLOSIONS, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROTECTION_FIRE, 4);
-        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROTECTION_PROJECTILE, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROTECTION, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.BLAST_PROTECTION, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.FIRE_PROTECTION, 4);
+        MAX_ENCHANT_LEVEL_CAP.put(Enchantment.PROJECTILE_PROTECTION, 4);
     }
 
 	public static final INode[] VALID_NODES = new INode[]

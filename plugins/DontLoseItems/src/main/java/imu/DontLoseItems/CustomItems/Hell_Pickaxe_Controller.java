@@ -316,7 +316,7 @@ public final class Hell_Pickaxe_Controller
 		if (stack.containsEnchantment(Enchantment.SILK_TOUCH))
 			stack.removeEnchantment(Enchantment.SILK_TOUCH);
 
-		int fortuneLevel = Metods._ins.GetEnchantLevel(stack, Enchantment.LOOT_BONUS_BLOCKS);
+		int fortuneLevel = Metods._ins.GetEnchantLevel(stack, Enchantment.FORTUNE);
 		Hell_Pickaxe hellPickAxe = GetPickaxe(stack);
 		
 		PlaceLavaBlocks(player, hellPickAxe,stack, minedBlock);

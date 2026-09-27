@@ -32,6 +32,13 @@ public class Inv_SelectDifficulty extends CustomInventory
 	}
 
 	@Override
+	public void onAwake()
+	{
+		// Buttons are rebuilt on every open (see onOpen), so there is nothing
+		// to set up once.
+	}
+
+	@Override
 	public void onOpen()
 	{
 		super.onOpen();

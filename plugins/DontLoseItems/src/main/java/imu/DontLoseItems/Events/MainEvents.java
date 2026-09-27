@@ -195,20 +195,20 @@ public class MainEvents implements Listener
 				}
 
 				int protectionLevel = ImusAPI._metods.GetArmorSlotEnchantCount(player,
-						Enchantment.PROTECTION_ENVIRONMENTAL);
+						Enchantment.PROTECTION);
 				int protectileLevel = ImusAPI._metods.GetArmorSlotEnchantCount(player,
-						Enchantment.PROTECTION_PROJECTILE);
+						Enchantment.PROJECTILE_PROTECTION);
 //				System.out.println("prot lvl: "+ protectionLevel + " proj: "+protectileLevel);
 				// System.out.println("player blocking: "+player.isBlocking());
-				double toughnest = player.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS).getValue();
+				double toughnest = player.getAttribute(Attribute.ARMOR_TOUGHNESS).getValue();
 
 				if (toughnest < 1)
 					toughnest = 1;
 //				System.out.println("damage: " + (16.0 * 	(17.0 / (1.0+0.2*protectionLevel+0.4*protectileLevel) )   /  ( toughnest * 2)));
 				double health = player.getHealth()
 						- (16.0 * (17.0 / (1.0 + 0.2 * protectionLevel + 0.4 * protectileLevel)) / (toughnest * 2));
-//				System.out.println(player.getAttribute(Attribute.GENERIC_ARMOR).getValue());
-//				System.out.println(player.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS).getValue());
+//				System.out.println(player.getAttribute(Attribute.ARMOR).getValue());
+//				System.out.println(player.getAttribute(Attribute.ARMOR_TOUGHNESS).getValue());
 
 				if (health < 0)
 					health = 0;

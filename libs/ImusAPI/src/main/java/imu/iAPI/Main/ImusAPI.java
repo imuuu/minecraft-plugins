@@ -1,7 +1,5 @@
 package imu.iAPI.Main;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.j256.ormlite.jdbc.DataSourceConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.zaxxer.hikari.HikariDataSource;
@@ -47,8 +45,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     private HashMap<UUID, CustomInvLayout> _openedInvs = new HashMap<>();
     private HashMap<UUID, ICustomInventory> _openedCustomInventories = new HashMap<>();
 
-    private ProtocolManager _protocolManager;
-    private ProtocolLibUtil _protocolLibUtil;
 
     private List<MySQL> _sqls = new ArrayList<>();
     public static HashSet<Material> AirHashSet;
@@ -84,7 +80,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         _fastInvs = new Manager_FastInventories();
         _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);
 
-        InitiliazeProtocolLib();
 
         RegisterCommands();
         AirHashSet = new HashSet<>();
@@ -119,15 +114,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         {
             sql.CloseDataSource();
         }
-    }
-
-    public void InitiliazeProtocolLib()
-    {
-        _protocolManager = ProtocolLibrary.getProtocolManager();
-        _protocolLibUtil = new ProtocolLibUtil();
-
-        //_protocolManager.addPacketListener(new ChatPacketListener(this));
-
     }
 
     private void InitilizeDataBases()
@@ -214,16 +200,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     public CustomInvLayout GetOpenedInv(Player player)
     {
         return _openedInvs.get(player.getUniqueId());
-    }
-
-    public ProtocolManager GetProtocolManager()
-    {
-        return _protocolManager;
-    }
-
-    public ProtocolLibUtil GetProtocolLibUtil()
-    {
-        return _protocolLibUtil;
     }
 
     private void InitEntities()

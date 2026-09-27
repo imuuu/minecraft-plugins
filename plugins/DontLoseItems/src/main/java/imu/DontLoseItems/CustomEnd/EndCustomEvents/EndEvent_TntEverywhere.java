@@ -33,7 +33,7 @@ public class EndEvent_TntEverywhere extends EndEvent
 	
 	private EntityType[] _types = 
 		{
-			EntityType.PRIMED_TNT,	
+			EntityType.TNT,	
 		};
 	public EndEvent_TntEverywhere()
 	{

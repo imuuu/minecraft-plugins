@@ -64,7 +64,7 @@ public class EndEvent_TntWalk extends EndEvent {
             {
             	if (random.nextInt(100) < 8) 
                 {
-                    TNTPrimed tnt = (TNTPrimed) loc.getWorld().spawnEntity(loc, EntityType.PRIMED_TNT);
+                    TNTPrimed tnt = (TNTPrimed) loc.getWorld().spawnEntity(loc, EntityType.TNT);
                     tnt.setFuseTicks(20*2); 
                 }
             	

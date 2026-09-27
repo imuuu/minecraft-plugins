@@ -28,9 +28,9 @@ public class EndEvent_RandomPotionEffect extends EndEvent
 		_potionEffectsNegatives = new PotionEffect[] {
 				new PotionEffect(PotionEffectType.HUNGER, (int) (GetDuration() * 20), 1),
 				new PotionEffect(PotionEffectType.WEAKNESS, (int) (GetDuration() * 20), 2),
-				new PotionEffect(PotionEffectType.CONFUSION, (int) (GetDuration() * 20), 1), 
-				new PotionEffect(PotionEffectType.SLOW_DIGGING, (int) (GetDuration() * 20), 2), 
-				new PotionEffect(PotionEffectType.SLOW, (int) (GetDuration() * 20), 1), 
+				new PotionEffect(PotionEffectType.NAUSEA, (int) (GetDuration() * 20), 1), 
+				new PotionEffect(PotionEffectType.MINING_FATIGUE, (int) (GetDuration() * 20), 2), 
+				new PotionEffect(PotionEffectType.SLOWNESS, (int) (GetDuration() * 20), 1), 
 				new PotionEffect(PotionEffectType.POISON, (int) (GetDuration() * 20), 1), 
 				};
 
@@ -38,10 +38,10 @@ public class EndEvent_RandomPotionEffect extends EndEvent
 				new PotionEffect(PotionEffectType.ABSORPTION, 	(int) (GetDuration() * 20), 1),
 				new PotionEffect(PotionEffectType.SPEED, 		(int) (GetDuration() * 20), 2),
 				new PotionEffect(PotionEffectType.HEALTH_BOOST, (int) (GetDuration() * 20), 1),
-				new PotionEffect(PotionEffectType.HEAL, 		(int) (GetDuration() * 20), 1), 
-				new PotionEffect(PotionEffectType.FAST_DIGGING, (int) (GetDuration() * 20), 2), 
+				new PotionEffect(PotionEffectType.INSTANT_HEALTH, 		(int) (GetDuration() * 20), 1), 
+				new PotionEffect(PotionEffectType.HASTE, (int) (GetDuration() * 20), 2), 
 				new PotionEffect(PotionEffectType.REGENERATION, 	(int) (GetDuration() * 20), 1), 
-				new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 	(int) (GetDuration() * 20), 1), 
+				new PotionEffect(PotionEffectType.STRENGTH, 	(int) (GetDuration() * 20), 1), 
 				new PotionEffect(PotionEffectType.NIGHT_VISION, 	(int) (GetDuration() * 20), 1), 
 				};
 	}

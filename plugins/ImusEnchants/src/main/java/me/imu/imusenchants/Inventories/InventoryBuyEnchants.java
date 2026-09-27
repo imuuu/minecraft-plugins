@@ -274,7 +274,7 @@ public class InventoryBuyEnchants extends CustomInventory
 
 		_xOffset = 4;
 		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_POTION_EFFECTS);
+		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(stack);
 		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
 		ItemUtils.SetLores(stack, tier1_booster_desc, false);
@@ -285,7 +285,7 @@ public class InventoryBuyEnchants extends CustomInventory
 		addButton(button);
 		
 		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_POTION_EFFECTS);
+		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(stack);
 		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
 		ItemUtils.SetLores(stack, tier2_booster_desc, false);
@@ -296,7 +296,7 @@ public class InventoryBuyEnchants extends CustomInventory
 		addButton(button);
 		
 		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_POTION_EFFECTS);
+		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(stack);
 		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
 		ItemUtils.SetLores(stack, tier3_booster_desc, false);

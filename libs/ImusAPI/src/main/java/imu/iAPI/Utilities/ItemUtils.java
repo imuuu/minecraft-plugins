@@ -584,10 +584,10 @@ public class ItemUtils
 		
 		if(stack.getType() == Material.BOW)
 		{
-			meta.addEnchant(Enchantment.WATER_WORKER, 1, true);
+			meta.addEnchant(Enchantment.AQUA_AFFINITY, 1, true);
 		}else
 		{
-			meta.addEnchant(Enchantment.ARROW_INFINITE, 1, true);
+			meta.addEnchant(Enchantment.INFINITY, 1, true);
 		}		
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		stack.setItemMeta(meta);

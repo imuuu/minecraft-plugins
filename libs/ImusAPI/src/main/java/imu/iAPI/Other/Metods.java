@@ -35,7 +35,6 @@ import org.bukkit.conversations.StringPrompt;
 //import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 //import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 
-import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -68,9 +67,6 @@ import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Utilities.ItemUtilToolsArmors;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.level.block.entity.TileEntity;
 
 public class Metods 
 {
@@ -1434,10 +1430,10 @@ public class Metods
 		
 		if(stack.getType() == Material.BOW)
 		{
-			meta.addEnchant(Enchantment.WATER_WORKER, 1, true);
+			meta.addEnchant(Enchantment.AQUA_AFFINITY, 1, true);
 		}else
 		{
-			meta.addEnchant(Enchantment.ARROW_INFINITE, 1, true);
+			meta.addEnchant(Enchantment.INFINITY, 1, true);
 		}		
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		stack.setItemMeta(meta);
@@ -1468,58 +1464,19 @@ public class Metods
 	{
 		return Math.round(value * 100.00) / 100.00;
 	}
+	/**
+	 * Copies the block at {@code copyBlock} onto {@code toSetBlock}: type, block
+	 * data and, if it has one, its tile entity data (chest contents, sign text,
+	 * spawner settings...).
+	 *
+	 * @return false if the source block has no tile entity. The type and block
+	 *         data are copied either way.
+	 */
 	public boolean copyBlock(Block copyBlock, Block toSetBlock)
 	{
-		Material mat_copy = copyBlock.getType();
-		Material mat_set = toSetBlock.getType();
-		
-		if(mat_copy != mat_set)
-		{
-			toSetBlock.setType(mat_copy, false);
-		}
-		
-		if(copyBlock.getState() != toSetBlock.getState())
-		{			
-			final BlockState bState = toSetBlock.getState();
-			bState.setBlockData(copyBlock.getBlockData());
-			bState.update(true);
-		}
-		
-		CraftWorld cw1 = (CraftWorld)copyBlock.getWorld();
-		CraftWorld cw2 = (CraftWorld)toSetBlock.getWorld();
-		
-		Location loc_copy = copyBlock.getLocation();
-		//TileEntity targetEntity = cw1.getHandle().
-		//cw1.getHandle().
-		//net.minecraft.core.BlockPosition blockPos = new BlockPosition(loc_copy.getBlockX(),loc_copy.getBlockY(),loc_copy.getBlockZ());
-		TileEntity targetEntity = cw1.getHandle().c_( new BlockPosition(loc_copy.getBlockX(),loc_copy.getBlockY(),loc_copy.getBlockZ()));
-		//TileEntity targetEntity = cw1.getHandle().c
-		if(targetEntity == null)
-		{
-			return false;
-		}
-		Location loc_set = toSetBlock.getLocation();
-		TileEntity copyEntity = cw2.getHandle().c_(new BlockPosition(loc_set.getBlockX(),loc_set.getBlockY(),loc_set.getBlockZ())); //get tileentity
-		if(copyEntity == null)
-		{
-			return false;
-		}
-
-		NBTTagCompound ntc = new NBTTagCompound();
-		NBTTagCompound ntc2 = new NBTTagCompound();
-		targetEntity.a(ntc); //save
-		//targetEntity.a
-		ntc2 = (NBTTagCompound) ntc.h(); //ntc.clone()katto
-		ntc2.a("x", loc_set.getBlockX());
-		ntc2.a("y", loc_set.getBlockY()); //setInt
-		ntc2.a("z", loc_set.getBlockZ());
-		copyEntity.a(ntc2); //load  ja targetEntity.Getblock()
-		//copyEntity.
-//		copyEntity.ae_(); //update
-		//copyEntity.ar_(); //update
-		copyEntity.at_();
-		
-		return true;
+		BlockState source = copyBlock.getState();
+		source.copy(toSetBlock.getLocation()).update(true, false);
+		return source instanceof TileState;
 	}
 	
 	public ItemStack[] GetShulkerBoxContent(ItemStack stack)

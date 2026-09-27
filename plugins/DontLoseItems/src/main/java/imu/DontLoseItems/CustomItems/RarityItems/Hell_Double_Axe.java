@@ -107,8 +107,8 @@ public class Hell_Double_Axe extends RarityItem
 		{
 			dustOptions = new DustOptions(Color.RED, 1.5f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
-			if(Rarity != ITEM_RARITY.Void) loc.getWorld().spawnParticle(Particle.DRIP_LAVA, loc.clone(), 5, 0.1,0.1,0.1);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
+			if(Rarity != ITEM_RARITY.Void) loc.getWorld().spawnParticle(Particle.DRIPPING_LAVA, loc.clone(), 5, 0.1,0.1,0.1);
 			else loc.getWorld().spawnParticle(Particle.FALLING_OBSIDIAN_TEAR, loc.clone(), 5, 0.1,0.1,0.1);
 			return;
 		}
@@ -116,62 +116,62 @@ public class Hell_Double_Axe extends RarityItem
 		{
 			dustOptions = new DustOptions(Color.YELLOW, 1.3f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 7) 
 		{
 			dustOptions = new DustOptions(Color.GREEN, 1.1f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 6) 
 		{
 			dustOptions = new DustOptions(Color.BLUE, 1.0f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 5) 
 		{
 			dustOptions = new DustOptions(Color.PURPLE, 0.9f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 4) 
 		{
 			dustOptions = new DustOptions(Color.AQUA, 0.8f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 3) 
 		{
 			dustOptions = new DustOptions(Color.PURPLE, 0.6f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 2)
 		{
 			dustOptions = new DustOptions(Color.TEAL, 0.5f);
 
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		if(damage > 1)
 		{
 			dustOptions = new DustOptions(Color.GRAY, 0.4f);
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 		
 		if(damage > 0)
 		{
 			dustOptions = new DustOptions(Color.BLACK, 0.3f);
-			loc.getWorld().spawnParticle(Particle.REDSTONE, loc.clone(), 1, dustOptions);
+			loc.getWorld().spawnParticle(Particle.DUST, loc.clone(), 1, dustOptions);
 			return;
 		}
 	

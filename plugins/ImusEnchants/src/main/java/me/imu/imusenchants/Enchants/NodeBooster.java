@@ -87,7 +87,7 @@ public class NodeBooster extends NodeDirectional
 		ItemStack itemStack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
 		ItemUtils.SetDisplayName(itemStack, color+"BOOSTER &3(&5"+str_directions+"&3)");
 		ItemUtils.AddLore(itemStack, "&6⚡: &2" + _power, true);
-		ItemUtils.HideFlag(itemStack, ItemFlag.HIDE_POTION_EFFECTS);
+		ItemUtils.HideFlag(itemStack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(itemStack);
 		ItemUtils.SetPersistenData(itemStack, PD_BOOSTER, PersistentDataType.INTEGER, _power);
 		SetDirectionsPD(itemStack);

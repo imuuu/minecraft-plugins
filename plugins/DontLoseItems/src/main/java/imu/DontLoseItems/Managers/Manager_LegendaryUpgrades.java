@@ -75,10 +75,10 @@ public class Manager_LegendaryUpgrades
 		
 //		ItemMeta meta = stack.getItemMeta();
 //		 		
-//		meta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 0,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-//		meta.addAttributeModifier(Attribute.GENERIC_MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-//		meta.addAttributeModifier(Attribute.GENERIC_ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor",0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-//		meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness",0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+//		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 0,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+//		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+//		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor",0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+//		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness",0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
 //
 //		stack.setItemMeta(meta);
 		stack = Metods._ins.addLore(stack, lores);

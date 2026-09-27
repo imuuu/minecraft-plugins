@@ -3,7 +3,7 @@ package me.imu.imuschallenges.Managers;
 import me.imu.imuschallenges.Datas.DataPlayerAdvancements;
 import org.bukkit.Bukkit;
 import org.bukkit.advancement.Advancement;
-import org.bukkit.advancement.AdvancementDisplay;
+import io.papermc.paper.advancement.AdvancementDisplay;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.Player;
 
@@ -34,7 +34,7 @@ public class ManagerAdvancement
                 AdvancementDisplay display = advancement.getDisplay();
                 if (display != null)
                 {
-                    String type = display.getType().toString();
+                    String type = display.frame().name();
 
                     // Increment respective counters
                     switch (type)
@@ -63,7 +63,7 @@ public class ManagerAdvancement
         AdvancementDisplay display = advancement.getDisplay();
         if (display != null)
         {
-            String type = display.getType().toString();
+            String type = display.frame().name();
             switch (type)
             {
                 case "CHALLENGE":

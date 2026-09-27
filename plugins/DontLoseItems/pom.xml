@@ -23,15 +23,6 @@
             <groupId>me.imu</groupId>
             <artifactId>ImusAPI</artifactId>
         </dependency>
-        <!-- Hell_Hoe and Manager_HellArmor import net.minecraft classes. -->
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.dmulloy2</groupId>
-            <artifactId>ProtocolLib</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.magmaguy</groupId>
             <artifactId>BetterStructures</artifactId>

@@ -40,13 +40,13 @@ public class EndChestLootEvents implements Listener
 {
 	public static EndChestLootEvents Instance;
 
-	private ImusLootTable<ItemStack> _lootTable_valuables;
-	private ImusLootTable<ItemStack> _lootTable_food;
-	private ImusLootTable<ItemStack> _lootTable_leg_upgrades;
-	private ImusLootTable<Enchantment> _lootTable_enchants_armor;
-	private ImusLootTable<Enchantment> _lootTable_enchants_tool;
+	private ImusLootTable _lootTable_valuables;
+	private ImusLootTable _lootTable_food;
+	private ImusLootTable _lootTable_leg_upgrades;
+	private ImusLootTable _lootTable_enchants_armor;
+	private ImusLootTable _lootTable_enchants_tool;
 
-	private ImusLootTable<Integer> _lootTable_stackMaxAmounts;
+	private ImusLootTable _lootTable_stackMaxAmounts;
 
 	private int _chestRollMaxAmount = 10;
 
@@ -65,12 +65,12 @@ public class EndChestLootEvents implements Listener
 	private void InitLootTable()
 	{
 
-		_lootTable_stackMaxAmounts = new ImusLootTable<>();
-		_lootTable_valuables = new ImusLootTable<>();
-		_lootTable_food = new ImusLootTable<>();
-		_lootTable_enchants_armor = new ImusLootTable<>();
-		_lootTable_enchants_tool = new ImusLootTable<>();
-		_lootTable_leg_upgrades = new ImusLootTable<>();
+		_lootTable_stackMaxAmounts = new ImusLootTable();
+		_lootTable_valuables = new ImusLootTable();
+		_lootTable_food = new ImusLootTable();
+		_lootTable_enchants_armor = new ImusLootTable();
+		_lootTable_enchants_tool = new ImusLootTable();
+		_lootTable_leg_upgrades = new ImusLootTable();
 
 		_lootTable_stackMaxAmounts.add(5, 90);
 		_lootTable_stackMaxAmounts.add(10, 70);
@@ -204,18 +204,18 @@ public class EndChestLootEvents implements Listener
 			ItemStack stack;
 //			if(ThreadLocalRandom.current().nextInt(100) < blockLootChance)
 //			{
-//				stack = GetValidAmountStack(_lootTable_blocks.getLoot().clone());
+//				stack = GetValidAmountStack(((ItemStack) _lootTable_blocks.getLoot()).clone());
 //				stacks.add(stack);				
 //			}
 			if (ThreadLocalRandom.current().nextInt(100) < valuableChance)
 			{
-				stack = GetValidAmountStack(_lootTable_valuables.getLoot().clone());
+				stack = GetValidAmountStack(((ItemStack) _lootTable_valuables.getLoot()).clone());
 				stacks.add(stack);
 			}
 
 			if (ThreadLocalRandom.current().nextInt(100) < foodChance)
 			{
-				stack = GetValidAmountStack(_lootTable_food.getLoot().clone());
+				stack = GetValidAmountStack(((ItemStack) _lootTable_food.getLoot()).clone());
 				stacks.add(stack);
 			}
 
@@ -227,7 +227,7 @@ public class EndChestLootEvents implements Listener
 			
 			if (ThreadLocalRandom.current().nextInt(100) < legendaryUpgrades)
 			{
-				stack = GetValidAmountStack(_lootTable_leg_upgrades.getLoot().clone());
+				stack = GetValidAmountStack(((ItemStack) _lootTable_leg_upgrades.getLoot()).clone());
 				stacks.add(stack);
 			}
 
@@ -237,7 +237,7 @@ public class EndChestLootEvents implements Listener
 
 	private ItemStack GetValidAmountStack(ItemStack stack)
 	{
-		stack.setAmount(ThreadLocalRandom.current().nextInt((_lootTable_stackMaxAmounts.getLoot()) + 1));
+		stack.setAmount(ThreadLocalRandom.current().nextInt(((Integer) _lootTable_stackMaxAmounts.getLoot()) + 1));
 
 		if (stack.getType() == Material.NETHER_STAR)
 		{
@@ -281,10 +281,10 @@ public class EndChestLootEvents implements Listener
 			
 			if(!Manager_LegendaryUpgrades.Instance.IsUpgrade(stack)) EnchantArmor(stack, 5, 2);
 
-			if (Metods._ins.HasEnchant(stack, Enchantment.DURABILITY) && ThreadLocalRandom.current().nextInt(100) < 20)
+			if (Metods._ins.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
 			{
-				stack.removeEnchantment(Enchantment.DURABILITY);
-				stack.addUnsafeEnchantment(Enchantment.DURABILITY, 4);
+				stack.removeEnchantment(Enchantment.UNBREAKING);
+				stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 4);
 			}
 		}
 
@@ -294,10 +294,10 @@ public class EndChestLootEvents implements Listener
 			
 			if(!Manager_LegendaryUpgrades.Instance.IsUpgrade(stack)) EnchantTool(stack, 5, 2);
 
-			if (Metods._ins.HasEnchant(stack, Enchantment.DURABILITY) && ThreadLocalRandom.current().nextInt(100) < 20)
+			if (Metods._ins.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
 			{
-				stack.removeEnchantment(Enchantment.DURABILITY);
-				stack.addUnsafeEnchantment(Enchantment.DURABILITY, 4);
+				stack.removeEnchantment(Enchantment.UNBREAKING);
+				stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 4);
 			}
 		}
 
@@ -342,7 +342,7 @@ public class EndChestLootEvents implements Listener
 			if (ThreadLocalRandom.current().nextInt(100) > 50)
 				break;
 
-			Enchantment ench = _lootTable_enchants_tool.getLoot();
+			Enchantment ench = ((Enchantment) _lootTable_enchants_tool.getLoot());
 			int level = ThreadLocalRandom.current().nextInt(ench.getMaxLevel()) + miniumLevel;
 
 			if (level == 0)
@@ -382,7 +382,7 @@ public class EndChestLootEvents implements Listener
 			if (ThreadLocalRandom.current().nextInt(100) > 55)
 				break;
 
-			Enchantment ench = _lootTable_enchants_armor.getLoot();
+			Enchantment ench = ((Enchantment) _lootTable_enchants_armor.getLoot());
 			int level = ThreadLocalRandom.current().nextInt(ench.getMaxLevel()) + miniumLevel;
 
 			if (level == 0)

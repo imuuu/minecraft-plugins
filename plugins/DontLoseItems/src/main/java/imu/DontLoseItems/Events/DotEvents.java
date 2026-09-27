@@ -117,7 +117,7 @@ public class DotEvents implements Listener
 			return;
 		}
 
-		int totalLevel = Metods._ins.GetArmorSlotEnchantCount(player, Enchantment.PROTECTION_PROJECTILE);
+		int totalLevel = Metods._ins.GetArmorSlotEnchantCount(player, Enchantment.PROJECTILE_PROTECTION);
 		int chance = _foodReduceChance -(totalLevel * 3);
 
 		if( _rand.nextInt(100) < chance)
