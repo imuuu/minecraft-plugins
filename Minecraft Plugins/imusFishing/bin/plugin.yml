@@ -1,7 +1,0 @@
-name: imusFishing
-author: imu
-version: 1.0
-main: imu.iFishing.Main.ImusFishing
-api-version: 1.20
-depend: [imusAPI]
-commands:

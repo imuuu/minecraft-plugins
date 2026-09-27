@@ -1,8 +1,0 @@
-name: DontLoseItems
-author: imu
-version: 1.0
-main: imu.DontLoseItems.main.DontLoseItems
-description: Dont lose your items
-api-version: 1.20
-depend: [imusAPI]
-commands:

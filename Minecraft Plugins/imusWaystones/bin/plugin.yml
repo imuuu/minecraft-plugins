@@ -1,8 +1,0 @@
-name: imusWaystones
-author: imu
-version: 1.0
-main: imu.iWaystones.Main.ImusWaystones
-api-version: 1.20
-softdepend: [imusAPI]
-commands:
-   iw:

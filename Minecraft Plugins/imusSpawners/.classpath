@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="E:/McServerThings/Server1.20.1/plugins/ImusAPI.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="E:/McServerThings/BuildTools/Spigot/Spigot-API/target/spigot-api-1.20.2-R0.1-SNAPSHOT.jar"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>

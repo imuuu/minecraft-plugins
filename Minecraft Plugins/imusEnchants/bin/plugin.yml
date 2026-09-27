@@ -1,9 +1,0 @@
-name: imusEnchants
-author: imu
-version: 1.0
-main: imu.imusEnchants.main.ImusEnchants
-description: Imus Enchants
-api-version: 1.20
-depend: [imusAPI]
-commands:
-   ie:

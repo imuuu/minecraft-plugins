@@ -1,8 +1,0 @@
-name: imusCards
-author: imu
-version: 1.0
-main: imu.iCards.Main.ImusCards
-api-version: 1.19
-softdepend: [imusAPI]
-commands:
-   ic:
