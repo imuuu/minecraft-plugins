@@ -3,6 +3,6 @@ author: imu
 version: 1.0
 main: imu.imusSpawners.main.ImusSpawners
 description: Imus Spawners
-api-version: 1.20
+api-version: '26.2'
 depend: [imusAPI]
 commands:

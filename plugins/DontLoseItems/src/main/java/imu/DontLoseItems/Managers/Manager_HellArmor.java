@@ -57,6 +57,7 @@ import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ImusUtilities;
+import org.bukkit.NamespacedKey;
 
 public class Manager_HellArmor implements Listener
 {
@@ -265,10 +266,10 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 	
-		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", rarityItem.Values[0],AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[0], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
 
 		stack.setItemMeta(meta);
 
@@ -310,10 +311,10 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 	
-		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", rarityItem.Values[0],AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
-		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
-		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
-		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[0], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
+		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
+		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
+		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 
 		stack.setItemMeta(meta);
 
@@ -358,11 +359,11 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 	
-		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", rarityItem.Values[0],AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
-		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
-		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
-		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
-		if(rarityItem.Values[4] != 0.00) meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.armor_knocback", rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[0], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
+		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
+		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
+		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
+		if(rarityItem.Values[4] != 0.00) meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
 
 		stack.setItemMeta(meta);
 
@@ -406,11 +407,11 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 	
-		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", rarityItem.Values[0],AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
-		if(rarityItem.Values[4] != 0.00) meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		if(rarityItem.Values[0] != 0.00) meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[0], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
+		if(rarityItem.Values[1] != 0.00) meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[1], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
+		if(rarityItem.Values[2] != 0.00) meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
+		if(rarityItem.Values[3] != 0.00) meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
+		if(rarityItem.Values[4] != 0.00) meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 
 		stack.setItemMeta(meta);
 
@@ -560,11 +561,11 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 	
-		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", hellBoots.Values[0]+0.01,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health", 1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", hellBoots.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", hellBoots.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.knockback_res", 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellBoots.Values[0]+0.01, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellBoots.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellBoots.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
 
 		stack.setItemMeta(meta);
 
@@ -605,20 +606,15 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 		// {0.01,  0,  6, 3, 0, 3}),	
-		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 
-				helllegg.Values[0]+0.01,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), helllegg.Values[0]+0.01, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health",
-				2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", 
-				helllegg.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), helllegg.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", 
-				helllegg.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), helllegg.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.knockback_res",
-				0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS));
+		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		stack.setItemMeta(meta);
 
 		Metods._ins.setPersistenData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER, 2);
@@ -666,17 +662,13 @@ public class Manager_HellArmor implements Listener
 //		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 
 //				helllchess.Values[0]+0.01,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
 		
-		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health",
-				2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", 
-				helllchess.Values[2]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), helllchess.Values[2]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", 
-				helllchess.Values[3]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), helllchess.Values[3]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
 		
-		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.knockback_res",
-				0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
+		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST.getGroup()));
 		stack.setItemMeta(meta);
 
 		
@@ -721,20 +713,15 @@ public class Manager_HellArmor implements Listener
 		ItemMeta meta = stack.getItemMeta();
  
 		//{0.01,  0,  2, 2, 0, 3}),	
-		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 
-				hellHelmet.Values[0]+0.01,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellHelmet.Values[0]+0.01, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 
-		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(UUID.randomUUID(), "generic.health",
-				1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		meta.addAttributeModifier(Attribute.MAX_HEALTH, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 
-		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", 
-				hellHelmet.Values[2]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellHelmet.Values[2]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 
-		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", 
-				hellHelmet.Values[3]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), hellHelmet.Values[3]+1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 
-		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.knockback_res",
-				0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
+		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD.getGroup()));
 		stack.setItemMeta(meta);
 
 

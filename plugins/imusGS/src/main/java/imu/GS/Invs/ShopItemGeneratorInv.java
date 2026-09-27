@@ -361,7 +361,7 @@ public class ShopItemGeneratorInv extends CustomInvLayout implements IModDataInv
 		
 		int randInt = ThreadLocalRandom.current().nextInt(Material.values().length);
 		Material mat = Material.values()[randInt];
-		if(_blockedMaterials.contains(mat)){GenerateItem(slot); return;}
+		if(_blockedMaterials.contains(mat) || !mat.isItem() || mat.isLegacy()){GenerateItem(slot); return;}
 		
 		ItemStack stack = new ItemStack(mat);
 		if(ImusAPI._metods.isTool(stack) || ImusAPI._metods.isArmor(stack))

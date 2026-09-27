@@ -26,8 +26,6 @@
         <dependency>
             <groupId>com.magmaguy</groupId>
             <artifactId>BetterStructures</artifactId>
-            <version>1.6.4</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

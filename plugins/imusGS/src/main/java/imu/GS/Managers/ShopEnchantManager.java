@@ -112,6 +112,7 @@ public class ShopEnchantManager extends Manager
 				ItemStack stack;
 				for(Material mat : Material.values())
 				{
+					if(!mat.isItem() || mat.isLegacy()) continue;
 					stack = new ItemStack(mat);
 					if(Metods._ins.isArmor(stack) || Metods._ins.isTool(stack))
 					{

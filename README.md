@@ -1,8 +1,9 @@
 # Imu Minecraft Plugins
 
-Spigot plugins for the Drevaria server. One Maven reactor: `ImusAPI` is the
-shared library, every plugin builds against it, so an API change and the
-plugins that use it move in a single commit.
+Paper plugins for the Drevaria server, targeting **Minecraft 26.2** (Paper
+26.2, Java 25). One Maven reactor: `ImusAPI` is the shared library, every
+plugin builds against it, so an API change and the plugins that use it move
+in a single commit.
 
 ## Layout
 
@@ -11,23 +12,26 @@ pom.xml            parent POM: shared versions, repositories, plugin config
 libs/ImusAPI       shared library, published as me.imu:ImusAPI
 plugins/*          one Maven module per plugin
 archive/           older plugins and experiments, kept as source, not built
+run/               local test server (git-ignored, see below)
 ```
 
-The modules that are built are the ones actually running on the 1.20.1
+The modules that are built are the ones that were running on the old 1.20.1
 server: `ImusAPI`, `DontLoseItems`, `ImusChallenges`, `ImusEnchants`,
 `imusGS`, `imusSpawners`, `imusTNT`, `imusWaystones`, plus `imusMcCards`.
 
 ## Prerequisites
 
-- JDK 17. Minecraft 1.20.2 needs it, and some of this code already uses text
-  blocks and switch rules.
+- JDK 25 (Paper 26.x's minimum).
 - Maven 3.9+.
-- Four artifacts that no public repository serves, installed into `~/.m2`:
-  `org.spigotmc:spigot:1.20.2-R0.1-SNAPSHOT` (produced by Spigot's BuildTools,
-  needed for the `net.minecraft` and `craftbukkit` classes),
-  `com.github.dmulloy2:ProtocolLib:5.1.0`,
-  `com.github.MilkBowl:VaultAPI:1.7` and
-  `com.magmaguy:BetterStructures:1.6.4`. See "Installing the local artifacts".
+- `com.magmaguy:BetterStructures:2.7.4` in `~/.m2` — it is not published to
+  any Maven repository. Install it from the plugin jar:
+
+  ```
+  mvn install:install-file -Dfile=run/plugins/BetterStructures.jar -DgroupId=com.magmaguy -DartifactId=BetterStructures -Dversion=2.7.4 -Dpackaging=jar
+  ```
+
+  Everything else resolves from the Paper repository, JitPack (VaultAPI) and
+  Maven Central.
 
 ## Build
 
@@ -39,11 +43,11 @@ Jars land in each module's `target/`. To build straight into a server's
 plugins folder instead:
 
 ```
-mvn clean package -Dplugin.output.dir=E:/McServerThings/Server1.20.1/plugins
+mvn clean package -Dplugin.output.dir=path/to/server/plugins
 ```
 
-That path used to be hardcoded in every POM; it is now the
-`plugin.output.dir` property, so the build works on any machine.
+The shade plugin leaves an `original-<name>.jar` next to each plugin jar;
+copy only the shaded ones, or Paper will try to load every plugin twice.
 
 To build one plugin and the library it needs:
 
@@ -51,46 +55,69 @@ To build one plugin and the library it needs:
 mvn -pl plugins/imusTNT -am package
 ```
 
-### Build status
+To move to a newer Minecraft, change `paper.version` in `pom.xml` to a
+`*-stable` build from repo.papermc.io and the `api-version` in each
+`plugin.yml`.
 
-Eight of the nine modules compile. `DontLoseItems` does not, and did not
-before this restructure either — it is stale against the current ImusAPI:
+## Server requirements
 
-- it declares `ImusLootTable<ItemStack>`, but `ImusLootTable` is no longer
-  generic (it holds `List<ILootTableItem<?>>` instead), and
-- `Inv_SelectDifficulty` does not implement `ICustomInventory.onAwake()`,
-  which the interface gained later.
+Other plugins, all loaded as `depend`/`softdepend` in `plugin.yml`:
 
-The `DontLoseItems.jar` running on the server was built in December 2023,
-against the ImusAPI of that time. Updating the plugin to the current API is a
-real change to its loot handling, so it is left as is rather than guessed at.
+| Plugin | Needed by | Tested with |
+|---|---|---|
+| Vault + an economy (EssentialsX) | imusAPI, imusGS | Vault 1.7.3, EssentialsX 2.22.1-dev |
+| BetterStructures (needs WorldEdit) | DontLoseItems, ImusEnchants | 2.7.4, WorldEdit 7.4.6-beta-02 |
 
-## Installing the local artifacts
+ProtocolLib is no longer needed: its uses were replaced with Paper API.
 
-`org.spigotmc:spigot` is the remapped server jar; build it once with Spigot's
-BuildTools, which installs it (plus `spigot-parent` and `minecraft-server`)
-into `~/.m2`:
+**imusAPI requires a MySQL/MariaDB server.** It has no fallback: without a
+database its `onEnable` fails, and every plugin that depends on it fails to
+load. Connection settings are in `plugins/imusAPI/config.yml` (defaults:
+`localhost:3306`, user `root`, empty password). ImusChallenges, imusGS and
+imusWaystones create their own databases on the same server.
+
+## Local test server
+
+`run/` holds a Paper 26.2 server with the plugins above, bound to
+`127.0.0.1:25599` in offline mode. It is git-ignored. With a database
+listening on 3306 (for example XAMPP's MariaDB started against the private
+datadir in `run/mariadb-data`):
 
 ```
-java -jar BuildTools.jar --rev 1.20.2 --remapped
+F:/xampp/mysql/bin/mysqld.exe --defaults-file=run/mariadb-data/my.ini --console
 ```
 
-The other three are plugin jars installed by hand. `BetterStructures` ships
-with the server:
+build, copy the jars and start the server:
 
 ```
-mvn install:install-file -Dfile=E:/McServerThings/Server1.20.1/plugins/BetterStructures.jar -DgroupId=com.magmaguy -DartifactId=BetterStructures -Dversion=1.6.4 -Dpackaging=jar
+cd run
+java -Xms1G -Xmx2G -jar paper.jar --nogui
 ```
 
-`ProtocolLib` and `VaultAPI` are installed the same way, as
-`com.github.dmulloy2:ProtocolLib:5.1.0` and
-`com.github.MilkBowl:VaultAPI:1.7`.
+## Known leftovers
 
-Note that VaultAPI 1.7 declares a dependency on `org.bukkit:bukkit:1.13.1`,
-which shadows spigot-api on the compile classpath and hides everything added
-to `Material`, `EntityType` and `ItemMeta` since 1.13. The parent POM excludes
-it. The old per-plugin POMs only worked because they happened to list
-spigot-api before VaultAPI.
+- `org.bukkit.conversations` (ConversationFactory, Prompt, ...) is marked for
+  removal in Paper. It still works on 26.2 and is used in 12 files across
+  ImusAPI, imusGS and imusWaystones; its replacement, Paper's Dialog API, is
+  a different UI, so the prompts were left as they are.
+- Paper nags about `System.out.println` in five plugins. Cosmetic.
+
+## Porting notes (1.20.2 Spigot → 26.2 Paper)
+
+- 174 Bukkit constant renames (`Enchantment.DURABILITY` → `UNBREAKING`,
+  `Attribute.GENERIC_*` → no prefix, `Particle.REDSTONE` → `DUST`, ...).
+- `AttributeModifier(UUID, String, ...)` → `AttributeModifier(NamespacedKey,
+  ..., EquipmentSlotGroup)`. Each modifier still gets a random, unique key:
+  in 1.21+ modifiers with the same key replace each other.
+- NMS and ProtocolLib replaced with Paper API: `BlockState.copy(Location)`
+  for tile-entity copying, `setVisibleByDefault` and `swingMainHand` for the
+  throwing axe.
+- `new ItemStack(material)` now throws for block-only (`*_WALL_HANGING_SIGN`)
+  and `LEGACY_*` materials; loops over `Material.values()` skip them.
+- VaultAPI 1.7 declares a dependency on `org.bukkit:bukkit:1.13.1`, which
+  would shadow paper-api on the compile classpath. The parent POM excludes it.
+- javac runs forked: in-process javac 25 crashes while formatting a
+  deprecation warning on DontLoseItems.
 
 ## Archive
 

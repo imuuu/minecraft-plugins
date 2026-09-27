@@ -29,9 +29,10 @@ public class Cmd implements CommandInterface
     	
     	if(player.isOp() && ImusAPI._metods.doesStrArrayCointainStr(args, "kamat"))
     	{
+    		Material[] items = java.util.Arrays.stream(Material.values()).filter(m -> m.isItem() && !m.isLegacy() && !m.isAir()).toArray(Material[]::new);
     		for(int i = 0; i < player.getInventory().getContents().length-6; ++i)
     		{
-    			player.getInventory().setItem(i, new ItemStack(Material.values()[i],64));
+    			player.getInventory().setItem(i, new ItemStack(items[i],64));
     		}
     	}
     	

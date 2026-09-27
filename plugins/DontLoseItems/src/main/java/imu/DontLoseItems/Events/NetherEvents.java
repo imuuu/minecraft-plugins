@@ -57,7 +57,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -77,6 +76,7 @@ import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.ExplosionResult;
+import org.bukkit.NamespacedKey;
 
 
 public class NetherEvents implements Listener
@@ -604,8 +604,8 @@ public class NetherEvents implements Listener
 			ItemMeta meta = stack.getItemMeta();
 	 
 		
-			meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.movementSpeed", 0.02,AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
-			meta.addAttributeModifier(Attribute.ATTACK_SPEED, new AttributeModifier(UUID.randomUUID(), "generic.attackSpeed", 10f, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
+			meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 0.02, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
+			meta.addAttributeModifier(Attribute.ATTACK_SPEED, new AttributeModifier(new NamespacedKey(DontLoseItems.Instance, UUID.randomUUID().toString()), 10f, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET.getGroup()));
 			//meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(UUID.randomUUID(), "generic.armor", rarityItem.Values[2], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
 			//meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[3], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HEAD));
 			//meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness", rarityItem.Values[4], AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST));
@@ -676,7 +676,6 @@ public class NetherEvents implements Listener
 		System.out.println("damage: "+arrow.getDamage());
         arrow.setDamage(arrow.getDamage() * 2);
         Vector velocity = arrow.getVelocity();
-        arrow.setBounce(false);
         arrow.setShooter(shooter);
 //        arrow.setGlowing(true);
 //        arrow.setColor(Color.GREEN);
@@ -691,7 +690,6 @@ public class NetherEvents implements Listener
 	{
         arrow.setDamage(arrow.getDamage() * 2);
         //Vector velocity = arrow.getVelocity();
-        arrow.setBounce(false);
         arrow.setShooter((LivingEntity)target);
         arrow.setGlowing(true);
         arrow.setTicksLived(20 * 55);
@@ -1009,9 +1007,7 @@ public class NetherEvents implements Listener
 	    if (stack.getType() != Material.POTION)  return;
 	    
 	    PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
-	    PotionData potionData = potionMeta.getBasePotionData();
-	    
-	    if (potionData.getType() != PotionType.WATER)  return;
+	    if (potionMeta.getBasePotionType() != PotionType.WATER)  return;
 	      
 	    player.setFireTicks(0);
         PotionEffect fireResistance = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0);

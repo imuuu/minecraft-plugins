@@ -52,7 +52,7 @@ public class VoidTotemEvents implements Listener
                 }
 
                 if(ValidateTotem(player.getInventory())) {
-                    player.playEffect(EntityEffect.TOTEM_RESURRECT);
+                    player.playEffect(EntityEffect.PROTECTED_FROM_DEATH);
                     player.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1200, 0));
                     players.add(player);
                     controller.findSafeBlock(player);

@@ -380,7 +380,6 @@ public final class Hell_ReflectShieldController implements Listener
 		int damageMulti = rarity.GetIndex() - 2;
 
 		arrow.setDamage(arrow.getDamage() * damageMulti);
-		arrow.setBounce(false);
 		arrow.setShooter((LivingEntity) target);
 		// arrow.setGlowing(true);
 		arrow.setTicksLived((int) (20 * ArrowLifeTimeSecons));

@@ -110,7 +110,7 @@ public class ManagerCCollectMaterial implements Listener
         Bukkit.getLogger().info("[ImusChallenges] Creating uncollected materials... total of: " + Material.values().length + " materials");
         for (Material material : Material.values())
         {
-            if (!material.isItem())
+            if (!material.isItem() || material.isLegacy())
             {
                 continue;
             }

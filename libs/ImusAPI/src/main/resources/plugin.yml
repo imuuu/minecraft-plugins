@@ -3,8 +3,8 @@ author: imukuppikorva
 version: 1.1
 main: imu.iAPI.Main.ImusAPI
 description: imus own api
-softdepend: [ProtocolLib]
-api-version: 1.20
+softdepend: [Vault]
+api-version: '26.2'
 commands:
    ia:
      description: ia

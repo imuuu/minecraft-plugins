@@ -21,3 +21,6 @@ build/
 # OS
 Thumbs.db
 desktop.ini
+
+# Local test server
+run/

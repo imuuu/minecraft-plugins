@@ -290,7 +290,7 @@ public class ManagerChallengeShop
                 continue;
 
 
-            if (material.isItem())
+            if (material.isItem() && !material.isLegacy())
             {
                 stack = new ItemStack(material);
                 stack.setAmount(ThreadLocalRandom.current().nextInt(1, 64));

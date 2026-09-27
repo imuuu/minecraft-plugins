@@ -1,7 +1,7 @@
 name: ImusChallenges
 version: '${project.version}'
 main: me.imu.imuschallenges.ImusChallenges
-api-version: 1.20
+api-version: '26.2'
 authors: [ imukuppikorvaa ]
 description: The challanges for drevaria server
 depend:

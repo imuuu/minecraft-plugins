@@ -1608,8 +1608,8 @@ public class Metods
 		NamespacedKey key = new NamespacedKey(ImusAPI._instance, id);
         
         
-        RecipeChoice.ExactChoice choice1 = new RecipeChoice.ExactChoice(stack1);
-        RecipeChoice.ExactChoice choice2 = new RecipeChoice.ExactChoice(stack2);
+        RecipeChoice.ExactChoice choice1 = RecipeChoice.exactChoice(stack1);
+        RecipeChoice.ExactChoice choice2 = RecipeChoice.exactChoice(stack2);
         
         Bukkit.getServer().addRecipe(new SmithingRecipe(
                 key,
