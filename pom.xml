@@ -25,7 +25,9 @@
     </modules>
 
     <properties>
-        <java.version>1.8</java.version>
+        <!-- Minecraft 1.20.2 requires Java 17 to run, and DontLoseItems already
+             uses text blocks and switch rules, so 8 was never really the target. -->
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Where packaged jars are written. Defaults to each module's own
@@ -95,6 +97,15 @@
                 <artifactId>VaultAPI</artifactId>
                 <version>${vaultapi.version}</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <!-- VaultAPI 1.7 pulls org.bukkit:bukkit:1.13.1, which shadows
+                         spigot-api on the compile classpath and hides everything
+                         added to Material/EntityType/ItemMeta since 1.13. -->
+                    <exclusion>
+                        <groupId>org.bukkit</groupId>
+                        <artifactId>bukkit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.j256.ormlite</groupId>
@@ -130,8 +141,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
+                        <release>${java.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>

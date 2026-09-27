@@ -17,6 +17,18 @@ The modules that are built are the ones actually running on the 1.20.1
 server: `ImusAPI`, `DontLoseItems`, `ImusChallenges`, `ImusEnchants`,
 `imusGS`, `imusSpawners`, `imusTNT`, `imusWaystones`, plus `imusMcCards`.
 
+## Prerequisites
+
+- JDK 17. Minecraft 1.20.2 needs it, and some of this code already uses text
+  blocks and switch rules.
+- Maven 3.9+.
+- Four artifacts that no public repository serves, installed into `~/.m2`:
+  `org.spigotmc:spigot:1.20.2-R0.1-SNAPSHOT` (produced by Spigot's BuildTools,
+  needed for the `net.minecraft` and `craftbukkit` classes),
+  `com.github.dmulloy2:ProtocolLib:5.1.0`,
+  `com.github.MilkBowl:VaultAPI:1.7` and
+  `com.magmaguy:BetterStructures:1.6.4`. See "Installing the local artifacts".
+
 ## Build
 
 ```
@@ -39,16 +51,46 @@ To build one plugin and the library it needs:
 mvn -pl plugins/imusTNT -am package
 ```
 
-## Dependency that is not on a public repo
+### Build status
 
-`com.magmaguy:BetterStructures:1.6.4` (used by `DontLoseItems` and
-`ImusEnchants`) does not resolve from Maven Central or the Spigot repo. It
-has to be installed into the local repository once, from the jar that ships
+Eight of the nine modules compile. `DontLoseItems` does not, and did not
+before this restructure either — it is stale against the current ImusAPI:
+
+- it declares `ImusLootTable<ItemStack>`, but `ImusLootTable` is no longer
+  generic (it holds `List<ILootTableItem<?>>` instead), and
+- `Inv_SelectDifficulty` does not implement `ICustomInventory.onAwake()`,
+  which the interface gained later.
+
+The `DontLoseItems.jar` running on the server was built in December 2023,
+against the ImusAPI of that time. Updating the plugin to the current API is a
+real change to its loot handling, so it is left as is rather than guessed at.
+
+## Installing the local artifacts
+
+`org.spigotmc:spigot` is the remapped server jar; build it once with Spigot's
+BuildTools, which installs it (plus `spigot-parent` and `minecraft-server`)
+into `~/.m2`:
+
+```
+java -jar BuildTools.jar --rev 1.20.2 --remapped
+```
+
+The other three are plugin jars installed by hand. `BetterStructures` ships
 with the server:
 
 ```
 mvn install:install-file -Dfile=E:/McServerThings/Server1.20.1/plugins/BetterStructures.jar -DgroupId=com.magmaguy -DartifactId=BetterStructures -Dversion=1.6.4 -Dpackaging=jar
 ```
+
+`ProtocolLib` and `VaultAPI` are installed the same way, as
+`com.github.dmulloy2:ProtocolLib:5.1.0` and
+`com.github.MilkBowl:VaultAPI:1.7`.
+
+Note that VaultAPI 1.7 declares a dependency on `org.bukkit:bukkit:1.13.1`,
+which shadows spigot-api on the compile classpath and hides everything added
+to `Material`, `EntityType` and `ItemMeta` since 1.13. The parent POM excludes
+it. The old per-plugin POMs only worked because they happened to list
+spigot-api before VaultAPI.
 
 ## Archive
 

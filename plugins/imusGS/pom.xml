@@ -23,5 +23,10 @@
             <groupId>me.imu</groupId>
             <artifactId>ImusAPI</artifactId>
         </dependency>
+        <!-- Main hooks Vault's Economy service. -->
+        <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+        </dependency>
     </dependencies>
 </project>

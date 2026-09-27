@@ -3,7 +3,6 @@ package imu.iAPI.ProtocolLib.Listeners;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import jdk.internal.org.jline.utils.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
