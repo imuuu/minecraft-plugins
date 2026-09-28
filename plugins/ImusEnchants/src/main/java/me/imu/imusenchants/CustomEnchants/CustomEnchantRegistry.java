@@ -1,8 +1,12 @@
 package me.imu.imusenchants.CustomEnchants;
 
 import imu.iAPI.Enums.ITEM_CATEGORY;
-import me.imu.imusenchants.CustomEnchants.Enchants.TunnelEnchant;
-import me.imu.imusenchants.CustomEnchants.Enchants.VeinMinerEnchant;
+import me.imu.imusenchants.CustomEnchants.Enchants.Armor.*;
+import me.imu.imusenchants.CustomEnchants.Enchants.Bow.*;
+import me.imu.imusenchants.CustomEnchants.Enchants.Combat.*;
+import me.imu.imusenchants.CustomEnchants.Enchants.Fishing.*;
+import me.imu.imusenchants.CustomEnchants.Enchants.Tools.*;
+import me.imu.imusenchants.CustomEnchants.Enchants.Universal.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +23,56 @@ public class CustomEnchantRegistry
 
 	public static void RegisterDefaults()
 	{
+		// Tools
 		Register(new TunnelEnchant());
 		Register(new VeinMinerEnchant());
+		Register(new TimberEnchant());
+		Register(new SmeltingEnchant());
+		Register(new TelekinesisEnchant());
+		Register(new ReplanterEnchant());
+		Register(new HarvestEnchant());
+		Register(new GlassBreakerEnchant());
+		Register(new HasteEnchant());
+		Register(new WisdomEnchant());
+
+		// Melee
+		Register(new LifestealEnchant());
+		Register(new VenomEnchant());
+		Register(new FrostEnchant());
+		Register(new WitheringEnchant());
+		Register(new BeheadingEnchant());
+		Register(new CleaveEnchant());
+		Register(new ExecuteEnchant());
+		Register(new ScavengerEnchant());
+
+		// Bows
+		Register(new SniperEnchant());
+		Register(new PoisonArrowEnchant());
+		Register(new EnderArrowEnchant());
+		Register(new HunterEnchant());
+		Register(new RetrievalEnchant());
+
+		// Armor
+		Register(new NightVisionEnchant());
+		Register(new SaturationEnchant());
+		Register(new AquaticEnchant());
+		Register(new RegrowthEnchant());
+		Register(new ReflectEnchant());
+		Register(new StoppingForceEnchant());
+		Register(new JumpBoostEnchant());
+		Register(new MagmaWalkerEnchant());
+		Register(new FallGuardEnchant());
+
+		// Fishing
+		Register(new AutoReelEnchant());
+		Register(new DoubleCatchEnchant());
+		Register(new SurvivalistEnchant());
+		Register(new SeasonedAnglerEnchant());
+		Register(new LongCastEnchant());
+
+		// Any item
+		Register(new SoulboundEnchant());
+		Register(new CurseOfFragilityEnchant());
 	}
 
 	public static void Register(CustomEnchant enchant)
@@ -60,18 +112,36 @@ public class CustomEnchantRegistry
 		return null;
 	}
 
+	// Random enabled, non-curse enchant for loot books
 	public static CustomEnchant GetRandom()
 	{
-		return GetRandom(new ArrayList<>(_enchants.values()));
+		List<CustomEnchant> options = new ArrayList<>();
+		for (CustomEnchant enchant : _enchants.values())
+		{
+			if (!enchant.IsCurse() && EnchantSettings.IsEnabled(enchant))
+				options.add(enchant);
+		}
+		return GetRandom(options);
 	}
 
-	// Random enchant sold in the given shop category, or null if there are none
+	public static CustomEnchant GetRandomCurse()
+	{
+		List<CustomEnchant> options = new ArrayList<>();
+		for (CustomEnchant enchant : _enchants.values())
+		{
+			if (enchant.IsCurse() && EnchantSettings.IsEnabled(enchant))
+				options.add(enchant);
+		}
+		return GetRandom(options);
+	}
+
+	// Random enabled enchant sold in the given shop category, or null if there are none
 	public static CustomEnchant GetRandomForShop(ITEM_CATEGORY category)
 	{
 		List<CustomEnchant> options = new ArrayList<>();
 		for (CustomEnchant enchant : _enchants.values())
 		{
-			if (enchant.GetShopCategory() == category)
+			if (enchant.GetShopCategory() == category && !enchant.IsCurse() && EnchantSettings.IsEnabled(enchant))
 				options.add(enchant);
 		}
 		return GetRandom(options);

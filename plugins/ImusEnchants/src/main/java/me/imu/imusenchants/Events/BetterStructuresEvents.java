@@ -2,6 +2,7 @@ package me.imu.imusenchants.Events;
 
 import com.magmaguy.betterstructures.api.ChestFillEvent;
 import me.imu.imusenchants.CONSTANTS;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Managers.ChestLoot;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -24,6 +25,9 @@ public class BetterStructuresEvents implements Listener
 		{
 			Events.ProcessFoundItems(Arrays.asList(inv.getContents()), e.getContainer().getWorld());
 		}
+
+		for (ItemStack stack : inv.getContents())
+			EnchantSettings.StripDisabled(stack);
 
 		for (ItemStack extra : ChestLoot.RollExtras())
 		{

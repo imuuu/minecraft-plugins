@@ -15,6 +15,7 @@ import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Enchants.NodeBooster;
 import me.imu.imusenchants.ImusEnchants;
 import org.bukkit.GameMode;
@@ -82,6 +83,7 @@ public class InventoryBuyEnchants extends CustomInventory
 
 		_excludedEnchants.add(Enchantment.VANISHING_CURSE);
 		_excludedEnchants.add(Enchantment.BINDING_CURSE);
+		_excludedEnchants.addAll(EnchantSettings.GetDisabledVanilla());
 	}
 	
 	private void initButtons()

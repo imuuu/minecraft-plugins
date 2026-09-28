@@ -1,9 +1,9 @@
-package me.imu.imusenchants.CustomEnchants.Enchants;
+package me.imu.imusenchants.CustomEnchants.Enchants.Tools;
 
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.MultiBreak;
-import me.imu.imusenchants.CustomEnchants.ToolType;
+import me.imu.imusenchants.CustomEnchants.ItemTarget;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,6 +15,7 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 // Mines extra blocks around the mined one, on the plane facing the player.
 // I: 1x2 (player sized tunnel), II: 2x2, III: 3x3
@@ -39,16 +40,9 @@ public class TunnelEnchant extends CustomEnchant
 	}
 
 	@Override
-	public boolean CanApplyTo(Material material)
+	public Set<ItemTarget> GetTargets()
 	{
-		ToolType type = ToolType.Of(material);
-		return type == ToolType.PICKAXE || type == ToolType.SHOVEL;
-	}
-
-	@Override
-	public String GetAppliesToText()
-	{
-		return "Pickaxes, Shovels";
+		return ItemTarget.SetOf(ItemTarget.PICKAXE, ItemTarget.SHOVEL);
 	}
 
 	@Override
@@ -72,6 +66,9 @@ public class TunnelEnchant extends CustomEnchant
 	public boolean OnBlockBreak(BlockBreakEvent event, ItemStack tool, int level)
 	{
 		Player player = event.getPlayer();
+		if (MultiBreak.IsBreaking(player))
+			return false;
+
 		Block origin = event.getBlock();
 
 		List<Block> blocks = new ArrayList<>();

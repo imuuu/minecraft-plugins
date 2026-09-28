@@ -12,7 +12,9 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
+import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Enums.TOUCH_TYPE;
 import  me.imu.imusenchants.CONSTANTS;
 
@@ -61,6 +63,21 @@ public class NodeEnchant extends Node
 		if (CustomEnchantBook.IsBook(stack))
 		{
 			return false;
+		}
+
+		if (touchType == TOUCH_TYPE.DROP && enchantedItem != null)
+		{
+			for (Enchantment enchant : ItemUtils.GetEnchantsWithLevels(stack).keySet())
+			{
+				if (!EnchantSettings.IsEnabled(enchant))
+					return false;
+
+				for (CustomEnchant custom : enchantedItem.GetCustomEnchantNodes())
+				{
+					if (custom.GetVanillaConflicts().contains(enchant))
+						return false;
+				}
+			}
 		}
 		
 		int count = enchantedItem.ContainsEnchant(stack);

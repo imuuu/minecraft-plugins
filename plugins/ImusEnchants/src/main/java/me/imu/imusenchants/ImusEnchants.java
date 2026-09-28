@@ -4,11 +4,13 @@ import java.util.HashMap;
 
 import me.imu.imusenchants.Commands.ImusEnchantsCmd;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Events.AnvilEvents;
 import me.imu.imusenchants.Events.CustomEnchantEvents;
 import me.imu.imusenchants.Events.BetterStructuresEvents;
 import me.imu.imusenchants.Events.Events;
 import me.imu.imusenchants.Events.SlotCoreEvents;
+import me.imu.imusenchants.Events.VanillaEnchantFilter;
 import me.imu.imusenchants.Events.VillagerEvents;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import me.imu.imusenchants.SubCommands.SubOpenEnchant_InvCmd;
@@ -29,6 +31,8 @@ public class ImusEnchants extends JavaPlugin
 
     final private String _pluginName = "[imusEnchants]";
 
+    private CustomEnchantEvents _customEnchantEvents;
+
     private CmdHelper _cmdHelper;
     private ImusTabCompleter _tab_cmd1;
     @Override
@@ -37,6 +41,7 @@ public class ImusEnchants extends JavaPlugin
         Instance = this;
         _managerEnchants = new ManagerEnchants();
         CustomEnchantRegistry.RegisterDefaults();
+        EnchantSettings.Load(this);
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName+" is Activated");
 
@@ -44,7 +49,9 @@ public class ImusEnchants extends JavaPlugin
         getServer().getPluginManager().registerEvents(new VillagerEvents(), this);
         getServer().getPluginManager().registerEvents(new AnvilEvents(), this);
         getServer().getPluginManager().registerEvents(new SlotCoreEvents(), this);
-        getServer().getPluginManager().registerEvents(new CustomEnchantEvents(), this);
+        _customEnchantEvents = new CustomEnchantEvents(this);
+        getServer().getPluginManager().registerEvents(_customEnchantEvents, this);
+        getServer().getPluginManager().registerEvents(new VanillaEnchantFilter(), this);
 
         if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))
         {
@@ -52,6 +59,13 @@ public class ImusEnchants extends JavaPlugin
             getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName + " BetterStructures support enabled");
         }
         RegisterCommands();
+    }
+
+    @Override
+    public void onDisable()
+    {
+        if (_customEnchantEvents != null)
+            _customEnchantEvents.OnDisable();
     }
 
     public void RegisterCommands()

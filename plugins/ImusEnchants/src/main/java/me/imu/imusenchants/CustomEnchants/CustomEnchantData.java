@@ -18,6 +18,7 @@ public class CustomEnchantData
 {
 	private static final String PD_CUSTOM_ENCHANTS = "ie_custom_enchants";
 	private static final String LORE_COLOR = "&7";
+	private static final String CURSE_COLOR = "&c";
 
 	public static Map<CustomEnchant, Integer> Get(ItemStack stack)
 	{
@@ -46,6 +47,21 @@ public class CustomEnchantData
 			}
 		}
 		return enchants;
+	}
+
+	// Enchants that are enabled on the server and fit the item, these are the ones that do something
+	public static Map<CustomEnchant, Integer> GetActive(ItemStack stack)
+	{
+		Map<CustomEnchant, Integer> enchants = Get(stack);
+		enchants.entrySet().removeIf(entry -> !EnchantSettings.IsEnabled(entry.getKey()) || !entry.getKey().CanApplyToItem(stack));
+		return enchants;
+	}
+
+	public static void Remove(ItemStack stack, CustomEnchant enchant)
+	{
+		Map<CustomEnchant, Integer> enchants = Get(stack);
+		if (enchants.remove(enchant) != null)
+			Set(stack, enchants);
 	}
 
 	public static int GetLevel(ItemStack stack, CustomEnchant enchant)
@@ -106,7 +122,8 @@ public class CustomEnchantData
 		List<String> enchantLines = new ArrayList<>();
 		for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet())
 		{
-			enchantLines.add(Metods.msgC(LORE_COLOR + entry.getKey().GetDisplayName(entry.getValue())));
+			String color = entry.getKey().IsCurse() ? CURSE_COLOR : LORE_COLOR;
+			enchantLines.add(Metods.msgC(color + entry.getKey().GetDisplayName(entry.getValue())));
 		}
 
 		lore.addAll(0, enchantLines);

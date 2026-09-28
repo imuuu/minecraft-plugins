@@ -1,9 +1,9 @@
-package me.imu.imusenchants.CustomEnchants.Enchants;
+package me.imu.imusenchants.CustomEnchants.Enchants.Tools;
 
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.MultiBreak;
-import me.imu.imusenchants.CustomEnchants.ToolType;
+import me.imu.imusenchants.CustomEnchants.ItemTarget;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -71,15 +71,9 @@ public class VeinMinerEnchant extends CustomEnchant
 	}
 
 	@Override
-	public boolean CanApplyTo(Material material)
+	public Set<ItemTarget> GetTargets()
 	{
-		return ToolType.Of(material) == ToolType.PICKAXE;
-	}
-
-	@Override
-	public String GetAppliesToText()
-	{
-		return "Pickaxes";
+		return ItemTarget.SetOf(ItemTarget.PICKAXE);
 	}
 
 	@Override
@@ -105,7 +99,7 @@ public class VeinMinerEnchant extends CustomEnchant
 	public boolean OnBlockBreak(BlockBreakEvent event, ItemStack tool, int level)
 	{
 		Player player = event.getPlayer();
-		if (!player.isSneaking())
+		if (!player.isSneaking() || MultiBreak.IsBreaking(player))
 			return false;
 
 		Block origin = event.getBlock();

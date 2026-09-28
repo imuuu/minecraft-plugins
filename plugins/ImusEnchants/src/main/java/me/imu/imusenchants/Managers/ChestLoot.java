@@ -28,7 +28,13 @@ public class ChestLoot
 			// Found books are always level I, higher levels come from boosters
 			CustomEnchant enchant = CustomEnchantRegistry.GetRandom();
 			if (enchant != null)
-				extras.add(CustomEnchantBook.Create(enchant, 1));
+			{
+				CustomEnchant curse = _random.nextDouble() < CONSTANTS.CURSED_BOOK_CHANCE ? CustomEnchantRegistry.GetRandomCurse() : null;
+				if (curse != null && !curse.GetTargets().containsAll(enchant.GetTargets()))
+					curse = null;
+
+				extras.add(CustomEnchantBook.Create(enchant, 1, curse));
+			}
 		}
 		return extras;
 	}

@@ -6,7 +6,9 @@ import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
+import me.imu.imusenchants.Inventories.InventoryEnchantAdmin;
 import me.imu.imusenchants.Items.SlotCore;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -97,7 +99,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				"              &fSilk Touch, Infinity &8→ &e1",
 				"&7Get books from the table's &eBuy Enchants &7shop or from loot."));
 
-		_topics.put("custom", new HelpTopic("Custom Enchants", "New enchants like Tunnel and Vein Miner", CustomEnchantLines()));
+		_topics.put("custom", new HelpTopic("Custom Enchants", "New enchants: Tunnel, Timber, Lifesteal...", CustomEnchantLines()));
 
 		_topics.put("boosters", new HelpTopic("Boosters", "Raising enchant levels",
 				"&7A &6Booster &7has &5arrows &8(&5↑ ↓ ← →&8) &7and a &6⚡ power&7.",
@@ -174,6 +176,17 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
+		if (args[0].equalsIgnoreCase("admin"))
+		{
+			if (!sender.hasPermission(PERMISSION_ADMIN))
+				sender.sendMessage(Metods.msgC("&cNo permission!"));
+			else if (!(sender instanceof Player))
+				sender.sendMessage(Metods.msgC("&cOnly players can open the admin menu"));
+			else
+				new InventoryEnchantAdmin().open((Player) sender);
+			return true;
+		}
+
 		if (args[0].equalsIgnoreCase("book"))
 		{
 			GiveBook(sender, label, args);
@@ -193,17 +206,30 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		lines.add("&6Normal tool: &7click the book on it in your inventory &8→ &eLevel I&7.");
 		lines.add("&6Slotted tool: &7put the book in the table grid,");
 		lines.add("&6Boosters &7raise it up to the enchant's max level.");
+		lines.add("&cCursed books &7(" + Percent(CONSTANTS.CURSED_BOOK_CHANCE) + " of found ones) also give a curse.");
+		lines.add("&7Hover an enchant for its levels:");
+		return lines;
+	}
 
+	// Built when shown so enchants switched off in /ien admin drop out of the list
+	private void SendCustomEnchantList(CommandSender sender, String label)
+	{
 		for (CustomEnchant enchant : CustomEnchantRegistry.GetAll())
 		{
-			lines.add("&d" + enchant.GetName() + " &8(&7max &e" + CustomEnchant.ToRoman(enchant.GetMaxLevel())
-					+ "&8, &f" + enchant.GetAppliesToText() + "&8)");
+			if (!EnchantSettings.IsEnabled(enchant))
+				continue;
+
+			StringBuilder hover = new StringBuilder((enchant.IsCurse() ? "&c" : "&d") + enchant.GetName());
 			for (int level = 1; level <= enchant.GetMaxLevel(); level++)
-			{
-				lines.add("  &e" + CustomEnchant.ToRoman(level) + " &7" + enchant.GetDescription(level));
-			}
+				hover.append("\n&e").append(CustomEnchant.ToRoman(level)).append(" &7").append(enchant.GetDescription(level));
+			hover.append("\n&7For: &f").append(enchant.GetAppliesToText());
+
+			SendClickable(sender,
+					"  " + (enchant.IsCurse() ? "&c" : "&d") + "▸ " + enchant.GetName()
+							+ " &8(&7max &e" + CustomEnchant.ToRoman(enchant.GetMaxLevel()) + "&8) &7" + enchant.GetAppliesToText(),
+					"/" + label + " help custom",
+					hover.toString());
 		}
-		return lines;
 	}
 
 	private void SendOverview(CommandSender sender, String label)
@@ -229,6 +255,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			sender.sendMessage("");
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
+			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " admin &8- &7switch enchants on/off server wide"));
 		}
 		sender.sendMessage(Metods.msgC(FOOTER));
 	}
@@ -247,6 +274,9 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		{
 			sender.sendMessage(Metods.msgC(line));
 		}
+
+		if (key.equals("custom"))
+			SendCustomEnchantList(sender, label);
 
 		SendClickable(sender, "&8« &7Back to all topics", "/" + label + " help", "&7Show all topics");
 		sender.sendMessage(Metods.msgC(FOOTER));
@@ -399,6 +429,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			{
 				options.add("core");
 				options.add("book");
+				options.add("admin");
 			}
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("help"))
