@@ -70,6 +70,16 @@ Other plugins, all loaded as `depend`/`softdepend` in `plugin.yml`:
 
 ProtocolLib is no longer needed: its uses were replaced with Paper API.
 
+## CI
+
+`.github/workflows/build.yml` builds every module with Java 25 on each push and
+pull request, and uploads the plugin jars as the `plugins` artifact of the run
+(Actions tab → the run → Artifacts). paper-api and VaultAPI come from the
+repositories in `pom.xml`; BetterStructures isn't published anywhere, so CI
+compiles a stub of its `ChestFillEvent` from `.github/ci-stubs/` against
+paper-api and installs it under the POM's coordinates. The stub is a provided
+dependency and never ends up in a jar.
+
 **imusAPI requires a MySQL/MariaDB server.** It has no fallback: without a
 database its `onEnable` fails, and every plugin that depends on it fails to
 load. Connection settings are in `plugins/imusAPI/config.yml` (defaults:

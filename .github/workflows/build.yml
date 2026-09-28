@@ -1,0 +1,46 @@
+name: Build plugins
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      # paper-api and VaultAPI come from the repositories in pom.xml. BetterStructures isn't
+      # published anywhere, so a compile-only stub of the classes the plugins use is installed
+      # under the coordinates the POM expects.
+      - name: Install BetterStructures stub
+        run: |
+          BS_VERSION=$(mvn -B -q help:evaluate -Dexpression=betterstructures.version -DforceStdout -N)
+          mvn -B -q dependency:build-classpath -N -Dmdep.outputFile=paper-cp.txt
+          mkdir -p ci-libs/stub-classes
+          javac --release 25 -cp "$(cat paper-cp.txt)" -d ci-libs/stub-classes $(find .github/ci-stubs/betterstructures -name "*.java")
+          jar cf ci-libs/BetterStructures.jar -C ci-libs/stub-classes .
+          mvn -B -q install:install-file -Dfile=ci-libs/BetterStructures.jar -DgroupId=com.magmaguy -DartifactId=BetterStructures -Dversion=$BS_VERSION -Dpackaging=jar
+
+      - name: Build
+        run: mvn -B package
+
+      - name: Collect jars
+        run: |
+          mkdir -p dist
+          find libs plugins -path "*/target/*.jar" ! -name "original-*.jar" -exec cp {} dist/ \;
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugins
+          path: dist/*.jar
+          retention-days: 30
