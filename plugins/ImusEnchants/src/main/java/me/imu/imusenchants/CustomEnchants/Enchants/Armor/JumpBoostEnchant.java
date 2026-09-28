@@ -27,6 +27,6 @@ public class JumpBoostEnchant extends CustomEnchant
 	@Override
 	public void OnTick(Player player, ItemStack item, int level, long seconds)
 	{
-		EnchantEffects.KeepEffect(player, PotionEffectType.JUMP, Math.min(level, 2) - 1, 60);
+		EnchantEffects.KeepEffect(player, PotionEffectType.JUMP_BOOST, Math.min(level, 2) - 1, 60);
 	}
 }

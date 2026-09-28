@@ -46,7 +46,7 @@ public class EnchantEffects
 
 	public static double GetMaxHealth(LivingEntity entity)
 	{
-		AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+		AttributeInstance attribute = entity.getAttribute(Attribute.MAX_HEALTH);
 		return attribute != null ? attribute.getValue() : 20.0;
 	}
 

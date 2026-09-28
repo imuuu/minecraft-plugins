@@ -32,6 +32,6 @@ public class HasteEnchant extends CustomEnchant
 	@Override
 	public void OnTick(Player player, ItemStack item, int level, long seconds)
 	{
-		EnchantEffects.KeepEffect(player, PotionEffectType.FAST_DIGGING, Math.min(level, 2) - 1, 60);
+		EnchantEffects.KeepEffect(player, PotionEffectType.HASTE, Math.min(level, 2) - 1, 60);
 	}
 }

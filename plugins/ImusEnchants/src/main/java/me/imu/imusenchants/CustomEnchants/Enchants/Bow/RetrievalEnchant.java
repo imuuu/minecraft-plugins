@@ -34,7 +34,7 @@ public class RetrievalEnchant extends CustomEnchant
 	@Override
 	public Set<Enchantment> GetVanillaConflicts()
 	{
-		return Collections.singleton(Enchantment.ARROW_INFINITE);
+		return Collections.singleton(Enchantment.INFINITY);
 	}
 
 	private static double GetChance(int level) { return Scale(level, 0.20, 0.35, 0.50); }

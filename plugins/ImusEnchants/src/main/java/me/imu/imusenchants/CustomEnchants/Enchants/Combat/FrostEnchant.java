@@ -44,7 +44,7 @@ public class FrostEnchant extends CustomEnchant
 			return;
 
 		int duration = 40 + 20 * Math.min(level, 2);
-		EnchantEffects.AddEffect(victim, PotionEffectType.SLOW, 1, duration);
+		EnchantEffects.AddEffect(victim, PotionEffectType.SLOWNESS, 1, duration);
 		// Frosted look only, freeze damage starts at 140 ticks
 		victim.setFreezeTicks(Math.max(victim.getFreezeTicks(), 100));
 	}
