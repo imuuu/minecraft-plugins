@@ -245,11 +245,17 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
                 case DROP_ALL_SLOT:
                 case HOTBAR_SWAP:
                 case COLLECT_TO_CURSOR:
-                case CLONE_STACK:
                 case HOTBAR_MOVE_AND_READD:
                 {
                     event.setCancelled(true);
                     return;
+                }
+                // Middle click in creative. Don't clone, but let the button see it like a
+                // survival middle click (ClickType.MIDDLE)
+                case CLONE_STACK:
+                {
+                    event.setCancelled(true);
+                    break;
                 }
 
                 default:

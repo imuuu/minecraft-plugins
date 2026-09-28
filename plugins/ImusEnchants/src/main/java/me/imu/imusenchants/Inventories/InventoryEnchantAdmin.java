@@ -4,26 +4,33 @@ import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Other.Metods;
+import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.ImusEnchants;
+import me.imu.imusenchants.Items.SlotCore;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// /ien admin: switch vanilla and custom enchants on or off for the whole server
+// /ien admin: switch vanilla and custom enchants on or off for the whole server,
+// middle click an enchant to get its book, and take Slot Cores
 public class InventoryEnchantAdmin extends CustomInventory
 {
 	private enum Tab { VANILLA, CUSTOM }
 
 	private static final int SLOT_TAB_VANILLA = 3;
 	private static final int SLOT_TAB_CUSTOM = 5;
+	private static final int SLOT_CORE = 8;
 	private static final int FIRST_ENTRY_SLOT = 9;
 	private static final int ENTRIES_PER_PAGE = 36;
 	private static final int SLOT_PREVIOUS = 45;
@@ -69,6 +76,7 @@ public class InventoryEnchantAdmin extends CustomInventory
 
 		addButton(new Button(SLOT_TAB_VANILLA, TabItem(Tab.VANILLA), e -> SwitchTab(Tab.VANILLA)));
 		addButton(new Button(SLOT_TAB_CUSTOM, TabItem(Tab.CUSTOM), e -> SwitchTab(Tab.CUSTOM)));
+		addButton(new Button(SLOT_CORE, CoreItem(), e -> Give(SlotCore.Create(e.isShiftClick() ? 64 : 1))));
 
 		int count = _tab == Tab.VANILLA ? EnchantSettings.GetAllVanilla().size() : CustomEnchantRegistry.GetAll().size();
 		int pages = Math.max(1, (count + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
@@ -100,6 +108,11 @@ public class InventoryEnchantAdmin extends CustomInventory
 			Enchantment enchant = all.get(i);
 			addButton(new Button(FIRST_ENTRY_SLOT + i - start, VanillaItem(enchant), e ->
 			{
+				if (IsMiddleClick(e))
+				{
+					Give(VanillaBook(enchant));
+					return;
+				}
 				EnchantSettings.SetEnabled(enchant, !EnchantSettings.IsEnabled(enchant));
 				Render();
 			}));
@@ -115,6 +128,11 @@ public class InventoryEnchantAdmin extends CustomInventory
 			CustomEnchant enchant = all.get(i);
 			addButton(new Button(FIRST_ENTRY_SLOT + i - start, CustomItem(enchant), e ->
 			{
+				if (IsMiddleClick(e))
+				{
+					Give(CustomEnchantBook.Create(enchant, enchant.GetMaxLevel()));
+					return;
+				}
 				EnchantSettings.SetEnabled(enchant, !EnchantSettings.IsEnabled(enchant));
 				Render();
 			}));
@@ -147,6 +165,35 @@ public class InventoryEnchantAdmin extends CustomInventory
 		getPlayer().sendMessage(Metods.msgC((enabled ? "&aEnabled" : "&cDisabled") + " &7all "
 				+ (_tab == Tab.VANILLA ? "vanilla" : "custom") + " enchants"));
 		Render();
+	}
+
+	// ClickType.MIDDLE in survival and creative; creative players have no middle click in
+	// menus without a pick-block key, so shift + right click works as well
+	private static boolean IsMiddleClick(InventoryClickEvent e)
+	{
+		return e.getClick() == ClickType.MIDDLE || e.getClick() == ClickType.SHIFT_RIGHT;
+	}
+
+	private void Give(ItemStack stack)
+	{
+		InvUtil.AddItemToInventoryOrDrop(getPlayer(), stack);
+	}
+
+	private static ItemStack VanillaBook(Enchantment enchant)
+	{
+		ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+		meta.addStoredEnchant(enchant, enchant.getMaxLevel(), true);
+		book.setItemMeta(meta);
+		return book;
+	}
+
+	private static ItemStack CoreItem()
+	{
+		ItemStack stack = SlotCore.Create(1);
+		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
+		ItemUtils.AddLore(stack, "&eClick to get one, shift-click for 64", true);
+		return stack;
 	}
 
 	private ItemStack TabItem(Tab tab)
@@ -196,6 +243,7 @@ public class InventoryEnchantAdmin extends CustomInventory
 		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
 		ItemUtils.AddLore(stack, enabled ? "&a&lENABLED" : "&c&lDISABLED", true);
 		ItemUtils.AddLore(stack, "&eClick to " + (enabled ? "disable" : "enable"), true);
+		ItemUtils.AddLore(stack, "&bMiddle-click or shift + right-click to get the book", true);
 	}
 
 	private static ItemStack Named(Material material, String name)
