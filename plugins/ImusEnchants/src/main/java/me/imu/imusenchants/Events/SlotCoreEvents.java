@@ -1,6 +1,8 @@
 package me.imu.imusenchants.Events;
 
+import com.magmaguy.betterstructures.api.ChestFillEvent;
 import imu.iAPI.Other.Metods;
+import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.Enchants.EnchantedItem;
 import me.imu.imusenchants.Items.SlotCore;
 import me.imu.imusenchants.Managers.ManagerEnchants;
@@ -19,13 +21,47 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.LootGenerateEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.util.Random;
+
 public class SlotCoreEvents implements Listener
 {
+	private final Random _random = new Random();
+
+	// Loot tables are generated only when a chest (barrel, chest minecart...) is opened for the first time
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void OnLootGenerate(LootGenerateEvent event)
+	{
+		if (event.getInventoryHolder() == null)
+			return;
+
+		if (_random.nextDouble() >= CONSTANTS.SLOT_CORE_CHEST_CHANCE)
+			return;
+
+		event.getLoot().add(SlotCore.Create(1));
+	}
+
+	// BetterStructures fills its chests without loot tables
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void OnBetterStructureLoot(ChestFillEvent event)
+	{
+		if (_random.nextDouble() >= CONSTANTS.SLOT_CORE_CHEST_CHANCE)
+			return;
+
+		Inventory inv = event.getContainer().getSnapshotInventory();
+		int emptySlot = inv.firstEmpty();
+		if (emptySlot < 0)
+			return;
+
+		inv.setItem(emptySlot, SlotCore.Create(1));
+	}
+
 	// Slot core on cursor clicked on top of a tool/armor in the player's own inventory
 	@EventHandler(ignoreCancelled = true)
 	public void OnApplySlotCore(InventoryClickEvent event)

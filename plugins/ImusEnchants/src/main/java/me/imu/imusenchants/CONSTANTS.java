@@ -20,6 +20,7 @@ public class CONSTANTS
 	// unless clicked with a slotted item. false: old behavior, every crafted/found item gets slots.
 	public static final boolean SLOT_CORE_MODE = true;
 	public static final Material SLOT_CORE_MATERIAL = Material.AMETHYST_SHARD;
+	public static final double SLOT_CORE_CHEST_CHANCE = 0.05; // 0.0-1.0, per unopened loot chest
 	
 	public static final boolean ENABLE_MULTIPLE_SAME_ENCHANTS = false;
 	
