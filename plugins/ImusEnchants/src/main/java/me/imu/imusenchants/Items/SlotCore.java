@@ -8,9 +8,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Random;
+
 public class SlotCore
 {
 	private static final String PD_SLOT_CORE = "ie_slot_core";
+	private static final Random _random = new Random();
 
 	public static ItemStack Create(int amount)
 	{
@@ -31,6 +34,11 @@ public class SlotCore
 			return false;
 
 		return ItemUtils.HasTag(stack, PD_SLOT_CORE);
+	}
+
+	public static boolean RollChestChance()
+	{
+		return _random.nextDouble() < CONSTANTS.SLOT_CORE_CHEST_CHANCE;
 	}
 
 	public static boolean CanApply(ItemStack target)

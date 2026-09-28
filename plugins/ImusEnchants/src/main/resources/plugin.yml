@@ -4,6 +4,8 @@ main: me.imu.imusenchants.ImusEnchants
 api-version: '1.20'
 depend:
   - imusAPI
+softdepend:
+  - BetterStructures
 commands:
   imusenchants:
     description: ImusEnchants

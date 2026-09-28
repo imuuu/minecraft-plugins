@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import me.imu.imusenchants.Commands.ImusEnchantsCmd;
 import me.imu.imusenchants.Events.AnvilEvents;
+import me.imu.imusenchants.Events.BetterStructuresEvents;
 import me.imu.imusenchants.Events.Events;
 import me.imu.imusenchants.Events.SlotCoreEvents;
 import me.imu.imusenchants.Events.VillagerEvents;
@@ -40,6 +41,12 @@ public class ImusEnchants extends JavaPlugin
         getServer().getPluginManager().registerEvents(new VillagerEvents(), this);
         getServer().getPluginManager().registerEvents(new AnvilEvents(), this);
         getServer().getPluginManager().registerEvents(new SlotCoreEvents(), this);
+
+        if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))
+        {
+            getServer().getPluginManager().registerEvents(new BetterStructuresEvents(), this);
+            getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName + " BetterStructures support enabled");
+        }
         RegisterCommands();
     }
 
