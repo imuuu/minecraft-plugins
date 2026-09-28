@@ -65,6 +65,16 @@ The `DontLoseItems.jar` running on the server was built in December 2023,
 against the ImusAPI of that time. Updating the plugin to the current API is a
 real change to its loot handling, so it is left as is rather than guessed at.
 
+## CI
+
+`.github/workflows/build.yml` builds every module except `DontLoseItems` on each
+push and pull request, and uploads the plugin jars as the `plugins` artifact of
+the run (Actions tab → the run → Artifacts). It sets up the local artifacts on
+its own: Spigot through BuildTools (cached between runs), ProtocolLib and Vault
+from their GitHub releases, and a compile-only stub of BetterStructures'
+`ChestFillEvent` from `.github/ci-stubs/`, since that plugin isn't published
+anywhere. The stub is a provided dependency and never ends up in a jar.
+
 ## Installing the local artifacts
 
 `org.spigotmc:spigot` is the remapped server jar; build it once with Spigot's
