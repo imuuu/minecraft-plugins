@@ -192,7 +192,8 @@ public class InventoryEnchantAdmin extends CustomInventory
 	{
 		ItemStack stack = SlotCore.Create(1);
 		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
-		ItemUtils.AddLore(stack, "&eClick to get one, shift-click for 64", true);
+		ItemUtils.AddLore(stack, "&eClick &8» &f1 core", true);
+		ItemUtils.AddLore(stack, "&eShift-click &8» &f64 cores", true);
 		return stack;
 	}
 
@@ -242,8 +243,9 @@ public class InventoryEnchantAdmin extends CustomInventory
 	{
 		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
 		ItemUtils.AddLore(stack, enabled ? "&a&lENABLED" : "&c&lDISABLED", true);
-		ItemUtils.AddLore(stack, "&eClick to " + (enabled ? "disable" : "enable"), true);
-		ItemUtils.AddLore(stack, "&bMiddle-click or shift + right-click to get the book", true);
+		ItemUtils.AddLore(stack, "&eClick &8» &f" + (enabled ? "disable" : "enable"), true);
+		ItemUtils.AddLore(stack, "&bMiddle-click &8» &fget book", true);
+		ItemUtils.AddLore(stack, "&bShift + right-click &8» &fget book", true);
 	}
 
 	private static ItemStack Named(Material material, String name)
