@@ -38,12 +38,22 @@ public class InventoryEnchanting extends CustomInventory
 
     private long _timeID = 0;
 
+    private ItemStack _preloadedItem;
+
     public InventoryEnchanting()
     {
         super(ImusEnchants.Instance, "&0===== &5Enchanting Table &0=====", 6 * 9);
 
         EMPTY_BLACK_SLOT = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemUtils.SetDisplayNameEmpty(EMPTY_BLACK_SLOT);
+    }
+
+    // Opens with the item already in the enchant slot. The item must be removed from the player
+    // before opening, it is given back on close like any item dropped into the enchant slot.
+    public InventoryEnchanting(ItemStack preloadedItem)
+    {
+        this();
+        _preloadedItem = preloadedItem;
     }
 
     @Override
@@ -65,6 +75,13 @@ public class InventoryEnchanting extends CustomInventory
         // startMonitoring();
         initButtons();
 
+        if (_preloadedItem != null)
+        {
+            ItemStack stack = _preloadedItem;
+            _preloadedItem = null;
+            onDropItemSet(stack, _enchantSlot);
+            updateButton(_enchantSlot);
+        }
     }
 
     @Override
@@ -171,6 +188,12 @@ public class InventoryEnchanting extends CustomInventory
     {
         if (slot == _enchantSlot)
         {
+            if (CONSTANTS.SLOT_CORE_MODE && !EnchantedItem.HasSlots(stack))
+            {
+                getPlayer().sendMessage(Metods.msgC("&cUse a &dSlot Core &con the item first!"));
+                return false;
+            }
+
             if (!ManagerEnchants.IsValidToEnchant(stack))
             {
                 getPlayer().sendMessage(Metods.msgC("&cNot valid item to enchant!"));

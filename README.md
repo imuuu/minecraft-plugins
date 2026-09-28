@@ -129,15 +129,5 @@ the reactor — they are kept so the code is not lost. `archive/imusEnchants`
 is the pre-Maven Eclipse version of `plugins/ImusEnchants`; it still holds
 `EnchantShard` and `IEnchant`, which the Maven version dropped.
 
-## Where this came from
 
-This repository is `github.com/imuuu/Java`, restructured. Two things were
-recovered from local Eclipse workspaces that had never been pushed:
 
-- `imusTNT` — a wrong `Listener` import and a commented-out `registerEvents`
-  call, fixed on disk 2023-12-09 but never committed.
-- `imusAntiCheat` and `imusDEFAULTplate` — projects that existed only in
-  `E:\Users\kajan\eclipse-workspace` on an old Windows install.
-
-The original working copies were left in place on E: and F:; nothing was
-moved or deleted off those drives.

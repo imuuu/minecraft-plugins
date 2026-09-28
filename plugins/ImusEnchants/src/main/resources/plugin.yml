@@ -5,9 +5,15 @@ api-version: '26.2'
 softdepend: [BetterStructures]
 depend:
   - imusAPI
+softdepend:
+  - BetterStructures
 commands:
   imusenchants:
-    description: ImusEnchants
-    usage: /<command>
+    description: ImusEnchants help and admin commands
+    usage: /<command> help [topic]
     aliases:
       - ien
+permissions:
+  imusenchants.admin:
+    description: Admin commands: give Slot Cores and custom books, /ien admin menu
+    default: op
