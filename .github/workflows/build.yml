@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v7
@@ -33,10 +35,11 @@ jobs:
       - name: Build
         run: mvn -B package
 
+      # <name>.jar and <name>-<version>-shaded.jar are the same jar; keep only the first
       - name: Collect jars
         run: |
           mkdir -p dist
-          find libs plugins -path "*/target/*.jar" ! -name "original-*.jar" -exec cp {} dist/ \;
+          find libs plugins -path "*/target/*.jar" ! -name "original-*.jar" ! -name "*-shaded.jar" -exec cp {} dist/ \;
           ls -l dist
 
       - uses: actions/upload-artifact@v7
@@ -44,3 +47,18 @@ jobs:
           name: plugins
           path: dist/*.jar
           retention-days: 30
+
+      # server/start.bat downloads these before starting the server. The release is recreated
+      # on every push to main so the "latest" tag always points at the commit that was built.
+      - name: Publish latest release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd dist && zip -q ../plugins.zip *.jar)
+          echo "$GITHUB_SHA" > version.txt
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest plugins.zip version.txt \
+            --target "$GITHUB_SHA" \
+            --title "Latest build" \
+            --notes "Plugin jars built from $GITHUB_SHA. Updated on every push to main."

@@ -70,6 +70,12 @@ Other plugins, all loaded as `depend`/`softdepend` in `plugin.yml`:
 
 ProtocolLib is no longer needed: its uses were replaced with Paper API.
 
+**imusAPI requires a MySQL/MariaDB server.** It has no fallback: without a
+database its `onEnable` fails, and every plugin that depends on it fails to
+load. Connection settings are in `plugins/imusAPI/config.yml` (defaults:
+`localhost:3306`, user `root`, empty password). ImusChallenges, imusGS and
+imusWaystones create their own databases on the same server.
+
 ## CI
 
 `.github/workflows/build.yml` builds every module with Java 25 on each push and
@@ -80,11 +86,18 @@ compiles a stub of its `ChestFillEvent` from `.github/ci-stubs/` against
 paper-api and installs it under the POM's coordinates. The stub is a provided
 dependency and never ends up in a jar.
 
-**imusAPI requires a MySQL/MariaDB server.** It has no fallback: without a
-database its `onEnable` fails, and every plugin that depends on it fails to
-load. Connection settings are in `plugins/imusAPI/config.yml` (defaults:
-`localhost:3306`, user `root`, empty password). ImusChallenges, imusGS and
-imusWaystones create their own databases on the same server.
+On pushes to `main` it also recreates the `latest` GitHub release with
+`plugins.zip` (the jars) and `version.txt` (the commit that was built).
+
+## Updating a server automatically
+
+Copy `server/start.bat` next to `paper.jar` and start the server with it.
+Before launching Java it compares `version.txt` of the `latest` release with
+`plugins/.imus-version`, and when they differ it downloads `plugins.zip` and
+copies the jars into `plugins/`, overwriting the old ones. Only this repo's
+plugins are in the zip; Vault, EssentialsX, BetterStructures and WorldEdit are
+left alone. If GitHub can't be reached, the server starts with the plugins it
+has.
 
 ## Local test server
 
@@ -103,6 +116,8 @@ build, copy the jars and start the server:
 cd run
 java -Xms1G -Xmx2G -jar paper.jar --nogui
 ```
+
+or run `run/start.bat` to take the jars from the `latest` release instead.
 
 ## Known leftovers
 
