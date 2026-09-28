@@ -117,7 +117,12 @@ cd run
 java -Xms1G -Xmx2G -jar paper.jar --nogui
 ```
 
-or run `run/start.bat` to take the jars from the `latest` release instead.
+`run/Kaynnista-palvelin.bat` does all of it: starts MariaDB if it isn't
+running, updates the plugins from the `latest` release like `server/start.bat`,
+starts Paper, and shuts the database down again when the server stops.
+`run/Paivita-pluginit.bat` builds the plugins locally and copies them in
+instead; it records the built commit in `plugins/.imus-version`, so the launcher
+doesn't replace a local build with the same commit from GitHub.
 
 ## Known leftovers
 
