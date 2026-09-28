@@ -20,6 +20,11 @@ jobs:
           java-version: 25
           cache: maven
 
+      - name: Check plugin.yml files
+        run: |
+          pip install -q pyyaml
+          python3 .github/scripts/check_plugin_yml.py
+
       # paper-api and VaultAPI come from the repositories in pom.xml. BetterStructures isn't
       # published anywhere, so a compile-only stub of the classes the plugins use is installed
       # under the coordinates the POM expects.
