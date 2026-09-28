@@ -3,6 +3,9 @@ package me.imu.imusenchants.Enchants;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusenchants.CONSTANTS;
+import me.imu.imusenchants.CustomEnchants.CustomEnchant;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantData;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import org.bukkit.Bukkit;
@@ -375,6 +378,7 @@ public class EnchantedItem
     public void ApplyEnchantsToItem()
     {
         Map<Enchantment, Integer> allEnchants = new HashMap<>();
+        Map<CustomEnchant, Integer> customEnchants = new LinkedHashMap<>();
 
         for (int i = 0; i < CONSTANTS.ENCHANT_ROWS; i++)
         {
@@ -395,21 +399,7 @@ public class EnchantedItem
                 if (node instanceof NodeEnchant)
                 {
                     NodeEnchant nodeEnchant = (NodeEnchant) node;
-                    int totalBoost = 0;
-
-                    for (INode neighbor : GetNeighbors(node))
-                    {
-                        if (neighbor instanceof NodeBooster)
-                        {
-                            NodeBooster booster = (NodeBooster) neighbor;
-                            if (booster.IsBoostingThis(node))
-                            {
-                                totalBoost += booster.GetPower();
-                            }
-                        }
-                    }
-
-                    final int boost = totalBoost;
+                    final int boost = GetBoost(node);
 
                     nodeEnchant.GetEnchantments().forEach((enchant, level) ->
                     {
@@ -426,6 +416,19 @@ public class EnchantedItem
                     });
                 }
 
+                if (node instanceof NodeCustomEnchant)
+                {
+                    NodeCustomEnchant nodeCustom = (NodeCustomEnchant) node;
+                    CustomEnchant enchant = nodeCustom.GetEnchant();
+
+                    if (enchant != null && CustomEnchantRegistry.FindConflict(enchant, customEnchants.keySet()) == null)
+                    {
+                        int level = (CONSTANTS.ENCHANT_FORCE_LEVEL > 0 ? CONSTANTS.ENCHANT_FORCE_LEVEL : nodeCustom.GetLevel()) + GetBoost(node);
+                        level = Math.min(level, enchant.GetMaxLevel());
+                        customEnchants.put(enchant, Math.max(customEnchants.getOrDefault(enchant, 0), level));
+                    }
+                }
+
                 if (node.getClass() == Node.class) continue;
 
                 node.SetFrozen(true);
@@ -436,8 +439,44 @@ public class EnchantedItem
         {
             _stack.getEnchantments().keySet().forEach(_stack::removeEnchantment);
             allEnchants.forEach((enchant, level) -> _stack.addUnsafeEnchantment(enchant, level));
+            CustomEnchantData.Set(_stack, customEnchants);
         }
 
+    }
+
+    private int GetBoost(INode node)
+    {
+        int totalBoost = 0;
+
+        for (INode neighbor : GetNeighbors(node))
+        {
+            if (neighbor instanceof NodeBooster)
+            {
+                NodeBooster booster = (NodeBooster) neighbor;
+                if (booster.IsBoostingThis(node))
+                {
+                    totalBoost += booster.GetPower();
+                }
+            }
+        }
+        return totalBoost;
+    }
+
+    public List<CustomEnchant> GetCustomEnchantNodes()
+    {
+        List<CustomEnchant> enchants = new ArrayList<>();
+        if (_nodes == null)
+            return enchants;
+
+        for (int i = 0; i < CONSTANTS.ENCHANT_ROWS; i++)
+        {
+            for (int j = 0; j < CONSTANTS.ENCHANT_COLUMNS; j++)
+            {
+                if (_nodes[i][j] instanceof NodeCustomEnchant && ((NodeCustomEnchant) _nodes[i][j]).GetEnchant() != null)
+                    enchants.add(((NodeCustomEnchant) _nodes[i][j]).GetEnchant());
+            }
+        }
+        return enchants;
     }
 
 
@@ -481,10 +520,16 @@ public class EnchantedItem
         final String str_quality = hasQuality(_stack) ? "&7| " + "&9&n" + getQuality() + "&r &7|" : "";
         // ■
 
+        // Custom enchant lines are taken out while the slot lines are replaced by similarity,
+        // so they can't be mistaken for each other
+        CustomEnchantData.RemoveLore(_stack);
+
         //index = Metods._ins.fin
         ItemUtils.AddOrReplaceLore(_stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬" + str_quality + "&3▬▬▬▬▬▬▬▬▬▬▬▬▬", 50);
         ItemUtils.AddOrReplaceLore(_stack,
                 "&6░ ► " + str_revealed + "&r&a" + _slots + "&r" + str_revealed + str_upgrade, 25);
+
+        CustomEnchantData.AddLore(_stack);
 
         return _stack;
     }
@@ -966,6 +1011,9 @@ public class EnchantedItem
                     break;
                 case "NodeSwapper":
                     node = new NodeSwapper();
+                    break;
+                case "NodeCustomEnchant":
+                    node = new NodeCustomEnchant();
                     break;
                 default:
                     node = new Node();

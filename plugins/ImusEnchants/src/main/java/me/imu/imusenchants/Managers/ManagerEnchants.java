@@ -58,6 +58,7 @@ public class ManagerEnchants
 	public static final INode[] VALID_NODES = new INode[]
 			{
 			   new NodeBooster(),
+			   new NodeCustomEnchant(),
 			   new NodeEnchant(),
 			   new NodeSwapper()
 			};
@@ -99,6 +100,7 @@ public class ManagerEnchants
 			if(node.IsValidGUIitem(TOUCH_TYPE.NONE, enchantedItem, stack))
 			{
 				if(node instanceof NodeBooster) return new NodeBooster(stack);
+				if(node instanceof NodeCustomEnchant) return new NodeCustomEnchant(stack);
 				if(node instanceof NodeEnchant) return new NodeEnchant(stack);
 				if(node instanceof NodeSwapper) return new NodeSwapper();
 			}

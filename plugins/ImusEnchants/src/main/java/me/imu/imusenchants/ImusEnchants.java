@@ -3,7 +3,9 @@ package me.imu.imusenchants;
 import java.util.HashMap;
 
 import me.imu.imusenchants.Commands.ImusEnchantsCmd;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.Events.AnvilEvents;
+import me.imu.imusenchants.Events.CustomEnchantEvents;
 import me.imu.imusenchants.Events.BetterStructuresEvents;
 import me.imu.imusenchants.Events.Events;
 import me.imu.imusenchants.Events.SlotCoreEvents;
@@ -34,6 +36,7 @@ public class ImusEnchants extends JavaPlugin
     {
         Instance = this;
         _managerEnchants = new ManagerEnchants();
+        CustomEnchantRegistry.RegisterDefaults();
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName+" is Activated");
 
@@ -41,6 +44,7 @@ public class ImusEnchants extends JavaPlugin
         getServer().getPluginManager().registerEvents(new VillagerEvents(), this);
         getServer().getPluginManager().registerEvents(new AnvilEvents(), this);
         getServer().getPluginManager().registerEvents(new SlotCoreEvents(), this);
+        getServer().getPluginManager().registerEvents(new CustomEnchantEvents(), this);
 
         if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))
         {

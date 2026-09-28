@@ -12,6 +12,9 @@ import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 
 import me.imu.imusenchants.CONSTANTS;
+import me.imu.imusenchants.CustomEnchants.CustomEnchant;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.Enchants.NodeBooster;
 import me.imu.imusenchants.ImusEnchants;
 import org.bukkit.GameMode;
@@ -95,21 +98,24 @@ public class InventoryBuyEnchants extends CustomInventory
 		{
 			"&3Guaranteed &eTier &91 &3Enchant",
 			"&9Low &3chance to &eTier &d2",
-			"&3Buyable at &2"+ CONSTANTS.CAP_FIRST_1_ENCHANTS+"L"
+			"&3Buyable at &2"+ CONSTANTS.CAP_FIRST_1_ENCHANTS+"L",
+			"&3Small chance for a &dCustom Enchant"
 		};
 		
 		final String[] tier2_enchant_desc = new String[] 
 		{
 			"&3Guaranteed &eTier &91 &3Enchant",
 			"&6High &3chance to &eTier &d2",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_2_ENCHANTS+"L"
+			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_2_ENCHANTS+"L",
+			"&3Small chance for a &dCustom Enchant"
 		};
 		
 		final String[] tier3_enchant_desc = new String[] 
 		{
 			"&3Guaranteed &eTier &d2 &3Enchant",
 			"&6High &3chance to &eTier &63",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_3_ENCHANTS+"L"
+			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_3_ENCHANTS+"L",
+			"&3Small chance for a &dCustom Enchant"
 		};
 		
 		final String[] tier1_booster_desc = new String[] 
@@ -440,11 +446,25 @@ public class InventoryBuyEnchants extends CustomInventory
 
 	}
 
+	// Sometimes the bought book is a custom enchant of the category instead, always level I
+	private boolean giveCustomBook(ITEM_CATEGORY category)
+	{
+		if(!rollChance(CONSTANTS.CUSTOM_BOOK_SHOP_CHANCE)) return false;
+
+		CustomEnchant enchant = CustomEnchantRegistry.GetRandomForShop(category);
+		if(enchant == null) return false;
+
+		InvUtil.AddItemToInventoryOrDrop(getPlayer(), CustomEnchantBook.Create(enchant, 1));
+		return true;
+	}
+
 	private void buttonBuyTool(ENCHANTMENT_TIER bookTier)
 	{
 		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
 	    
 		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
+
+		if(giveCustomBook(ITEM_CATEGORY.TOOL)) return;
 
 		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
 		
@@ -460,6 +480,8 @@ public class InventoryBuyEnchants extends CustomInventory
 		
 		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
 		
+		if(giveCustomBook(ITEM_CATEGORY.WEAPON)) return;
+
 		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
 		
 		Enchantment enchant = EnchantUtil.GetRandomEnchantment(ITEM_CATEGORY.WEAPON, enchantTier, _excludedEnchants);
@@ -473,6 +495,8 @@ public class InventoryBuyEnchants extends CustomInventory
 		
 		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
 		
+		if(giveCustomBook(ITEM_CATEGORY.ARMOR)) return;
+
 		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
 		
 		Enchantment enchant = EnchantUtil.GetRandomEnchantment(ITEM_CATEGORY.ARMOR,enchantTier, _excludedEnchants);

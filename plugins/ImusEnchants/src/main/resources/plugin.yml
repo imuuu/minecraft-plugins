@@ -14,5 +14,5 @@ commands:
       - ien
 permissions:
   imusenchants.admin:
-    description: Give Slot Cores
+    description: Give Slot Cores and custom enchant books
     default: op

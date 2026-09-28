@@ -2,11 +2,12 @@ package me.imu.imusenchants.Events;
 
 import com.magmaguy.betterstructures.api.ChestFillEvent;
 import me.imu.imusenchants.CONSTANTS;
-import me.imu.imusenchants.Items.SlotCore;
+import me.imu.imusenchants.Managers.ChestLoot;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 
@@ -24,13 +25,13 @@ public class BetterStructuresEvents implements Listener
 			Events.ProcessFoundItems(Arrays.asList(inv.getContents()), e.getContainer().getWorld());
 		}
 
-		if (!SlotCore.RollChestChance())
-			return;
+		for (ItemStack extra : ChestLoot.RollExtras())
+		{
+			int emptySlot = inv.firstEmpty();
+			if (emptySlot < 0)
+				return;
 
-		int emptySlot = inv.firstEmpty();
-		if (emptySlot < 0)
-			return;
-
-		inv.setItem(emptySlot, SlotCore.Create(1));
+			inv.setItem(emptySlot, extra);
+		}
 	}
 }

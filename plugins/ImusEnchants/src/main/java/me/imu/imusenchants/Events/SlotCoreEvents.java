@@ -3,6 +3,7 @@ package me.imu.imusenchants.Events;
 import imu.iAPI.Other.Metods;
 import me.imu.imusenchants.Enchants.EnchantedItem;
 import me.imu.imusenchants.Items.SlotCore;
+import me.imu.imusenchants.Managers.ChestLoot;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -34,10 +35,7 @@ public class SlotCoreEvents implements Listener
 		if (event.getInventoryHolder() == null)
 			return;
 
-		if (!SlotCore.RollChestChance())
-			return;
-
-		event.getLoot().add(SlotCore.Create(1));
+		event.getLoot().addAll(ChestLoot.RollExtras());
 	}
 
 	// Slot core on cursor clicked on top of a tool/armor in the player's own inventory

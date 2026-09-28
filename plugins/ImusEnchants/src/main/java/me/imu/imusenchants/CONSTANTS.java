@@ -21,6 +21,9 @@ public class CONSTANTS
 	public static final boolean SLOT_CORE_MODE = true;
 	public static final Material SLOT_CORE_MATERIAL = Material.AMETHYST_SHARD;
 	public static final double SLOT_CORE_CHEST_CHANCE = 0.05; // 0.0-1.0, per unopened loot chest
+
+	public static final double CUSTOM_BOOK_CHEST_CHANCE = 0.05; // 0.0-1.0, per unopened loot chest, always level I
+	public static final double CUSTOM_BOOK_SHOP_CHANCE = 0.15; // 0.0-1.0, chance a bought book is a custom one
 	
 	public static final boolean ENABLE_MULTIPLE_SAME_ENCHANTS = false;
 	

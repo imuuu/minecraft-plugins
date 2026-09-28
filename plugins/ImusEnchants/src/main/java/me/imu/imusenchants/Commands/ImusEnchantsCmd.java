@@ -3,6 +3,9 @@ package me.imu.imusenchants.Commands;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusenchants.CONSTANTS;
+import me.imu.imusenchants.CustomEnchants.CustomEnchant;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
 import me.imu.imusenchants.Items.SlotCore;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -38,9 +41,14 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 
 		HelpTopic(String title, String summary, String... lines)
 		{
+			this(title, summary, Arrays.asList(lines));
+		}
+
+		HelpTopic(String title, String summary, List<String> lines)
+		{
 			Title = title;
 			Summary = summary;
-			Lines = Arrays.asList(lines);
+			Lines = lines;
 		}
 	}
 
@@ -88,6 +96,8 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				"&7Level caps: &fFortune, Looting, Unbreaking, Protections &8→ &e4",
 				"              &fSilk Touch, Infinity &8→ &e1",
 				"&7Get books from the table's &eBuy Enchants &7shop or from loot."));
+
+		_topics.put("custom", new HelpTopic("Custom Enchants", "New enchants like Tunnel and Vein Miner", CustomEnchantLines()));
 
 		_topics.put("boosters", new HelpTopic("Boosters", "Raising enchant levels",
 				"&7A &6Booster &7has &5arrows &8(&5↑ ↓ ← →&8) &7and a &6⚡ power&7.",
@@ -164,8 +174,36 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
+		if (args[0].equalsIgnoreCase("book"))
+		{
+			GiveBook(sender, label, args);
+			return true;
+		}
+
 		sender.sendMessage(Metods.msgC("&cUnknown command. Use &e/" + label + " help"));
 		return true;
+	}
+
+	private static List<String> CustomEnchantLines()
+	{
+		List<String> lines = new ArrayList<>();
+		lines.add("&7Custom enchants give tools new abilities.");
+		lines.add("&6Get books: &7the &eBuy Enchants &7shop &8(&7small chance&8) &7and");
+		lines.add("&7unopened loot chests &8(&e" + Percent(CONSTANTS.CUSTOM_BOOK_CHEST_CHANCE) + "&8)&7. Books are always &eLevel I&7.");
+		lines.add("&6Normal tool: &7click the book on it in your inventory &8→ &eLevel I&7.");
+		lines.add("&6Slotted tool: &7put the book in the table grid,");
+		lines.add("&6Boosters &7raise it up to the enchant's max level.");
+
+		for (CustomEnchant enchant : CustomEnchantRegistry.GetAll())
+		{
+			lines.add("&d" + enchant.GetName() + " &8(&7max &e" + CustomEnchant.ToRoman(enchant.GetMaxLevel())
+					+ "&8, &f" + enchant.GetAppliesToText() + "&8)");
+			for (int level = 1; level <= enchant.GetMaxLevel(); level++)
+			{
+				lines.add("  &e" + CustomEnchant.ToRoman(level) + " &7" + enchant.GetDescription(level));
+			}
+		}
+		return lines;
 	}
 
 	private void SendOverview(CommandSender sender, String label)
@@ -190,6 +228,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		{
 			sender.sendMessage("");
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
+			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
 		}
 		sender.sendMessage(Metods.msgC(FOOTER));
 	}
@@ -273,6 +312,67 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		sender.sendMessage(Metods.msgC("&dGave &6" + amount + " &dSlot Core(s) to &e" + target.getName()));
 	}
 
+	private void GiveBook(CommandSender sender, String label, String[] args)
+	{
+		if (!sender.hasPermission(PERMISSION_ADMIN))
+		{
+			sender.sendMessage(Metods.msgC("&cNo permission!"));
+			return;
+		}
+
+		if (args.length < 2)
+		{
+			sender.sendMessage(Metods.msgC("&e/" + label + " book <enchant> [level] [player]"));
+			return;
+		}
+
+		CustomEnchant enchant = CustomEnchantRegistry.Get(args[1]);
+		if (enchant == null)
+		{
+			List<String> keys = new ArrayList<>();
+			CustomEnchantRegistry.GetAll().forEach(e -> keys.add(e.GetKey()));
+			sender.sendMessage(Metods.msgC("&cUnknown enchant &e" + args[1] + "&c. Enchants: &e" + String.join(", ", keys)));
+			return;
+		}
+
+		int level = 1;
+		if (args.length >= 3)
+		{
+			try
+			{
+				level = Math.max(1, Math.min(enchant.GetMaxLevel(), Integer.parseInt(args[2])));
+			}
+			catch (NumberFormatException e)
+			{
+				sender.sendMessage(Metods.msgC("&cInvalid level: " + args[2]));
+				return;
+			}
+		}
+
+		Player target;
+		if (args.length >= 4)
+		{
+			target = Bukkit.getPlayerExact(args[3]);
+			if (target == null)
+			{
+				sender.sendMessage(Metods.msgC("&cPlayer not found: " + args[3]));
+				return;
+			}
+		}
+		else if (sender instanceof Player)
+		{
+			target = (Player) sender;
+		}
+		else
+		{
+			sender.sendMessage(Metods.msgC("&e/" + label + " book <enchant> <level> <player>"));
+			return;
+		}
+
+		InvUtil.AddItemToInventoryOrDrop(target, CustomEnchantBook.Create(enchant, level));
+		sender.sendMessage(Metods.msgC("&dGave &e" + enchant.GetDisplayName(level) + " &dbook to &e" + target.getName()));
+	}
+
 	private static String SlotRange(String name, MATERIAL_SLOT_RANGE range)
 	{
 		return "&f" + name + " &e" + range.GetMinSlots() + "-" + range.GetMaxSlots();
@@ -296,13 +396,25 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		{
 			options.add("help");
 			if (sender.hasPermission(PERMISSION_ADMIN))
+			{
 				options.add("core");
+				options.add("book");
+			}
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("help"))
 		{
 			options.addAll(_topics.keySet());
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("core") && sender.hasPermission(PERMISSION_ADMIN))
+		{
+			for (Player player : Bukkit.getOnlinePlayers())
+				options.add(player.getName());
+		}
+		else if (args.length == 2 && args[0].equalsIgnoreCase("book") && sender.hasPermission(PERMISSION_ADMIN))
+		{
+			CustomEnchantRegistry.GetAll().forEach(e -> options.add(e.GetKey()));
+		}
+		else if (args.length == 4 && args[0].equalsIgnoreCase("book") && sender.hasPermission(PERMISSION_ADMIN))
 		{
 			for (Player player : Bukkit.getOnlinePlayers())
 				options.add(player.getName());
