@@ -1,0 +1,77 @@
+name: Build plugins
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      SPIGOT_REV: 1.20.2
+      SPIGOT_VERSION: 1.20.2-R0.1-SNAPSHOT
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      # BuildTools takes several minutes, keep its output between runs
+      - name: Cache Spigot (BuildTools)
+        id: spigot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository/org/spigotmc
+            ~/.m2/repository/net/md-5
+          key: spigot-${{ env.SPIGOT_REV }}-remapped-v1
+
+      - name: Build Spigot with BuildTools
+        if: steps.spigot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p buildtools && cd buildtools
+          curl -fsSLo BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+          java -jar BuildTools.jar --rev "$SPIGOT_REV" --remapped
+
+      # Plugin jars that aren't served by a Maven repo, installed under the coordinates the POMs use
+      - name: Install ProtocolLib and Vault
+        run: |
+          mkdir -p ci-libs
+          curl -fsSLo ci-libs/ProtocolLib.jar https://github.com/dmulloy2/ProtocolLib/releases/download/5.1.0/ProtocolLib.jar
+          curl -fsSLo ci-libs/Vault.jar https://github.com/MilkBowl/Vault/releases/download/1.7.3/Vault.jar
+          mvn -B -q install:install-file -Dfile=ci-libs/ProtocolLib.jar -DgroupId=com.github.dmulloy2 -DartifactId=ProtocolLib -Dversion=5.1.0 -Dpackaging=jar
+          mvn -B -q install:install-file -Dfile=ci-libs/Vault.jar -DgroupId=com.github.MilkBowl -DartifactId=VaultAPI -Dversion=1.7 -Dpackaging=jar
+
+      - name: Install BetterStructures stub
+        run: |
+          API_JAR=$(find ~/.m2/repository/org/spigotmc/spigot-api/$SPIGOT_VERSION -name "spigot-api-*.jar" ! -name "*sources*" ! -name "*javadoc*" | head -n 1)
+          if [ -z "$API_JAR" ]; then
+            mvn -B -q dependency:get -Dartifact=org.spigotmc:spigot-api:$SPIGOT_VERSION -DremoteRepositories=https://hub.spigotmc.org/nexus/content/repositories/snapshots/
+            API_JAR=$(find ~/.m2/repository/org/spigotmc/spigot-api/$SPIGOT_VERSION -name "spigot-api-*.jar" ! -name "*sources*" ! -name "*javadoc*" | head -n 1)
+          fi
+          mkdir -p ci-libs/stub-classes
+          javac --release 17 -cp "$API_JAR" -d ci-libs/stub-classes $(find .github/ci-stubs/betterstructures -name "*.java")
+          jar cf ci-libs/BetterStructures.jar -C ci-libs/stub-classes .
+          mvn -B -q install:install-file -Dfile=ci-libs/BetterStructures.jar -DgroupId=com.magmaguy -DartifactId=BetterStructures -Dversion=1.6.4 -Dpackaging=jar
+
+      # DontLoseItems is left out, it doesn't compile against the current ImusAPI (see README)
+      - name: Build
+        run: mvn -B package -pl '!plugins/DontLoseItems'
+
+      - name: Collect jars
+        run: |
+          mkdir -p dist
+          find libs plugins -path "*/target/*.jar" ! -name "original-*.jar" -exec cp {} dist/ \;
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugins
+          path: dist/*.jar
+          retention-days: 30
