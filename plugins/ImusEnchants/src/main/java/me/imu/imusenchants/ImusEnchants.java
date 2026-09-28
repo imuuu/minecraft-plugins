@@ -2,8 +2,10 @@ package me.imu.imusenchants;
 
 import java.util.HashMap;
 
+import me.imu.imusenchants.Commands.ImusEnchantsCmd;
 import me.imu.imusenchants.Events.AnvilEvents;
 import me.imu.imusenchants.Events.Events;
+import me.imu.imusenchants.Events.SlotCoreEvents;
 import me.imu.imusenchants.Events.VillagerEvents;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import me.imu.imusenchants.SubCommands.SubOpenEnchant_InvCmd;
@@ -37,11 +39,16 @@ public class ImusEnchants extends JavaPlugin
         getServer().getPluginManager().registerEvents(new Events(), this);
         getServer().getPluginManager().registerEvents(new VillagerEvents(), this);
         getServer().getPluginManager().registerEvents(new AnvilEvents(), this);
+        getServer().getPluginManager().registerEvents(new SlotCoreEvents(), this);
         RegisterCommands();
     }
 
     public void RegisterCommands()
     {
+        ImusEnchantsCmd cmd = new ImusEnchantsCmd();
+        getCommand("imusenchants").setExecutor(cmd);
+        getCommand("imusenchants").setTabCompleter(cmd);
+
         /*_cmdHelper = new CmdHelper(_pluginName);
 
         HashMap<String, String[]> cmd1AndArguments = new HashMap<>();

@@ -72,6 +72,11 @@ public class ManagerEnchants
 		new InventoryEnchanting().open(player);
 	}
 
+	public void OpenEnchantingInventory(Player player, ItemStack preloadedItem)
+	{
+		new InventoryEnchanting(preloadedItem).open(player);
+	}
+
 	public static int GetEnchantMaxLevelCap(Enchantment enchantment) 
 	{
         return MAX_ENCHANT_LEVEL_CAP.getOrDefault(enchantment, -1);

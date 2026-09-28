@@ -63,6 +63,9 @@ public class Events implements Listener
 	public void OnCraftItem(CraftItemEvent event)
 	{
 
+		if (CONSTANTS.SLOT_CORE_MODE)
+			return;
+
 		ItemStack result = event.getCurrentItem();
 		
 		if (result == null)
@@ -103,6 +106,8 @@ public class Events implements Listener
 	{
 		
 		
+		if(CONSTANTS.SLOT_CORE_MODE) return;
+
 		if(!(event.getInventory() instanceof CraftingInventory)) return;
 		
 		Recipe recipe = event.getRecipe();
@@ -124,6 +129,10 @@ public class Events implements Listener
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event)
 	{
+		// handled by SlotCoreEvents
+		if (CONSTANTS.SLOT_CORE_MODE)
+			return;
+
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
 		{
 			Block clickedBlock = event.getClickedBlock();
@@ -293,7 +302,7 @@ public class Events implements Listener
 	    {
 	        if(item == null) continue;
 	        
-	        if(ManagerEnchants.IsValidToEnchant(item))
+	        if(!CONSTANTS.SLOT_CORE_MODE && ManagerEnchants.IsValidToEnchant(item))
 	        {
 	        	EnchantedItem eItem = new EnchantedItem(item);
 	        	eItem.SetTooltip();

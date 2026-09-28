@@ -7,6 +7,10 @@ depend:
 commands:
   imusenchants:
     description: ImusEnchants
-    usage: /<command>
+    usage: /<command> core [player] [amount]
     aliases:
       - ien
+permissions:
+  imusenchants.admin:
+    description: Give Slot Cores
+    default: op

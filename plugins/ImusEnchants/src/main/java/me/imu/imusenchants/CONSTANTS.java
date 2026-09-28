@@ -15,6 +15,11 @@ public class CONSTANTS
 	
 	public static final Material BOOSTER_MATERIAL = Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE;
 	public static final Material ENCHANT_MATERIAL = Material.ENCHANTED_BOOK;
+
+	// true: items stay vanilla until a Slot Core is used on them and the enchanting table is vanilla
+	// unless clicked with a slotted item. false: old behavior, every crafted/found item gets slots.
+	public static final boolean SLOT_CORE_MODE = true;
+	public static final Material SLOT_CORE_MATERIAL = Material.AMETHYST_SHARD;
 	
 	public static final boolean ENABLE_MULTIPLE_SAME_ENCHANTS = false;
 	
