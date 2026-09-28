@@ -8,8 +8,8 @@ softdepend:
   - BetterStructures
 commands:
   imusenchants:
-    description: ImusEnchants
-    usage: /<command> core [player] [amount]
+    description: ImusEnchants help and admin commands
+    usage: /<command> help [topic]
     aliases:
       - ien
 permissions:
