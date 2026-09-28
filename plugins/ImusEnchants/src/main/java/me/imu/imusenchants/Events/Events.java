@@ -43,8 +43,6 @@ import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.Plugin;
 
-import com.magmaguy.betterstructures.api.ChestFillEvent;
-
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ItemUtils;
 
@@ -62,6 +60,9 @@ public class Events implements Listener
 	@EventHandler
 	public void OnCraftItem(CraftItemEvent event)
 	{
+
+		if (CONSTANTS.SLOT_CORE_MODE)
+			return;
 
 		ItemStack result = event.getCurrentItem();
 		
@@ -103,6 +104,8 @@ public class Events implements Listener
 	{
 		
 		
+		if(CONSTANTS.SLOT_CORE_MODE) return;
+
 		if(!(event.getInventory() instanceof CraftingInventory)) return;
 		
 		Recipe recipe = event.getRecipe();
@@ -124,6 +127,10 @@ public class Events implements Listener
 	@EventHandler
 	public void OnPlayerInteract(PlayerInteractEvent event)
 	{
+		// handled by SlotCoreEvents
+		if (CONSTANTS.SLOT_CORE_MODE)
+			return;
+
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
 		{
 			Block clickedBlock = event.getClickedBlock();
@@ -273,27 +280,14 @@ public class Events implements Listener
 	    ProcessFoundItems(Arrays.asList(inventory.getContents()), event.getWorld());
 	}
 	
-		//if better structure is enabled on the server this will be triggered
-	@SuppressWarnings("unused")
-	@EventHandler(priority = EventPriority.HIGH)
-	public void OnBetterStructureLoot(ChestFillEvent e)
-	{
-		if(!CONSTANTS.ENABLE_MENDING_FOUND_ONLY_END && CONSTANTS.SET_FOUND_ENCHANTED_BOOKS_LEVEL_ONE) return;
-
-		Inventory inv = e.getContainer().getInventory();
-		inv = e.getContainer().getSnapshotInventory();
-	
-		ProcessFoundItems(Arrays.asList(inv.getContents()), e.getContainer().getWorld());
-
-	}
-	
-	private void ProcessFoundItems(List<ItemStack> items, World world) 
+	// BetterStructures chests are handled in BetterStructuresEvents, registered only when it is installed
+	static void ProcessFoundItems(List<ItemStack> items, World world) 
 	{
 	    for (ItemStack item : items) 
 	    {
 	        if(item == null) continue;
 	        
-	        if(ManagerEnchants.IsValidToEnchant(item))
+	        if(!CONSTANTS.SLOT_CORE_MODE && ManagerEnchants.IsValidToEnchant(item))
 	        {
 	        	EnchantedItem eItem = new EnchantedItem(item);
 	        	eItem.SetTooltip();

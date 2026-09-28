@@ -80,7 +80,7 @@ public class VillagerEvents implements Listener
 			
 			if(event.getEntity() instanceof Villager)
 			{
-				if(!CONSTANTS.ENABLE_BUY_SLOT_ITEMS_VILLAGERS) return;
+				if(!CONSTANTS.ENABLE_BUY_SLOT_ITEMS_VILLAGERS || CONSTANTS.SLOT_CORE_MODE) return;
 				
 				Villager villager = (Villager) event.getEntity();
 				List<MerchantRecipe> newRecipes = new ArrayList<>(villager.getRecipes());

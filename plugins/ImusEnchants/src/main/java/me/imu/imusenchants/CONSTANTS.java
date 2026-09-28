@@ -15,6 +15,16 @@ public class CONSTANTS
 	
 	public static final Material BOOSTER_MATERIAL = Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE;
 	public static final Material ENCHANT_MATERIAL = Material.ENCHANTED_BOOK;
+
+	// true: items stay vanilla until a Slot Core is used on them and the enchanting table is vanilla
+	// unless clicked with a slotted item. false: old behavior, every crafted/found item gets slots.
+	public static final boolean SLOT_CORE_MODE = true;
+	public static final Material SLOT_CORE_MATERIAL = Material.AMETHYST_SHARD;
+	public static final double SLOT_CORE_CHEST_CHANCE = 0.05; // 0.0-1.0, per unopened loot chest
+
+	public static final double CUSTOM_BOOK_CHEST_CHANCE = 0.05; // 0.0-1.0, per unopened loot chest, always level I
+	public static final double CUSTOM_BOOK_SHOP_CHANCE = 0.15; // 0.0-1.0, chance a bought book is a custom one
+	public static final double CURSED_BOOK_CHANCE = 0.20; // 0.0-1.0, chance a custom book found in loot carries a curse
 	
 	public static final boolean ENABLE_MULTIPLE_SAME_ENCHANTS = false;
 	
