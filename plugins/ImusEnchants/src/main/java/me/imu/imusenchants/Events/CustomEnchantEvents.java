@@ -247,7 +247,8 @@ public class CustomEnchantEvents implements Listener
 	}
 
 	// PlayerDeathEvent comes here too. HIGHEST so Soulbound (HIGH) has taken its items out first.
-	@EventHandler(priority = EventPriority.HIGHEST)
+	// A cancelled death (totem, revive or duel plugins) drops nothing, so there is nothing to collect.
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void OnEntityDeath(EntityDeathEvent event)
 	{
 		Player killer = event.getEntity().getKiller();
@@ -395,12 +396,25 @@ public class CustomEnchantEvents implements Listener
 	// ===== Soulbound =====
 
 	// Runs after DontLoseItems (NORMAL), which already keeps the hotbar and armor
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void OnPlayerDeath(PlayerDeathEvent event)
 	{
 		CustomEnchant soulbound = CustomEnchantRegistry.Get(SoulboundEnchant.KEY);
 		if (soulbound instanceof SoulboundEnchant && EnchantSettings.IsEnabled(soulbound))
 			((SoulboundEnchant) soulbound).OnPlayerDeath(event);
+	}
+
+	// A plugin listening after HIGH can still cancel the death. The player then keeps the
+	// originals, so the copies Soulbound saved for the respawn must not be handed out.
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void OnPlayerDeathCancelled(PlayerDeathEvent event)
+	{
+		if (!event.isCancelled())
+			return;
+
+		CustomEnchant soulbound = CustomEnchantRegistry.Get(SoulboundEnchant.KEY);
+		if (soulbound instanceof SoulboundEnchant)
+			((SoulboundEnchant) soulbound).Discard(event.getEntity());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)

@@ -2,6 +2,7 @@ package me.imu.imusenchants.CustomEnchants.Enchants.Fishing;
 
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +37,10 @@ public class DoubleCatchEnchant extends CustomEnchant
 			return;
 
 		Item caught = (Item) event.getCaught();
-		Item copy = caught.getWorld().dropItem(caught.getLocation(), caught.getItemStack().clone());
+		// VanillaEnchantFilter (HIGHEST) only strips the original catch, so strip the copy here
+		ItemStack stack = caught.getItemStack().clone();
+		EnchantSettings.StripDisabled(stack);
+		Item copy = caught.getWorld().dropItem(caught.getLocation(), stack);
 		copy.setVelocity(caught.getVelocity());
 	}
 }

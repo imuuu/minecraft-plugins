@@ -62,6 +62,11 @@ public class SoulboundEnchant extends CustomEnchant
 			_pending.computeIfAbsent(event.getEntity().getUniqueId(), uuid -> new ArrayList<>()).addAll(saved);
 	}
 
+	public void Discard(Player player)
+	{
+		_pending.remove(player.getUniqueId());
+	}
+
 	public void GiveBack(Player player)
 	{
 		List<ItemStack> items = _pending.remove(player.getUniqueId());

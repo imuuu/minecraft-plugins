@@ -3,14 +3,20 @@ package me.imu.imusenchants.CustomEnchants.Enchants.Combat;
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-// Chance to get one of a mob's drops twice. Never on players, their items would be duplicated.
+// Chance to get one of a mob's drops twice. Only loot is copied: never players, mobs that carry
+// an inventory (chested donkeys and llamas, allays, villagers) or what a mob has equipped, since
+// those can be items a player gave or lost to it.
 public class ScavengerEnchant extends CustomEnchant
 {
 	@Override public String GetKey() { return "scavenger"; }
@@ -36,15 +42,36 @@ public class ScavengerEnchant extends CustomEnchant
 	@Override
 	public void OnKill(EntityDeathEvent event, Player killer, ItemStack weapon, int level)
 	{
-		if (event.getEntity() instanceof Player)
+		LivingEntity entity = event.getEntity();
+		if (entity instanceof Player || entity instanceof InventoryHolder)
 			return;
 
-		List<ItemStack> drops = event.getDrops();
-		if (drops.isEmpty() || !Roll(GetChance(level)))
+		if (!Roll(GetChance(level)))
 			return;
 
-		ItemStack drop = drops.get(_random.nextInt(drops.size()));
-		if (drop != null && !drop.getType().isAir() && drop.getType().getMaxStackSize() > 1)
-			drops.add(drop.clone());
+		List<ItemStack> candidates = new ArrayList<>();
+		for (ItemStack drop : event.getDrops())
+		{
+			if (drop != null && !drop.getType().isAir() && drop.getType().getMaxStackSize() > 1 && !IsEquipped(entity, drop))
+				candidates.add(drop);
+		}
+		if (candidates.isEmpty())
+			return;
+
+		event.getDrops().add(candidates.get(_random.nextInt(candidates.size())).clone());
+	}
+
+	private static boolean IsEquipped(LivingEntity entity, ItemStack drop)
+	{
+		EntityEquipment equipment = entity.getEquipment();
+		if (equipment == null)
+			return false;
+
+		for (ItemStack worn : equipment.getArmorContents())
+		{
+			if (drop.isSimilar(worn))
+				return true;
+		}
+		return drop.isSimilar(equipment.getItemInMainHand()) || drop.isSimilar(equipment.getItemInOffHand());
 	}
 }
