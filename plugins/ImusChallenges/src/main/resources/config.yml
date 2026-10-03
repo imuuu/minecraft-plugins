@@ -1,6 +1,10 @@
 # ImusChallenges settings.
 
 shop:
+  # Every this many minutes, players who can afford something in the shop get a
+  # "you have unspent points" message with a clickable link to open it. 0 turns it off.
+  reminder-interval-minutes: 60
+
   # How a loot entry works:
   #   item:   a Material name, or one of RANDOM (any item, see random-item-excluded),
   #           MYSTERY_BOX or MYSTERY_DUST (both need the GadgedMenu plugin; skipped when it is missing)

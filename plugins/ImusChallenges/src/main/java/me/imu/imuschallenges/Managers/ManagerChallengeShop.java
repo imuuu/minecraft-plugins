@@ -10,11 +10,16 @@ import imu.iAPI.Utilities.InvUtil;
 import me.imu.imuschallenges.CONSTANTS;
 import me.imu.imuschallenges.Database.Tables.TablePlayerShopStats;
 import me.imu.imuschallenges.Database.Tables.TablePlayers;
+import me.imu.imuschallenges.Enums.POINT_TYPE;
 import me.imu.imuschallenges.ImusChallenges;
 import me.imu.imuschallenges.Interfaces.ShopStatsCallback;
 import me.imu.imuschallenges.Inventories.InventoryChallengeShop;
 import me.imu.imuschallenges.Factories.ItemFactory;
 import me.imu.imuschallenges.Shop.ShopTier;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -85,6 +90,7 @@ public class ManagerChallengeShop
         _stateFile = new File(main.getDataFolder(), "shop_state.yml");
         loadState();
         scheduleItemGeneration();
+        scheduleReminders(config.getLong("reminder-interval-minutes"));
     }
 
     public void shutdown()
@@ -179,6 +185,90 @@ public class ManagerChallengeShop
             if (changed)
                 saveState();
         }, 0L, 20);
+    }
+
+    // Reminders ======================================================================================================
+
+    private void scheduleReminders(long intervalMinutes)
+    {
+        if (intervalMinutes <= 0)
+            return;
+
+        long intervalTicks = intervalMinutes * 60 * 20;
+        Bukkit.getScheduler().runTaskTimer(ImusChallenges.getInstance(), () ->
+        {
+            for (Player player : Bukkit.getOnlinePlayers())
+            {
+                if (player.hasPermission(CONSTANTS.PERM_CHALLENGE_SHOP) && !_hasShopOpen.contains(player))
+                    remindIfAffordable(player);
+            }
+        }, intervalTicks, intervalTicks);
+    }
+
+    /**
+     * Tells the player about their unspent points, but only when one of the items they can see in the shop is
+     * within their budget.
+     */
+    private void remindIfAffordable(Player player)
+    {
+        // Tier contents are only touched on the main thread, so take the prices along
+        List<List<Integer>> tierCosts = new ArrayList<>();
+        List<ShopTier> tiers = new ArrayList<>();
+        for (ShopTier tier : List.of(_normal, _special))
+        {
+            if (tier.hasBought(player.getUniqueId()))
+                continue;
+            tiers.add(tier);
+            tierCosts.add(new ArrayList<>(tier.getCosts()));
+        }
+        if (tiers.isEmpty())
+            return;
+
+        _statsExecutor.execute(() ->
+        {
+            try
+            {
+                double points = ManagerPlayerPoints.getInstance().getPoints(POINT_TYPE.CHALLENGE_POINT.toString(), player);
+                if (points <= 0)
+                    return;
+
+                TablePlayerShopStats stats = getShopStatsByPlayerId(player);
+                boolean canAfford = false;
+                for (int t = 0; t < tiers.size() && !canAfford; t++)
+                {
+                    List<Integer> costs = tierCosts.get(t);
+                    int unlocked = Math.min(tiers.get(t).getBoughtSlots(stats), costs.size());
+                    for (int i = 0; i < unlocked; i++)
+                    {
+                        if (costs.get(i) <= points)
+                        {
+                            canAfford = true;
+                            break;
+                        }
+                    }
+                }
+                if (!canAfford || !ImusChallenges.getInstance().isEnabled())
+                    return;
+
+                int shownPoints = (int) points;
+                Bukkit.getScheduler().runTask(ImusChallenges.getInstance(), () -> sendReminder(player, shownPoints));
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void sendReminder(Player player, int points)
+    {
+        if (!player.isOnline())
+            return;
+
+        LegacyComponentSerializer legacy = LegacyComponentSerializer.legacyAmpersand();
+        Component link = legacy.deserialize("&a&l[Open shop]")
+                .clickEvent(ClickEvent.runCommand("/ic shop"))
+                .hoverEvent(HoverEvent.showText(legacy.deserialize("&9Click to open the &6Challenge Shop")));
+        player.sendMessage(legacy.deserialize("&9You have &2" + points + " &9unspent &6challenge points&9! ").append(link));
     }
 
     private void broadcastShopUpdate(ShopTier tier)

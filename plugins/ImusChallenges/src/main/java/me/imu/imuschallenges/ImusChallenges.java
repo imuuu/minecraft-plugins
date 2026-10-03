@@ -142,7 +142,7 @@ public class ImusChallenges extends JavaPlugin
         String full_sub3 = cmd1 + " " + cmd1_sub3;
         _cmdHelper.setCmd(full_sub3, "Open Challenge Shop", full_sub3);
         handler.registerSubCmd(cmd1, cmd1_sub3, new SubOpenShopCmd());
-        handler.setPermissionOnLastCmd("ic.shop");
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_CHALLENGE_SHOP);
 
         String cmd1_sub4 = "add points";
         handler.registerSubCmd(cmd1, cmd1_sub4, new SubAddPointsCmd());
