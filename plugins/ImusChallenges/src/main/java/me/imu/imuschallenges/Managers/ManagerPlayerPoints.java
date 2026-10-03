@@ -221,6 +221,73 @@ public class ManagerPlayerPoints
     }
 
     /**
+     * Sets a player's challenge points, or their lifetime points, to an exact amount. Setting the spendable points
+     * above the lifetime points raises those too, since nobody can have more than they ever earned.
+     *
+     * @param lifetime true sets the lifetime points instead of the spendable ones
+     * @param callback runs on the main thread with the player's name as stored, or null when no such player exists
+     */
+    public void setPointsAsync(String playerName, int amount, boolean lifetime, Consumer<String> callback)
+    {
+        _writeExecutor.execute(() ->
+        {
+            String resolvedName = null;
+            int newLifetime = 0;
+            try
+            {
+                TablePlayers tablePlayer = _managerTablePlayers.findByName(playerName);
+                TablePointType pointType = _managerPointType.getPointTypeByName(POINT_TYPE.CHALLENGE_POINT.toString());
+                if (tablePlayer != null && pointType != null)
+                {
+                    resolvedName = tablePlayer.getPlayer_name();
+                    List<TablePlayerPoints> existing = findPoints(tablePlayer, pointType);
+                    TablePlayerPoints playerPoints = existing.isEmpty() ? new TablePlayerPoints() : existing.get(0);
+                    if (existing.isEmpty())
+                    {
+                        playerPoints.setPlayer(tablePlayer);
+                        playerPoints.setPointType(pointType);
+                    }
+
+                    if (lifetime)
+                    {
+                        playerPoints.setLifetimePoints(amount);
+                    }
+                    else
+                    {
+                        playerPoints.setPoints(amount);
+                        playerPoints.setLifetimePoints(Math.max(playerPoints.getLifetimePoints(), amount));
+                    }
+                    newLifetime = playerPoints.getLifetimePoints();
+
+                    if (existing.isEmpty())
+                        playerPointsDao.create(playerPoints);
+                    else
+                        playerPointsDao.update(playerPoints);
+
+                    // The leader is looked up again on the next points earned
+                    _leaderLoaded = false;
+                    _leaderPlayerId = -1;
+                    _leaderName = null;
+                    _leaderLifetime = 0;
+                }
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            final String name = resolvedName;
+            final int scoreboardPoints = newLifetime;
+            if (_main.isEnabled())
+                Bukkit.getScheduler().runTask(_main, () ->
+                {
+                    if (name != null)
+                        ManagerPointsScoreboard.getInstance().setPoints(name, scoreboardPoints);
+                    callback.accept(name);
+                });
+        });
+    }
+
+    /**
      * Sets challenge points and lifetime points back to zero, for one player or for everyone.
      *
      * @param playerName null resets everyone

@@ -240,6 +240,14 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub4, new SubAddPointsCmd());
         handler.setPermissionOnLastCmd("ic.add.points");
 
+        String cmd1_sub10 = "set points";
+        handler.registerSubCmd(cmd1, cmd1_sub10, new SubSetPointsCmd(false));
+        handler.setPermissionOnLastCmd("ic.set.points");
+
+        String cmd1_sub11 = "set lifetime";
+        handler.registerSubCmd(cmd1, cmd1_sub11, new SubSetPointsCmd(true));
+        handler.setPermissionOnLastCmd("ic.set.points");
+
         String cmd1_sub9 = "reset points";
         handler.registerSubCmd(cmd1, cmd1_sub9, new SubResetPointsCmd());
         handler.setPermissionOnLastCmd("ic.reset.points");
@@ -256,7 +264,8 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubGetPointsCmd());
         handler.setPermissionOnLastCmd("ic.view.points");
 
-        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "reset", "reload", "config" });
+        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config" });
+        cmd1AndArguments.put("set", new String[] { "points", "lifetime" });
         cmd1AndArguments.put("reset", new String[] { "points" });
         cmd1AndArguments.put("view", new String[] { "points","materials","advancements"});
         cmd1AndArguments.put("add", new String[] { "points" });
