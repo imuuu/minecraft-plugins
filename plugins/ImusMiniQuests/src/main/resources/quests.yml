@@ -357,3 +357,402 @@ quests:
         - tool: HELMET
           slots: true
           weight: 4
+
+  # ---- Combat ----
+
+  undead_slayer:
+    name: "&7Undead Slayer"
+    material: GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThey should have stayed buried."
+    drop-weight: 8
+    objective:
+      type: KILL_ENTITY
+      targets: ["#undead"]
+      amount: 75
+      text: "Kill 75 undead (zombies, skeletons...)"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: SWORD
+          slots: true
+          weight: 8
+        - tool: HELMET
+          slots: true
+          weight: 6
+        - enchant-book: beheading
+          weight: 2
+      guaranteed:
+        - item: EXPERIENCE_BOTTLE
+          min: 8
+          max: 16
+
+  spider_exterminator:
+    name: "&8Spider Exterminator"
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7&oEight legs too many."
+    drop-weight: 7
+    objective:
+      type: KILL_ENTITY
+      targets: [SPIDER, CAVE_SPIDER]
+      amount: 40
+      text: "Kill 40 spiders"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: BOOTS
+          slots: true
+          weight: 6
+        - item: COBWEB
+          min: 4
+          max: 8
+          weight: 5
+        - enchant-book: venom
+          weight: 2
+
+  defuser:
+    name: "&aDefuser"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSsssss... not today."
+    drop-weight: 6
+    objective:
+      type: KILL_ENTITY
+      targets: [CREEPER]
+      amount: 25
+      text: "Kill 25 creepers"
+    rewards:
+      rolls: 1
+      pool:
+        - item: TNT
+          min: 4
+          max: 8
+          weight: 8
+        - tool: CHESTPLATE
+          slots: true
+          weight: 5
+        - item: MUSIC_DISC_CAT
+          weight: 1
+
+  void_stalker:
+    name: "&5Void Stalker"
+    material: PURPLE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oNever look them in the eye."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: [ENDERMAN]
+      amount: 30
+      text: "Kill 30 endermen"
+    rewards:
+      rolls: 1
+      pool:
+        - item: ENDER_PEARL
+          min: 8
+          max: 16
+          weight: 8
+        - tool: SWORD
+          slots: true
+          tiers: {IRON: 60, DIAMOND: 40}
+          weight: 5
+        - enchant-book: random
+          weight: 3
+
+  nether_slayer:
+    name: "&cNether Slayer"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe heat is the easy part."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: [BLAZE, WITHER_SKELETON, GHAST, MAGMA_CUBE, PIGLIN_BRUTE, HOGLIN]
+      amount: 50
+      text: "Kill 50 Nether monsters"
+    rewards:
+      rolls: 2
+      pool:
+        - tool: CHESTPLATE
+          slots: true
+          tiers: {IRON: 50, DIAMOND: 50}
+          weight: 5
+        - item: NETHERITE_SCRAP
+          weight: 2
+        - item: BLAZE_ROD
+          min: 4
+          max: 12
+          weight: 8
+        - slot-core: true
+          weight: 3
+      guaranteed:
+        - item: EXPERIENCE_BOTTLE
+          min: 16
+          max: 32
+
+  # ---- Gathering ----
+
+  quarryman:
+    name: "&7Quarryman"
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe mountain gives way."
+    drop-weight: 8
+    objective:
+      type: BREAK_BLOCK
+      targets: [STONE, DEEPSLATE, ANDESITE, DIORITE, GRANITE, TUFF]
+      amount: 1000
+      text: "Mine 1000 stone"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          tiers: {STONE: 30, IRON: 50, DIAMOND: 20}
+          weight: 10
+        - enchant-book: tunnel
+          weight: 3
+        - slot-core: true
+          weight: 2
+
+  excavator:
+    name: "&6Excavator"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oDig, dig, dig."
+    drop-weight: 7
+    objective:
+      type: BREAK_BLOCK
+      targets: [DIRT, GRASS_BLOCK, COARSE_DIRT, ROOTED_DIRT, SAND, RED_SAND, GRAVEL, CLAY, MUD, SOUL_SAND, SOUL_SOIL]
+      amount: 500
+      text: "Dig 500 dirt, sand, gravel or clay"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: SHOVEL
+          slots: true
+          weight: 10
+        - item: FLINT
+          min: 8
+          max: 16
+          weight: 4
+        - enchant-book: random
+          weight: 2
+
+  debris_hunter:
+    name: "&4Debris Hunter"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oBuried deep under the Nether."
+    drop-weight: 2
+    objective:
+      type: BREAK_BLOCK
+      targets: [ANCIENT_DEBRIS]
+      amount: 4
+      text: "Mine 4 ancient debris"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          tiers: {DIAMOND: 80, NETHERITE: 20}
+          weight: 6
+        - item: NETHERITE_SCRAP
+          min: 1
+          max: 2
+          weight: 4
+      guaranteed:
+        - slot-core: true
+
+  pumpkin_patch:
+    name: "&6Pumpkin Patch"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oBigger than last year."
+    drop-weight: 5
+    objective:
+      type: BREAK_BLOCK
+      targets: [PUMPKIN, MELON]
+      amount: 64
+      text: "Harvest 64 pumpkins or melons"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: HOE
+          slots: true
+          weight: 8
+        - item: GLISTERING_MELON_SLICE
+          min: 4
+          max: 8
+          weight: 5
+        - enchant-book: harvest
+          weight: 2
+
+  sugar_farmer:
+    name: "&aSugar Farmer"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSweet, sweet profit."
+    drop-weight: 5
+    objective:
+      type: BREAK_BLOCK
+      targets: [SUGAR_CANE, BAMBOO, CACTUS]
+      amount: 256
+      text: "Harvest 256 sugar cane, bamboo or cactus"
+    rewards:
+      rolls: 1
+      pool:
+        - item: EMERALD
+          min: 8
+          max: 16
+          weight: 8
+        - item: SUGAR
+          min: 32
+          max: 64
+          weight: 6
+        - tool: AXE
+          slots: true
+          weight: 5
+
+  treasure_diver:
+    name: "&3Treasure Diver"
+    material: CYAN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oNot everything down there is fish."
+    drop-weight: 3
+    objective:
+      type: FISH
+      targets: [ENCHANTED_BOOK, NAME_TAG, SADDLE, NAUTILUS_SHELL, BOW, FISHING_ROD]
+      amount: 5
+      text: "Fish up 5 treasures"
+    rewards:
+      rolls: 1
+      pool:
+        - item: FISHING_ROD
+          slots: true
+          weight: 6
+        - enchant-book: auto_reel
+          weight: 3
+        - enchant-book: long_cast
+          weight: 3
+        - item: HEART_OF_THE_SEA
+          weight: 1
+
+  # ---- Crafting and smelting ----
+
+  baker:
+    name: "&eBaker"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFresh out of the oven."
+    drop-weight: 6
+    objective:
+      type: CRAFT
+      targets: [BREAD, CAKE, COOKIE, PUMPKIN_PIE]
+      amount: 64
+      text: "Bake 64 bread, cakes, cookies or pies"
+    rewards:
+      rolls: 1
+      pool:
+        - item: GOLDEN_APPLE
+          min: 1
+          max: 3
+          weight: 6
+        - item: GOLDEN_CARROT
+          min: 8
+          max: 16
+          weight: 8
+        - enchant-book: random
+          weight: 2
+
+  glassblower:
+    name: "&bGlassblower"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oClear as day."
+    drop-weight: 5
+    objective:
+      type: SMELT
+      targets: [GLASS]
+      amount: 128
+      text: "Smelt 128 glass"
+    rewards:
+      rolls: 1
+      pool:
+        - enchant-book: glass_breaker
+          weight: 4
+        - item: SPYGLASS
+          weight: 4
+        - item: AMETHYST_SHARD
+          min: 8
+          max: 16
+          weight: 6
+
+  kiln_master:
+    name: "&7Kiln Master"
+    material: GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFire turns clay to stone."
+    drop-weight: 5
+    objective:
+      type: SMELT
+      targets: [BRICK, NETHER_BRICK, SMOOTH_STONE, STONE, TERRACOTTA, SMOOTH_SANDSTONE]
+      amount: 128
+      text: "Fire 128 bricks or stone in a furnace"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          weight: 6
+        - item: EMERALD
+          min: 6
+          max: 12
+          weight: 8
+        - slot-core: true
+          weight: 2
+
+  # ---- Villagers and animals ----
+
+  book_collector:
+    name: "&dBook Collector"
+    material: MAGENTA_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe librarian knows you by name."
+    drop-weight: 3
+    objective:
+      type: TRADE
+      targets: [ENCHANTED_BOOK]
+      amount: 5
+      text: "Buy 5 enchanted books from villagers"
+    rewards:
+      rolls: 2
+      pool:
+        - enchant-book: random
+          weight: 10
+        - slot-core: true
+          weight: 3
+
+  horse_breeder:
+    name: "&6Horse Breeder"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFaster every generation."
+    drop-weight: 3
+    objective:
+      type: BREED
+      targets: [HORSE, DONKEY, LLAMA, CAMEL]
+      amount: 6
+      text: "Breed 6 horses, donkeys, llamas or camels"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SADDLE
+          weight: 6
+        - item: DIAMOND_HORSE_ARMOR
+          weight: 2
+        - item: GOLDEN_CARROT
+          min: 16
+          max: 32
+          weight: 6
