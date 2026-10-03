@@ -4,6 +4,7 @@ import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
 import me.imu.imusenchants.CustomEnchants.MultiBreak;
+import me.imu.imusenchants.CustomEnchants.PlacedLogs;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -20,7 +21,9 @@ import java.util.Queue;
 import java.util.Set;
 
 // Chopping a log fells the whole tree. Only natural trees: the logs must have natural leaves
-// (or nether wart blocks) around them, so log houses and builds are safe.
+// (or nether wart blocks) around them, and logs a player placed (PlacedLogs) are never felled or
+// searched through, so a log house touching a tree is safe.
+// Logs placed before PlacedLogs existed aren't marked.
 public class TimberEnchant extends CustomEnchant
 {
 	private static final int[] MAX_LOGS = {32, 64, 128};
@@ -52,7 +55,7 @@ public class TimberEnchant extends CustomEnchant
 			return false;
 
 		Block origin = event.getBlock();
-		if (!IsLog(origin.getType()))
+		if (!IsLog(origin.getType()) || PlacedLogs.IsPlaced(origin))
 			return false;
 
 		int maxLogs = GetMaxLogs(level);
@@ -83,7 +86,7 @@ public class TimberEnchant extends CustomEnchant
 							continue;
 						}
 
-						if (!IsLog(neighbor.getType()) || logs.size() >= maxLogs)
+						if (!IsLog(neighbor.getType()) || logs.size() >= maxLogs || PlacedLogs.IsPlaced(neighbor))
 							continue;
 
 						logs.add(neighbor);

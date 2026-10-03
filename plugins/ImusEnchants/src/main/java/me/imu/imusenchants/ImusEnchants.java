@@ -15,6 +15,7 @@ import me.imu.imusenchants.Events.VillagerEvents;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import me.imu.imusenchants.SubCommands.SubOpenEnchant_InvCmd;
 import me.imu.imusenchants.Inventories.InventoryEnchanting;
+import me.imu.imusenchants.CustomEnchants.TemporaryBlocks;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +53,8 @@ public class ImusEnchants extends JavaPlugin
         getServer().getPluginManager().registerEvents(new SlotCoreEvents(), this);
         _customEnchantEvents = new CustomEnchantEvents(this);
         getServer().getPluginManager().registerEvents(_customEnchantEvents, this);
+        // Chunks loaded before the plugin (spawn chunks) don't fire ChunkLoadEvent for it
+        TemporaryBlocks.RestoreLeftoversInLoadedChunks();
         getServer().getPluginManager().registerEvents(new VanillaEnchantFilter(), this);
 
         if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))

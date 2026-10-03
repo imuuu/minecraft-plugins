@@ -8,10 +8,12 @@ import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.CustomEnchants.EnchantEffects;
 import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.CustomEnchants.PaperCompat;
+import me.imu.imusenchants.CustomEnchants.PlacedLogs;
 import me.imu.imusenchants.CustomEnchants.TemporaryBlocks;
 import me.imu.imusenchants.CustomEnchants.Enchants.Universal.SoulboundEnchant;
 import me.imu.imusenchants.Enchants.EnchantedItem;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -31,6 +33,7 @@ import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -45,6 +48,7 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
@@ -431,6 +435,18 @@ public class CustomEnchantEvents implements Listener
 
 	// ===== Temporary blocks (Magma Walker) can't be taken, pushed or blown up =====
 
+	// Blocks the server didn't get to turn back before a crash. A tick later, not while loading.
+	@EventHandler
+	public void OnChunkLoad(ChunkLoadEvent event)
+	{
+		Chunk chunk = event.getChunk();
+		Bukkit.getScheduler().runTask(_plugin, () ->
+		{
+			if (chunk.isLoaded())
+				TemporaryBlocks.RestoreLeftovers(chunk);
+		});
+	}
+
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void OnTemporaryBlockBreak(BlockBreakEvent event)
 	{
@@ -474,6 +490,22 @@ public class CustomEnchantEvents implements Listener
 	public void OnBlockExplode(BlockExplodeEvent event)
 	{
 		event.blockList().removeIf(TemporaryBlocks::IsTemporary);
+	}
+
+	// ===== Logs placed by players, which Timber leaves alone =====
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void OnLogPlace(BlockPlaceEvent event)
+	{
+		if (PlacedLogs.IsLog(event.getBlockPlaced()))
+			PlacedLogs.Mark(event.getBlockPlaced());
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void OnLogBreak(BlockBreakEvent event)
+	{
+		if (PlacedLogs.IsLog(event.getBlock()))
+			PlacedLogs.Unmark(event.getBlock());
 	}
 
 	// ===== Applying books to items without slots =====

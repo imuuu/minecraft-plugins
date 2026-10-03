@@ -6,11 +6,14 @@ import me.imu.imusenchants.CustomEnchants.EnchantEffects;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
 import me.imu.imusenchants.CustomEnchants.TemporaryBlocks;
 import me.imu.imusenchants.ImusEnchants;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -61,6 +64,14 @@ public class MagmaWalkerEnchant extends CustomEnchant
 
 				// Only still lava sources, like Frost Walker
 				if (!(block.getBlockData() instanceof Levelled) || ((Levelled) block.getBlockData()).getLevel() != 0)
+					continue;
+
+				// Same event as vanilla Frost Walker, so claim and region plugins can refuse it
+				BlockState magma = block.getState();
+				magma.setType(Material.MAGMA_BLOCK);
+				EntityBlockFormEvent form = new EntityBlockFormEvent(player, block, magma);
+				Bukkit.getPluginManager().callEvent(form);
+				if (form.isCancelled())
 					continue;
 
 				TemporaryBlocks.Place(ImusEnchants.Instance, block, Material.MAGMA_BLOCK, DURATION_TICKS + _random.nextInt(40));
