@@ -1,6 +1,5 @@
 package me.imu.imusminiquests.Quests;
 
-import imu.iAPI.LootTables.ImusLootTable;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusminiquests.Hooks.ImusEnchantsHook;
@@ -15,7 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Supplier;
+import java.util.function.DoubleFunction;
 import java.util.logging.Logger;
 
 /**
@@ -50,7 +49,8 @@ public class QuestReward
         DEFAULT_ARMOR_TIERS.put("DIAMOND", 5);
     }
 
-    private final Supplier<ItemStack> _item;
+    // Luck in, item out: tool tiers and other rolls lean on the player's luck
+    private final DoubleFunction<ItemStack> _item;
     private final int _minAmount;
     private final int _maxAmount;
     private final List<String> _commands;
@@ -60,7 +60,7 @@ public class QuestReward
     private final MoneyRange _money;
     private final int _weight;
 
-    private QuestReward(Supplier<ItemStack> item, int minAmount, int maxAmount, List<String> commands, String message,
+    private QuestReward(DoubleFunction<ItemStack> item, int minAmount, int maxAmount, List<String> commands, String message,
                         String description, boolean hasDisplay, MoneyRange money, int weight)
     {
         _item = item;
@@ -118,9 +118,9 @@ public class QuestReward
 
         private static ManagerEconomy economy() {return ImusMiniQuests.getInstance().getEconomy();}
 
-        double roll()
+        double roll(double luck)
         {
-            double value = min == max ? min : ThreadLocalRandom.current().nextDouble(min, max);
+            double value = Luck.between(min, max, luck);
             return economy().clamp(percent ? economy().getBasisAmount() * value / 100 : value);
         }
 
@@ -160,12 +160,12 @@ public class QuestReward
         int max = Math.max(min, section.getInt("max", min));
         String amountText = min == max ? (min == 1 ? "" : min + " x ") : min + "-" + max + " x ";
 
-        Supplier<ItemStack> item = null;
+        DoubleFunction<ItemStack> item = null;
         String description = null;
 
         if (section.isString("item") || section.isString("tool"))
         {
-            Supplier<Material> material;
+            DoubleFunction<Material> material;
             if (section.isString("item"))
             {
                 Material itemMaterial = Material.matchMaterial(section.getString("item"));
@@ -174,15 +174,15 @@ public class QuestReward
                     log.warning(context + ": unknown item " + section.getString("item"));
                     return null;
                 }
-                material = () -> itemMaterial;
+                material = luck -> itemMaterial;
                 description = amountText + (section.isString("name") ? section.getString("name") : prettyName(itemMaterial.name()));
             }
             else
             {
-                ImusLootTable tiers = new ImusLootTable();
+                List<Tier> tiers = new ArrayList<>();
                 description = parseToolTiers(section, tiers, log, context);
                 if (description == null) return null;
-                material = () -> (Material) tiers.getLoot();
+                material = luck -> Luck.pick(tiers, Tier::weight, luck).material();
                 if (section.isString("name")) description = section.getString("name");
             }
 
@@ -214,7 +214,7 @@ public class QuestReward
                 return null;
             }
 
-            item = () -> ImusEnchantsHook.createBook(key, level);
+            item = luck -> ImusEnchantsHook.createBook(key, level);
             description = amountText + "&dCustom Enchant Book" + (random ? "" : " &7(" + enchantName + ")");
         }
         else if (section.contains("slot-core"))
@@ -225,7 +225,7 @@ public class QuestReward
                 return null;
             }
 
-            item = () -> ImusEnchantsHook.createSlotCore(1);
+            item = luck -> ImusEnchantsHook.createSlotCore(1);
             description = amountText + "&dSlot Core";
         }
 
@@ -256,11 +256,11 @@ public class QuestReward
     /**
      * A new item of the rolled material, with ImusEnchants slots or vanilla enchants when asked.
      */
-    private static Supplier<ItemStack> gear(Supplier<Material> material, boolean slots, int enchantLevels, ConfigurationSection section)
+    private static DoubleFunction<ItemStack> gear(DoubleFunction<Material> material, boolean slots, int enchantLevels, ConfigurationSection section)
     {
-        return () ->
+        return luck ->
         {
-            ItemStack stack = new ItemStack(material.get());
+            ItemStack stack = new ItemStack(material.apply(luck));
             if (slots) stack = ImusEnchantsHook.addSlots(stack);
             else if (enchantLevels > 0)
                 stack = Bukkit.getItemFactory().enchantWithLevels(stack, enchantLevels, false, ThreadLocalRandom.current());
@@ -269,12 +269,15 @@ public class QuestReward
         };
     }
 
+    /** One tier of a tool reward and how likely it is. */
+    private record Tier(Material material, int weight) {}
+
     /**
      * Fills the table with the tiers of tool: PICKAXE, tiers: {WOODEN: 40, ..., DIAMOND: 5} and
      * returns its name for the reward list, like "Wooden-Diamond Pickaxe". Null when no tier is
      * valid.
      */
-    private static String parseToolTiers(ConfigurationSection section, ImusLootTable table, Logger log, String context)
+    private static String parseToolTiers(ConfigurationSection section, List<Tier> table, Logger log, String context)
     {
         String tool = section.getString("tool").toUpperCase(Locale.ROOT);
         boolean armor = ARMOR_PIECES.contains(tool);
@@ -302,7 +305,7 @@ public class QuestReward
             }
             if (tier.getValue() <= 0) continue;
 
-            table.add(material, tier.getValue());
+            table.add(new Tier(material, tier.getValue()));
             materials.add(material);
         }
         if (materials.isEmpty())
@@ -354,16 +357,17 @@ public class QuestReward
 
     /**
      * Rolls the items this entry gives, without giving them. Empty for command-only entries.
+     * Luck leans the amount towards max and tool tiers towards the rare ones.
      */
-    public List<ItemStack> createItems()
+    public List<ItemStack> createItems(double luck)
     {
         List<ItemStack> items = new ArrayList<>();
         if (_item == null) return items;
 
-        int amount = ThreadLocalRandom.current().nextInt(_minAmount, _maxAmount + 1);
+        int amount = Luck.between(_minAmount, _maxAmount, luck);
         while (amount > 0)
         {
-            ItemStack stack = _item.get();
+            ItemStack stack = _item.apply(luck);
             if (stack == null) break;
 
             stack.setAmount(Math.min(amount, stack.getMaxStackSize()));
@@ -376,20 +380,20 @@ public class QuestReward
     /** True when this entry runs commands, which a preview can't show as items. */
     public boolean hasCommands() {return !_commands.isEmpty();}
 
-    /** Rolls the money this entry pays, 0 when it pays none. */
-    public double rollMoney()
+    /** Rolls the money this entry pays, 0 when it pays none. Luck leans it towards the top. */
+    public double rollMoney(double luck)
     {
-        return _money == null ? 0 : _money.roll();
+        return _money == null ? 0 : _money.roll(luck);
     }
 
-    public void give(Player player)
+    public void give(Player player, double luck)
     {
-        for (ItemStack stack : createItems())
+        for (ItemStack stack : createItems(luck))
         {
             InvUtil.AddItemToInventoryOrDrop(player, stack);
         }
 
-        double money = rollMoney();
+        double money = rollMoney(luck);
         if (money > 0 && ManagerEconomy.isAvailable())
         {
             ManagerEconomy.deposit(player, money);

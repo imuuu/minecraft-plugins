@@ -9,6 +9,14 @@ depend:
 softdepend:
   - BetterStructures
   - ImusEnchants
+  - ImusChallenges
+permissions:
+  imq.points:
+    description: See your own quest points and luck with /imq points
+    default: true
+  imq.points.others:
+    description: See and set other players' quest points
+    default: op
 commands:
   imusminiquests:
     description: ImusMiniQuests

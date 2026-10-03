@@ -7,6 +7,7 @@ import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerEconomy;
+import me.imu.imusminiquests.Managers.ManagerQuestPoints;
 import me.imu.imusminiquests.Quests.Quest;
 import me.imu.imusminiquests.Quests.QuestReward;
 import org.bukkit.Material;
@@ -25,8 +26,11 @@ public class InventoryRewardPreview extends CustomInventory
     private static final int SLOT_BACK = 45;
     private static final int SLOT_INFO = 48;
     private static final int SLOT_REROLL = 49;
+    private static final int SLOT_LUCK = 50;
 
     private final Quest _quest;
+    // Which luck the rolls use: 0 = none, 1 = half of the most, 2 = the most
+    private int _luckStep = 0;
 
     /** An item in the preview; money is shown as an icon that can't be taken. */
     private record Shown(ItemStack stack, boolean takeable) {}
@@ -55,6 +59,11 @@ public class InventoryRewardPreview extends CustomInventory
         roll();
     }
 
+    private double getLuck()
+    {
+        return ImusMiniQuests.getInstance().getQuestPoints().getMaxLuck() * _luckStep / 2.0;
+    }
+
     private static ItemStack moneyIcon(double money)
     {
         ItemStack icon = new ItemStack(Material.GOLD_INGOT);
@@ -71,6 +80,7 @@ public class InventoryRewardPreview extends CustomInventory
     {
         clearButtons();
 
+        double luck = getLuck();
         List<Shown> items = new ArrayList<>();
         int openings = 0;
         boolean commands = false;
@@ -78,10 +88,10 @@ public class InventoryRewardPreview extends CustomInventory
         for (int attempt = 0; attempt < ITEM_SLOTS * 4 && items.size() < ITEM_SLOTS; attempt++)
         {
             List<Shown> opened = new ArrayList<>();
-            for (QuestReward reward : _quest.rollRewards())
+            for (QuestReward reward : _quest.rollRewards(luck))
             {
-                reward.createItems().forEach(item -> opened.add(new Shown(item, true)));
-                double money = reward.rollMoney();
+                reward.createItems(luck).forEach(item -> opened.add(new Shown(item, true)));
+                double money = reward.rollMoney(luck);
                 if (money > 0) opened.add(new Shown(moneyIcon(money), false));
                 commands |= reward.hasCommands();
             }
@@ -120,6 +130,17 @@ public class InventoryRewardPreview extends CustomInventory
         ItemStack reroll = new ItemStack(Material.ENDER_EYE);
         ItemUtils.SetDisplayName(reroll, "&6Roll again");
         addButton(new Button(SLOT_REROLL, reroll, event -> roll()));
+
+        ItemStack luckIcon = new ItemStack(Material.RABBIT_FOOT);
+        ItemUtils.SetDisplayName(luckIcon, "&6Luck: &e" + ManagerQuestPoints.formatLuck(luck));
+        ItemUtils.AddLore(luckIcon, "&7Rolls as a player with this much luck", true);
+        ItemUtils.AddLore(luckIcon, "&7from quest points would get them", true);
+        ItemUtils.AddLore(luckIcon, "&eClick &7to switch: none, half, most", true);
+        addButton(new Button(SLOT_LUCK, luckIcon, event ->
+        {
+            _luckStep = (_luckStep + 1) % 3;
+            roll();
+        }));
 
         updateButtons(true);
     }

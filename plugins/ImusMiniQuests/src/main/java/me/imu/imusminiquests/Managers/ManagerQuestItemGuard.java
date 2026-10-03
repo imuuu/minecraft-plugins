@@ -1,5 +1,6 @@
 package me.imu.imusminiquests.Managers;
 
+import me.imu.imusminiquests.Hooks.ImusChallengesHook;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Quests.Quest;
 import me.imu.imusminiquests.Quests.QuestItem;
@@ -65,7 +66,9 @@ public class ManagerQuestItemGuard implements Listener
     }
 
     /**
-     * Removes the completed quest item from the hand and hands out its rewards.
+     * Removes the completed quest item from the hand and hands out its rewards, rolled with the
+     * luck the player had before this quest. Then adds a quest point and, when ImusChallenges is
+     * there, challenge points.
      */
     private void claim(Player player, EquipmentSlot hand, Quest quest)
     {
@@ -73,9 +76,26 @@ public class ManagerQuestItemGuard implements Listener
         inHand.setAmount(inHand.getAmount() - 1);
         player.getInventory().setItem(hand, inHand.getAmount() > 0 ? inHand : null);
 
-        quest.giveRewards(player);
+        ManagerQuestPoints questPoints = _plugin.getQuestPoints();
+        quest.giveRewards(player, questPoints.getLuck(player));
         player.sendMessage(_plugin.getMessage("claimed").replace("%quest%", quest.getName()));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.4f);
+
+        if (questPoints.isEnabled())
+        {
+            int points = questPoints.addPoints(player, 1);
+            player.sendMessage(_plugin.getMessage("quest-points")
+                    .replace("%points%", String.valueOf(points))
+                    .replace("%luck%", ManagerQuestPoints.formatLuck(questPoints.getLuck(points))));
+        }
+
+        int challengePoints = _plugin.getConfig().getInt("imuschallenges.points-per-quest", 1);
+        if (_plugin.getConfig().getBoolean("imuschallenges.enabled", true) && challengePoints > 0
+                && ImusChallengesHook.isEnabled())
+        {
+            ImusChallengesHook.addChallengePoints(player, challengePoints);
+            player.sendMessage(_plugin.getMessage("challenge-points").replace("%points%", String.valueOf(challengePoints)));
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

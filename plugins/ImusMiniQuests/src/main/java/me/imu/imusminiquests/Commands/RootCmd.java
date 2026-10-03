@@ -18,6 +18,7 @@ public class RootCmd implements CommandInterface
             return false;
 
         sender.sendMessage(Metods.msgC("&6ImusMiniQuests"));
+        sender.sendMessage(Metods.msgC("&e/" + commandLabel + " points [player] &7- quest points and the luck they give"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " menu &7- browse the quests, take panels, preview rewards"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " give <player> <quest> [amount] &7- give quest panels"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " list &7- list the quests"));

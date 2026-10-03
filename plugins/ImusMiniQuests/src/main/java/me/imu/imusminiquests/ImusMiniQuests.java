@@ -31,6 +31,7 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerQuestDrops _managerQuestDrops;
     private ManagerQuestProgress _managerQuestProgress;
     private ManagerEconomy _managerEconomy;
+    private ManagerQuestPoints _managerQuestPoints;
 
     @Override
     public void onEnable()
@@ -39,6 +40,7 @@ public class ImusMiniQuests extends JavaPlugin
         saveDefaultConfig();
         QuestItem.init(this);
         _managerEconomy = new ManagerEconomy(this);
+        _managerQuestPoints = new ManagerQuestPoints(this);
 
         _managerQuests = new ManagerQuests(this);
         _managerQuests.load();
@@ -97,6 +99,8 @@ public class ImusMiniQuests extends JavaPlugin
 
     public ManagerEconomy getEconomy() {return _managerEconomy;}
 
+    public ManagerQuestPoints getQuestPoints() {return _managerQuestPoints;}
+
     private ConfigMenu createConfigMenu()
     {
         ConfigMenu menu = new ConfigMenu(this, "ImusMiniQuests", CONSTANTS.PERM_CONFIG, this::reloadSettings);
@@ -128,6 +132,24 @@ public class ImusMiniQuests extends JavaPlugin
                 .note("now");
         menu.addDouble("drops.block-break-chance", "Block break drop chance", Material.IRON_PICKAXE, 0, 1)
                 .description("0.001 = 0.1%")
+                .note("now");
+
+        menu.addBoolean("quest-points.enabled", "Quest points and luck", Material.EXPERIENCE_BOTTLE)
+                .description("Every claimed quest gives a quest point, and points")
+                .description("make the player's later rewards better")
+                .note("now");
+        menu.addDouble("quest-points.luck-per-point", "Luck per quest point", Material.RABBIT_FOOT, 0, 1)
+                .description("0.01 = +1% luck for every quest claimed")
+                .note("now");
+        menu.addDouble("quest-points.max-luck", "Most luck", Material.GOLDEN_CARROT, 0, 1)
+                .description("0.5 = halfway to every reward being equally likely")
+                .note("now");
+
+        menu.addBoolean("imuschallenges.enabled", "ImusChallenges points", Material.NETHER_STAR)
+                .description("Claiming a quest gives ImusChallenges challenge points")
+                .description("Needs ImusChallenges on the server")
+                .note("now");
+        menu.addInt("imuschallenges.points-per-quest", "Challenge points per quest", Material.GOLD_NUGGET, 0, 1000)
                 .note("now");
         return menu;
     }
@@ -172,7 +194,11 @@ public class ImusMiniQuests extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub7, new SubEconomyCmd());
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_ECONOMY);
 
-        cmd1AndArguments.put(cmd1, new String[] { "menu", "give", "list", "complete", "economy", "reload", "config" });
+        String cmd1_sub8 = "points";
+        handler.registerSubCmd(cmd1, cmd1_sub8, new SubPointsCmd());
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_POINTS);
+
+        cmd1AndArguments.put(cmd1, new String[] { "points", "menu", "give", "list", "complete", "economy", "reload", "config" });
         cmd1AndArguments.put("economy", new String[] { "refresh" });
 
         getCommand(cmd1).setExecutor(handler);

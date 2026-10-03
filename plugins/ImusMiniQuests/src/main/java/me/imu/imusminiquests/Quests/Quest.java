@@ -1,6 +1,5 @@
 package me.imu.imusminiquests.Quests;
 
-import imu.iAPI.LootTables.ImusLootTable;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -23,7 +22,6 @@ public class Quest
     private final QuestObjective _objective;
     private final int _rolls;
     private final List<QuestReward> _poolRewards;
-    private final ImusLootTable _rewardPool = new ImusLootTable();
     private final List<QuestReward> _guaranteedRewards;
 
     public Quest(String id, String name, Material material, NamespacedKey model, List<String> lore, int dropWeight,
@@ -39,10 +37,6 @@ public class Quest
         _rolls = rolls;
         _poolRewards = List.copyOf(poolRewards);
         _guaranteedRewards = List.copyOf(guaranteedRewards);
-        for (QuestReward reward : _poolRewards)
-        {
-            _rewardPool.add(reward, reward.weight());
-        }
     }
 
     public String getId() {return _id;}
@@ -73,13 +67,14 @@ public class Quest
     public List<QuestReward> getGuaranteedRewards() {return _guaranteedRewards;}
 
     /**
-     * Rolls the reward pool and hands out the result and the guaranteed rewards.
+     * Rolls the reward pool and hands out the result and the guaranteed rewards. Luck (0-1, from
+     * the player's quest points) makes rare entries, high amounts and better tool tiers likelier.
      */
-    public void giveRewards(Player player)
+    public void giveRewards(Player player, double luck)
     {
-        for (QuestReward reward : rollRewards())
+        for (QuestReward reward : rollRewards(luck))
         {
-            reward.give(player);
+            reward.give(player, luck);
         }
     }
 
@@ -87,14 +82,14 @@ public class Quest
      * The entries one opening would give: every guaranteed reward plus the pool rolled
      * {@link #getRolls()} times.
      */
-    public List<QuestReward> rollRewards()
+    public List<QuestReward> rollRewards(double luck)
     {
         List<QuestReward> rewards = new ArrayList<>(_guaranteedRewards);
-        if (_rewardPool.getTotalWeight() <= 0) return rewards;
+        if (_poolRewards.isEmpty()) return rewards;
 
-        for (Object loot : _rewardPool.getLoot(_rolls))
+        for (int i = 0; i < _rolls; i++)
         {
-            if (loot instanceof QuestReward reward) rewards.add(reward);
+            rewards.add(Luck.pick(_poolRewards, QuestReward::weight, luck));
         }
         return rewards;
     }

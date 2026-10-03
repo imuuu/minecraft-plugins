@@ -66,8 +66,27 @@ money:
   min: 50
   max: 5000
 
+# Every quest a player opens gives them a quest point. Quest points give luck, and luck makes
+# that player's rewards better: rare pool entries and better tool tiers come up more often,
+# and amounts (items and money) lean towards their maximum.
+# At luck 0 the weights in quests.yml are used as they are; at luck 1 every entry in a pool
+# would be equally likely.
+quest-points:
+  enabled: true
+  # Luck for every quest point: 0.01 = +1% per quest
+  luck-per-point: 0.01
+  # Most luck a player can reach: 0.5 = reached after 50 quests with 0.01 per point
+  max-luck: 0.5
+
+# ImusChallenges: opening a quest also gives challenge points (lifetime points too)
+imuschallenges:
+  enabled: true
+  points-per-quest: 1
+
 messages:
   money: "&6+%money%"
+  quest-points: "&7Quest points: &e%points% &8(luck %luck%)"
+  challenge-points: "&d+%points% challenge point(s)"
   action-bar: "&6%quest% &7%progress%&8/&7%amount%"
   completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
   claimed: "&aYou opened %quest%&a!"
