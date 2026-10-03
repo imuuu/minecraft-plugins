@@ -47,7 +47,27 @@ drops:
     - "#logs"
     - "*_ORE"
 
+# Money rewards (needs Vault and an economy plugin such as EssentialsX).
+# A reward "money: 3-10%" pays that share of the server's economy, so rewards keep up as
+# players get richer. Every refresh-minutes the balances of every player who has ever joined
+# are added up, offline players included.
+money:
+  # What a percent reward is a share of:
+  # TOTAL   = all counted players' money added together
+  # AVERAGE = the average balance of counted players
+  # MEDIAN  = the balance in the middle, not pulled up by a few very rich players
+  basis: MEDIAN
+  # Leave ops out of the count
+  exclude-ops: true
+  # Leave out players who haven't played for this many days. 0 = count everyone
+  exclude-inactive-days: 0
+  refresh-minutes: 30
+  # Every money reward is at least min and at most max (0 = no maximum)
+  min: 50
+  max: 5000
+
 messages:
+  money: "&6+%money%"
   action-bar: "&6%quest% &7%progress%&8/&7%amount%"
   completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
   claimed: "&aYou opened %quest%&a!"

@@ -22,6 +22,7 @@ public class RootCmd implements CommandInterface
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " give <player> <quest> [amount] &7- give quest panels"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " list &7- list the quests"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " complete &7- finish the quest panel in your hand"));
+        sender.sendMessage(Metods.msgC("&e/" + commandLabel + " economy &7- the numbers money rewards are based on"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " reload &7- reload config.yml and quests.yml"));
         sender.sendMessage(Metods.msgC("&e/" + commandLabel + " config &7- edit settings in game"));
         return true;

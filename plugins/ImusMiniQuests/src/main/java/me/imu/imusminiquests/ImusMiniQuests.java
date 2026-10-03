@@ -30,6 +30,7 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerPlacedBlocks _managerPlacedBlocks;
     private ManagerQuestDrops _managerQuestDrops;
     private ManagerQuestProgress _managerQuestProgress;
+    private ManagerEconomy _managerEconomy;
 
     @Override
     public void onEnable()
@@ -37,6 +38,7 @@ public class ImusMiniQuests extends JavaPlugin
         _instance = this;
         saveDefaultConfig();
         QuestItem.init(this);
+        _managerEconomy = new ManagerEconomy(this);
 
         _managerQuests = new ManagerQuests(this);
         _managerQuests.load();
@@ -53,6 +55,7 @@ public class ImusMiniQuests extends JavaPlugin
         _configMenu = createConfigMenu();
         _configMenu.register();
         registerCommands();
+        _managerEconomy.start();
         getLogger().info("Loaded " + _managerQuests.getQuests().size() + " mini quests");
     }
 
@@ -61,6 +64,8 @@ public class ImusMiniQuests extends JavaPlugin
     {
         if (_configMenu != null)
             _configMenu.unregister();
+        if (_managerEconomy != null)
+            _managerEconomy.stop();
     }
 
     /**
@@ -72,6 +77,7 @@ public class ImusMiniQuests extends JavaPlugin
         reloadConfig();
         _managerQuests.load();
         _managerQuestDrops.reload();
+        _managerEconomy.start();
         updateTabCompleterRules();
     }
 
@@ -80,12 +86,16 @@ public class ImusMiniQuests extends JavaPlugin
      */
     public String getMessage(String key)
     {
-        return Metods.msgC(getConfig().getString("messages." + key, key));
+        // getString(path) falls back to the jar's config.yml for messages added in an update
+        String message = getConfig().getString("messages." + key);
+        return Metods.msgC(message != null ? message : key);
     }
 
     public ManagerQuests getQuests() {return _managerQuests;}
 
     public ManagerQuestProgress getQuestProgress() {return _managerQuestProgress;}
+
+    public ManagerEconomy getEconomy() {return _managerEconomy;}
 
     private ConfigMenu createConfigMenu()
     {
@@ -158,7 +168,12 @@ public class ImusMiniQuests extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubMenuCmd());
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_MENU);
 
-        cmd1AndArguments.put(cmd1, new String[] { "menu", "give", "list", "complete", "reload", "config" });
+        String cmd1_sub7 = "economy";
+        handler.registerSubCmd(cmd1, cmd1_sub7, new SubEconomyCmd());
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_ECONOMY);
+
+        cmd1AndArguments.put(cmd1, new String[] { "menu", "give", "list", "complete", "economy", "reload", "config" });
+        cmd1AndArguments.put("economy", new String[] { "refresh" });
 
         getCommand(cmd1).setExecutor(handler);
 

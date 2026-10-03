@@ -6,6 +6,7 @@ import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusminiquests.ImusMiniQuests;
+import me.imu.imusminiquests.Managers.ManagerEconomy;
 import me.imu.imusminiquests.Quests.Quest;
 import me.imu.imusminiquests.Quests.QuestReward;
 import org.bukkit.Material;
@@ -26,6 +27,9 @@ public class InventoryRewardPreview extends CustomInventory
     private static final int SLOT_REROLL = 49;
 
     private final Quest _quest;
+
+    /** An item in the preview; money is shown as an icon that can't be taken. */
+    private record Shown(ItemStack stack, boolean takeable) {}
 
     public InventoryRewardPreview(Quest quest)
     {
@@ -51,6 +55,14 @@ public class InventoryRewardPreview extends CustomInventory
         roll();
     }
 
+    private static ItemStack moneyIcon(double money)
+    {
+        ItemStack icon = new ItemStack(Material.GOLD_INGOT);
+        ItemUtils.SetDisplayName(icon, "&6+" + ManagerEconomy.format(money));
+        ItemUtils.AddLore(icon, "&8Money, paid straight to the balance", true);
+        return icon;
+    }
+
     /**
      * Opens the quest until the item slots are full and lays the items out, one opening after
      * another.
@@ -59,16 +71,18 @@ public class InventoryRewardPreview extends CustomInventory
     {
         clearButtons();
 
-        List<ItemStack> items = new ArrayList<>();
+        List<Shown> items = new ArrayList<>();
         int openings = 0;
         boolean commands = false;
         // An opening that only runs commands gives no items; stop instead of looping forever
         for (int attempt = 0; attempt < ITEM_SLOTS * 4 && items.size() < ITEM_SLOTS; attempt++)
         {
-            List<ItemStack> opened = new ArrayList<>();
+            List<Shown> opened = new ArrayList<>();
             for (QuestReward reward : _quest.rollRewards())
             {
-                opened.addAll(reward.createItems());
+                reward.createItems().forEach(item -> opened.add(new Shown(item, true)));
+                double money = reward.rollMoney();
+                if (money > 0) opened.add(new Shown(moneyIcon(money), false));
                 commands |= reward.hasCommands();
             }
             if (items.size() + opened.size() > ITEM_SLOTS && !items.isEmpty()) break;
@@ -79,8 +93,11 @@ public class InventoryRewardPreview extends CustomInventory
 
         for (int slot = 0; slot < items.size() && slot < ITEM_SLOTS; slot++)
         {
-            ItemStack item = items.get(slot);
-            addButton(new Button(slot, item, event -> InvUtil.AddItemToInventoryOrDrop(getPlayer(), item.clone())));
+            Shown shown = items.get(slot);
+            ItemStack item = shown.stack();
+            addButton(shown.takeable()
+                    ? new Button(slot, item, event -> InvUtil.AddItemToInventoryOrDrop(getPlayer(), item.clone()))
+                    : new Button(slot, item));
         }
 
         for (int slot = ITEM_SLOTS; slot < getSize(); slot++)

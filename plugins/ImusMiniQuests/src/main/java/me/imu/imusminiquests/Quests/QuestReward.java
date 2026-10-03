@@ -4,6 +4,8 @@ import imu.iAPI.LootTables.ImusLootTable;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusminiquests.Hooks.ImusEnchantsHook;
+import me.imu.imusminiquests.ImusMiniQuests;
+import me.imu.imusminiquests.Managers.ManagerEconomy;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -54,10 +56,12 @@ public class QuestReward
     private final List<String> _commands;
     private final String _message;
     private final String _description;
+    private final boolean _hasDisplay;
+    private final MoneyRange _money;
     private final int _weight;
 
     private QuestReward(Supplier<ItemStack> item, int minAmount, int maxAmount, List<String> commands, String message,
-                        String description, int weight)
+                        String description, boolean hasDisplay, MoneyRange money, int weight)
     {
         _item = item;
         _minAmount = minAmount;
@@ -65,6 +69,8 @@ public class QuestReward
         _commands = List.copyOf(commands);
         _message = message;
         _description = description;
+        _hasDisplay = hasDisplay;
+        _money = money;
         _weight = weight;
     }
 
@@ -72,9 +78,77 @@ public class QuestReward
 
     /**
      * The reward line on the quest panel, or null when the entry shouldn't be listed (only
-     * commands and no display text).
+     * commands and no display text). Money is worked out each time, since percent rewards follow
+     * the economy.
      */
-    public String describe() {return _description;}
+    public String describe()
+    {
+        if (_money == null || _hasDisplay) return _description;
+
+        String money = Metods.msgC("&6" + _money.describe());
+        return _description == null ? money : _description + Metods.msgC(" &7+ ") + money;
+    }
+
+    /**
+     * money: 3-10%  (a share of the server's wealth, see ManagerEconomy)
+     * money: 200-500 or money: 500  (a fixed amount)
+     */
+    record MoneyRange(double min, double max, boolean percent)
+    {
+        static MoneyRange parse(String text, Logger log, String context)
+        {
+            String value = text.trim().replace(" ", "");
+            boolean percent = value.endsWith("%");
+            if (percent) value = value.substring(0, value.length() - 1);
+
+            try
+            {
+                String[] parts = value.split("-", 2);
+                double min = Double.parseDouble(parts[0]);
+                double max = parts.length > 1 ? Double.parseDouble(parts[1]) : min;
+                if (min < 0 || max < min) throw new NumberFormatException();
+                return new MoneyRange(min, max, percent);
+            }
+            catch (NumberFormatException e)
+            {
+                log.warning(context + ": money must look like 500, 200-500 or 3-10%, not " + text);
+                return null;
+            }
+        }
+
+        private static ManagerEconomy economy() {return ImusMiniQuests.getInstance().getEconomy();}
+
+        double roll()
+        {
+            double value = min == max ? min : ThreadLocalRandom.current().nextDouble(min, max);
+            return economy().clamp(percent ? economy().getBasisAmount() * value / 100 : value);
+        }
+
+        String describe()
+        {
+            ManagerEconomy economy = economy();
+            if (!percent)
+                return min == max ? ManagerEconomy.format(min) : ManagerEconomy.format(min) + "-" + ManagerEconomy.format(max);
+
+            String range = (min == max ? fmt(min) : fmt(min) + "-" + fmt(max)) + "%";
+            String of = switch (economy.getBasis())
+            {
+                case TOTAL -> "of all players' money";
+                case AVERAGE -> "of the average balance";
+                case MEDIAN -> "of the median balance";
+            };
+            if (economy.getSurveyedAt() == 0) return range + " " + of;
+
+            double low = economy.clamp(economy.getBasisAmount() * min / 100);
+            double high = economy.clamp(economy.getBasisAmount() * max / 100);
+            return ManagerEconomy.format(low) + "-" + ManagerEconomy.format(high) + " &8(" + range + " " + of + ")";
+        }
+
+        private static String fmt(double value)
+        {
+            return value == Math.floor(value) ? String.valueOf((long) value) : String.valueOf(value);
+        }
+    }
 
     /**
      * Reads one entry of rewards.pool or rewards.guaranteed. Returns null and logs a warning when
@@ -155,18 +229,28 @@ public class QuestReward
             description = amountText + "&dSlot Core";
         }
 
+        MoneyRange money = null;
+        if (section.contains("money"))
+        {
+            money = MoneyRange.parse(String.valueOf(section.get("money")), log, context);
+            if (money == null) return null;
+            if (!ManagerEconomy.isAvailable())
+                log.warning(context + ": money needs Vault and an economy plugin, nothing is paid without one");
+        }
+
         List<String> commands = section.getStringList("commands");
         String message = section.getString("message");
         int weight = Math.max(1, section.getInt("weight", 1));
-        if (section.isString("display")) description = section.getString("display");
+        boolean hasDisplay = section.isString("display");
+        if (hasDisplay) description = section.getString("display");
 
-        if (item == null && commands.isEmpty() && message == null)
+        if (item == null && money == null && commands.isEmpty() && message == null)
         {
             log.warning(context + ": reward gives nothing, skipped");
             return null;
         }
         return new QuestReward(item, min, max, commands, message,
-                description == null ? null : Metods.msgC("&f" + description), weight);
+                description == null ? null : Metods.msgC("&f" + description), hasDisplay, money, weight);
     }
 
     /**
@@ -292,11 +376,25 @@ public class QuestReward
     /** True when this entry runs commands, which a preview can't show as items. */
     public boolean hasCommands() {return !_commands.isEmpty();}
 
+    /** Rolls the money this entry pays, 0 when it pays none. */
+    public double rollMoney()
+    {
+        return _money == null ? 0 : _money.roll();
+    }
+
     public void give(Player player)
     {
         for (ItemStack stack : createItems())
         {
             InvUtil.AddItemToInventoryOrDrop(player, stack);
+        }
+
+        double money = rollMoney();
+        if (money > 0 && ManagerEconomy.isAvailable())
+        {
+            ManagerEconomy.deposit(player, money);
+            player.sendMessage(ImusMiniQuests.getInstance().getMessage("money")
+                    .replace("%money%", ManagerEconomy.format(money)));
         }
 
         for (String command : _commands)

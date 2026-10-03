@@ -46,6 +46,8 @@
 #   enchant-book: random          ImusEnchants custom enchant book, or an enchant key such as
 #                                 timber, vein_miner, beheading. Optional level (default 1)
 #   slot-core: true               ImusEnchants Slot Core, min/max amount
+#   money: 3-10%                  money, a share of the server's economy (see "money" in
+#                                 config.yml), or a fixed amount: money: 500 / money: 200-500
 # and every entry can also have:
 #   commands                      console commands, %player% = the player's name
 #   message                       sent to the player when this entry is given
@@ -93,6 +95,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 4
         - tool: SWORD
           slots: true
           weight: 10
@@ -120,6 +124,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 4
         - tool: PICKAXE
           slots: true
           weight: 10
@@ -179,9 +185,7 @@ quests:
           min: 16
           max: 32
           weight: 5
-        - commands: ["eco give %player% 500"]
-          message: "&a+500$"
-          display: "&a500$"
+        - money: 3-10%
           weight: 5
 
   blacksmith:
@@ -351,6 +355,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 5
         - item: EMERALD
           min: 16
           max: 32
@@ -557,6 +563,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 3
         - tool: PICKAXE
           slots: true
           tiers: {DIAMOND: 80, NETHERITE: 20}
@@ -606,6 +614,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 5
         - item: EMERALD
           min: 8
           max: 16
@@ -948,6 +958,8 @@ quests:
     rewards:
       rolls: 2
       pool:
+        - money: 3-10%
+          weight: 4
         - tool: AXE
           slots: true
           tiers: {IRON: 50, DIAMOND: 50}
@@ -1302,6 +1314,8 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - money: 3-10%
+          weight: 6
         - item: EMERALD_BLOCK
           min: 2
           max: 5
