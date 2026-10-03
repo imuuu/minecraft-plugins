@@ -31,6 +31,7 @@ public class InventoryEnchantAdmin extends CustomInventory
 	private static final int SLOT_TAB_VANILLA = 3;
 	private static final int SLOT_TAB_CUSTOM = 5;
 	private static final int SLOT_CORE = 8;
+	private static final int SLOT_SETTINGS = 0;
 	private static final int FIRST_ENTRY_SLOT = 9;
 	private static final int ENTRIES_PER_PAGE = 36;
 	private static final int SLOT_PREVIOUS = 45;
@@ -77,6 +78,8 @@ public class InventoryEnchantAdmin extends CustomInventory
 		addButton(new Button(SLOT_TAB_VANILLA, TabItem(Tab.VANILLA), e -> SwitchTab(Tab.VANILLA)));
 		addButton(new Button(SLOT_TAB_CUSTOM, TabItem(Tab.CUSTOM), e -> SwitchTab(Tab.CUSTOM)));
 		addButton(new Button(SLOT_CORE, CoreItem(), e -> Give(SlotCore.Create(e.isShiftClick() ? 64 : 1))));
+		addButton(new Button(SLOT_SETTINGS, Named(Material.COMPARATOR, "&bSettings"),
+				e -> ImusEnchants.Instance.GetSettingsMenu().open(getPlayer())));
 
 		int count = _tab == Tab.VANILLA ? EnchantSettings.GetAllVanilla().size() : CustomEnchantRegistry.GetAll().size();
 		int pages = Math.max(1, (count + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);

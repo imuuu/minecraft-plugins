@@ -13,6 +13,7 @@ import me.imu.imusenchants.Events.SlotCoreEvents;
 import me.imu.imusenchants.Events.VanillaEnchantFilter;
 import me.imu.imusenchants.Events.VillagerEvents;
 import me.imu.imusenchants.Managers.ManagerEnchants;
+import me.imu.imusenchants.Managers.SettingsMenu;
 import me.imu.imusenchants.SubCommands.SubOpenEnchant_InvCmd;
 import me.imu.imusenchants.Inventories.InventoryEnchanting;
 import me.imu.imusenchants.CustomEnchants.TemporaryBlocks;
@@ -21,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import imu.iAPI.CmdUtil.CmdHelper;
+import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Commands.ExampleCmd;
 import imu.iAPI.Handelers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
@@ -37,10 +39,15 @@ public class ImusEnchants extends JavaPlugin
 
     private CmdHelper _cmdHelper;
     private ImusTabCompleter _tab_cmd1;
+    private ImusEnchantsCmd _cmd;
+    private ConfigMenu _settingsMenu;
+
     @Override
     public void onEnable()
     {
         Instance = this;
+        saveDefaultConfig();
+        CONSTANTS.Load(getConfig());
         _managerEnchants = new ManagerEnchants();
         CustomEnchantRegistry.RegisterDefaults();
         EnchantSettings.Load(this);
@@ -63,11 +70,36 @@ public class ImusEnchants extends JavaPlugin
             getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName + " BetterStructures support enabled");
         }
         RegisterCommands();
+
+        _settingsMenu = SettingsMenu.Create(this, this::ApplyConfig);
+        _settingsMenu.register();
+    }
+
+    // Reads config.yml into CONSTANTS. The help pages show some of the values, so they are rebuilt.
+    public void ApplyConfig()
+    {
+        CONSTANTS.Load(getConfig());
+        if (_cmd != null)
+            _cmd.BuildTopics();
+    }
+
+    // /ien reload, after config.yml was edited by hand
+    public void ReloadConfig()
+    {
+        reloadConfig();
+        ApplyConfig();
+    }
+
+    public ConfigMenu GetSettingsMenu()
+    {
+        return _settingsMenu;
     }
 
     @Override
     public void onDisable()
     {
+        if (_settingsMenu != null)
+            _settingsMenu.unregister();
         InventoryEnchanting.CloseAll();
         if (_customEnchantEvents != null)
             _customEnchantEvents.OnDisable();
@@ -75,9 +107,9 @@ public class ImusEnchants extends JavaPlugin
 
     public void RegisterCommands()
     {
-        ImusEnchantsCmd cmd = new ImusEnchantsCmd();
-        getCommand("imusenchants").setExecutor(cmd);
-        getCommand("imusenchants").setTabCompleter(cmd);
+        _cmd = new ImusEnchantsCmd();
+        getCommand("imusenchants").setExecutor(_cmd);
+        getCommand("imusenchants").setTabCompleter(_cmd);
 
         /*_cmdHelper = new CmdHelper(_pluginName);
 

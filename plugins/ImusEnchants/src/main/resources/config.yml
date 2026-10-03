@@ -1,0 +1,63 @@
+# ImusEnchants settings. Change them in game with /ien config (or /ia config imusenchants),
+# or edit this file and run /ien reload. Chances are 0.0 - 1.0.
+
+loot:
+  # Chance for a Slot Core in each unopened loot chest
+  slot-core-chance: 0.05
+  # Chance for a custom enchant book (level I) in each unopened loot chest
+  custom-book-chance: 0.05
+  # Chance that a custom book found in loot also carries a curse
+  cursed-book-chance: 0.20
+  # Vanilla enchanted books found in loot are set to level I
+  found-books-level-one: true
+  # Mending is only found in the End, and isn't sold in the shop
+  mending-only-in-end: true
+
+shop:
+  # Chance that a bought book is a custom enchant instead (always level I)
+  custom-book-chance: 0.15
+  # level: XP level needed to buy, cost: levels taken
+  books:
+    tier-1: { level: 20, cost: 5 }
+    tier-2: { level: 30, cost: 5 }
+    tier-3: { level: 40, cost: 5 }
+  boosters:
+    tier-1: { level: 15, cost: 10 }
+    tier-2: { level: 30, cost: 10 }
+    tier-3: { level: 40, cost: 10 }
+  # Chance a bought book is one tier higher: tier 1 and 2 books can become tier 2,
+  # tier 3 books are tier 2 unless this roll makes them tier 3
+  tier-up:
+    tier-1-book: 0.10
+    tier-2-book: 0.65
+    tier-3-book: 0.60
+  # The "more like tool" and "more like armor" buttons
+  mixed:
+    tool-side-chance: 0.7
+    tool-not-weapon-chance: 0.65
+    armor-side-chance: 0.7
+
+slots:
+  # How a new slotted item's open slots spread: the chance to open a neighbour of an open slot,
+  # multiplied by chance-multiplier for every step further, at most max-depth steps
+  unlock:
+    start-chance: 0.20
+    chance-multiplier: 0.8
+    max-depth: 5
+  swapper-animation: true
+  swapper-animation-ticks: 12
+
+items:
+  # How much of a normal Mending repair each Mending level gives
+  mending-per-level: 0.2
+  # false: a crossbow with Infinity doesn't use up arrows
+  crossbow-infinity-uses-arrows: false
+
+villagers:
+  # These apply to trades villagers unlock from now on, not to existing ones
+  # Villagers don't offer enchanted books
+  no-enchanted-books: true
+  # A villager that would offer an enchanted book also offers a booster for diamonds
+  sell-boosters: true
+  # Tool and armor trades cost a booster and a diamond instead of their normal price
+  gear-costs-boosters: true

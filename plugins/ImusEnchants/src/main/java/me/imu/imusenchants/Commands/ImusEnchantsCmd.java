@@ -3,6 +3,7 @@ package me.imu.imusenchants.Commands;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusenchants.CONSTANTS;
+import me.imu.imusenchants.ImusEnchants;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
@@ -58,6 +59,13 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 
 	public ImusEnchantsCmd()
 	{
+		BuildTopics();
+	}
+
+	// Some topics show values from config.yml, so they are built again when it changes
+	public void BuildTopics()
+	{
+		_topics.clear();
 		_topics.put("core", new HelpTopic("Slot Core", "How items get enchant slots",
 				"&7Tools and armor are &fvanilla &7until a &dSlot Core &7is used on them.",
 				"&6Where to find: &7unopened loot chests &8(&e" + Percent(CONSTANTS.SLOT_CORE_CHEST_CHANCE) + "&8 chance each)",
@@ -184,6 +192,29 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
+		if (args[0].equalsIgnoreCase("config"))
+		{
+			if (!sender.hasPermission(PERMISSION_ADMIN))
+				sender.sendMessage(Metods.msgC("&cNo permission!"));
+			else if (!(sender instanceof Player))
+				sender.sendMessage(Metods.msgC("&cOnly players can open the settings, use &e/" + label + " reload &cafter editing config.yml"));
+			else
+				ImusEnchants.Instance.GetSettingsMenu().open((Player) sender);
+			return true;
+		}
+
+		if (args[0].equalsIgnoreCase("reload"))
+		{
+			if (!sender.hasPermission(PERMISSION_ADMIN))
+			{
+				sender.sendMessage(Metods.msgC("&cNo permission!"));
+				return true;
+			}
+			ImusEnchants.Instance.ReloadConfig();
+			sender.sendMessage(Metods.msgC("&aImusEnchants config.yml reloaded"));
+			return true;
+		}
+
 		if (args[0].equalsIgnoreCase("admin"))
 		{
 			if (!sender.hasPermission(PERMISSION_ADMIN))
@@ -264,6 +295,8 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
 			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " admin &8- &7switch enchants on/off server wide"));
+			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " config &8- &7change settings"));
+			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " reload &8- &7re-read config.yml"));
 		}
 		sender.sendMessage(Metods.msgC(FOOTER));
 	}
@@ -438,6 +471,8 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				options.add("core");
 				options.add("book");
 				options.add("admin");
+				options.add("config");
+				options.add("reload");
 			}
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("help"))
