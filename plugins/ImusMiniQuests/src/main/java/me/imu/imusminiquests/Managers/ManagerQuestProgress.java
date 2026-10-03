@@ -1,6 +1,7 @@
 package me.imu.imusminiquests.Managers;
 
 import imu.iAPI.Events.FakeBlockBreakEvent;
+import io.papermc.paper.event.player.PlayerTradeEvent;
 import me.imu.imusminiquests.Enums.OBJECTIVE_TYPE;
 import me.imu.imusminiquests.Events.QuestCompleteEvent;
 import me.imu.imusminiquests.ImusMiniQuests;
@@ -24,8 +25,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.FurnaceExtractEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -60,6 +66,8 @@ public class ManagerQuestProgress implements Listener
      */
     public int addProgress(Player player, OBJECTIVE_TYPE type, Predicate<QuestObjective> matches, int amount)
     {
+        if (player.getGameMode() == GameMode.CREATIVE) return 0;
+
         boolean all = "ALL".equalsIgnoreCase(_plugin.getConfig().getString("progress.mode", "FIRST"));
         PlayerInventory inv = player.getInventory();
         int updated = 0;
@@ -181,5 +189,74 @@ public class ManagerQuestProgress implements Listener
 
         Material type = caught.getItemStack().getType();
         addProgress(event.getPlayer(), OBJECTIVE_TYPE.FISH, o -> o.targets().matches(type), 1);
+    }
+
+    private static int countInInventory(Player player, Material type)
+    {
+        int count = 0;
+        for (ItemStack stack : player.getInventory().getStorageContents())
+        {
+            if (stack != null && stack.getType() == type) count += stack.getAmount();
+        }
+        return count;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onCraft(CraftItemEvent event)
+    {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getAction() == InventoryAction.NOTHING) return;
+
+        ItemStack result = event.getCurrentItem();
+        if (result == null || result.isEmpty()) return;
+        Material type = result.getType();
+
+        if (!event.isShiftClick())
+        {
+            addProgress(player, OBJECTIVE_TYPE.CRAFT, o -> o.targets().matches(type), result.getAmount());
+            return;
+        }
+
+        // Shift-click crafts as many as the ingredients and free space allow, and the event
+        // doesn't say how many. Count what arrived in the inventory once the craft is done.
+        int before = countInInventory(player, type);
+        Bukkit.getScheduler().runTask(_plugin, () ->
+        {
+            int crafted = countInInventory(player, type) - before;
+            if (crafted > 0) addProgress(player, OBJECTIVE_TYPE.CRAFT, o -> o.targets().matches(type), crafted);
+        });
+    }
+
+    // Taking smelted items out of a furnace, blast furnace or smoker. Hoppers don't count.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSmeltExtract(FurnaceExtractEvent event)
+    {
+        if (event.getItemAmount() <= 0) return;
+
+        Material type = event.getItemType();
+        addProgress(event.getPlayer(), OBJECTIVE_TYPE.SMELT, o -> o.targets().matches(type), event.getItemAmount());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEnchant(EnchantItemEvent event)
+    {
+        Material type = event.getItem().getType();
+        addProgress(event.getEnchanter(), OBJECTIVE_TYPE.ENCHANT, o -> o.targets().matches(type), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBreed(EntityBreedEvent event)
+    {
+        if (!(event.getBreeder() instanceof Player player)) return;
+
+        LivingEntity baby = event.getEntity();
+        addProgress(player, OBJECTIVE_TYPE.BREED, o -> o.targets().matches(baby), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTrade(PlayerTradeEvent event)
+    {
+        Material type = event.getTrade().getResult().getType();
+        addProgress(event.getPlayer(), OBJECTIVE_TYPE.TRADE, o -> o.targets().matches(type), 1);
     }
 }

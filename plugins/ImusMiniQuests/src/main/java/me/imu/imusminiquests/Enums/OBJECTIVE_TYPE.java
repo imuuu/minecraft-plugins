@@ -11,7 +11,17 @@ public enum OBJECTIVE_TYPE
     /** Targets are entity types. */
     KILL_ENTITY("Kill", true),
     /** Targets are item materials of what was caught. */
-    FISH("Catch", false);
+    FISH("Catch", false),
+    /** Targets are item materials of the crafted result. Counts every item made, shift-click too. */
+    CRAFT("Craft", false),
+    /** Targets are item materials taken out of a furnace, blast furnace or smoker. */
+    SMELT("Smelt", false),
+    /** Targets are item materials enchanted at an enchanting table. */
+    ENCHANT("Enchant", false),
+    /** Targets are entity types of the animals bred. */
+    BREED("Breed", true),
+    /** Targets are item materials bought from villagers and wandering traders. */
+    TRADE("Trade for", false);
 
     private final String _verb;
     private final boolean _targetsEntities;

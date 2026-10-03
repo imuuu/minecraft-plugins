@@ -10,7 +10,17 @@
 # drop-weight   how often this quest is picked when a panel is put in a chest or dropped.
 #               0 = never found, can only be given with /imq give
 #
-# objective.type      BREAK_BLOCK, KILL_ENTITY or FISH
+# objective.type      what counts, and what the targets are:
+#                     BREAK_BLOCK  blocks broken (crops only when fully grown)
+#                     KILL_ENTITY  mobs killed
+#                     FISH         items caught with a fishing rod
+#                     CRAFT        items crafted, every item of a shift-click counts.
+#                                  Avoid targets that can be crafted back and forth
+#                                  (iron ingot <-> iron block), or they can be farmed
+#                     SMELT        items taken out of a furnace, blast furnace or smoker
+#                     ENCHANT      items enchanted at an enchanting table
+#                     BREED        animals bred (mob types)
+#                     TRADE        items bought from villagers, one per trade
 # objective.targets   what counts. Empty or missing = anything.
 #                     Blocks/items: OAK_LOG, *_ORE (wildcard), #logs (tag), *
 #                     Mobs:         ZOMBIE, *_SPIDER, #skeletons (tag), @hostile, *
@@ -170,3 +180,180 @@ quests:
           message: "&a+500$"
           display: "&a500$"
           weight: 5
+
+  blacksmith:
+    name: "&7Blacksmith"
+    material: GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oKeep the forge hot."
+    drop-weight: 8
+    objective:
+      type: SMELT
+      targets: [IRON_INGOT, GOLD_INGOT, COPPER_INGOT, NETHERITE_SCRAP]
+      amount: 64
+      text: "Smelt 64 metal ingots"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: CHESTPLATE
+          slots: true
+          weight: 8
+        - tool: PICKAXE
+          slots: true
+          tiers: {IRON: 70, DIAMOND: 30}
+          weight: 4
+        - slot-core: true
+          weight: 3
+      guaranteed:
+        - item: COAL_BLOCK
+          min: 2
+          max: 6
+
+  cook:
+    name: "&6Cook"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSomething smells good."
+    drop-weight: 8
+    objective:
+      type: SMELT
+      targets: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT, COOKED_COD, COOKED_SALMON, BAKED_POTATO, DRIED_KELP]
+      amount: 64
+      text: "Cook 64 pieces of food"
+    rewards:
+      rolls: 1
+      pool:
+        - item: GOLDEN_CARROT
+          min: 8
+          max: 16
+          weight: 10
+        - item: GOLDEN_APPLE
+          min: 1
+          max: 3
+          weight: 5
+        - enchant-book: random
+          weight: 3
+
+  toolsmith:
+    name: "&fToolsmith"
+    material: WHITE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oA tool for every job."
+    drop-weight: 6
+    objective:
+      type: CRAFT
+      targets: ["*_PICKAXE", "*_AXE", "*_SHOVEL", "*_HOE", "*_SWORD"]
+      amount: 16
+      text: "Craft 16 tools or swords"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: SHOVEL
+          slots: true
+          weight: 6
+        - tool: SWORD
+          slots: true
+          weight: 6
+        - slot-core: true
+          weight: 2
+
+  mason:
+    name: "&8Mason"
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oBrick by brick."
+    drop-weight: 6
+    objective:
+      type: CRAFT
+      targets: ["*BRICKS", "*_BRICK_STAIRS", "*_BRICK_SLAB", "*_BRICK_WALL"]
+      amount: 128
+      text: "Craft 128 bricks, brick stairs, slabs or walls"
+    rewards:
+      rolls: 2
+      pool:
+        - tool: PICKAXE
+          slots: true
+          weight: 5
+        - item: EMERALD
+          min: 4
+          max: 12
+          weight: 10
+        - item: DIAMOND
+          min: 1
+          max: 2
+          weight: 3
+
+  enchanter:
+    name: "&dEnchanter"
+    material: PURPLE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe books whisper back."
+    drop-weight: 4
+    objective:
+      type: ENCHANT
+      targets: []
+      amount: 10
+      text: "Enchant 10 items at an enchanting table"
+    rewards:
+      rolls: 2
+      pool:
+        - enchant-book: random
+          weight: 10
+        - slot-core: true
+          weight: 3
+        - item: LAPIS_LAZULI
+          min: 16
+          max: 32
+          weight: 6
+
+  rancher:
+    name: "&aRancher"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe herd keeps growing."
+    drop-weight: 6
+    objective:
+      type: BREED
+      targets: [COW, SHEEP, PIG, CHICKEN, RABBIT, GOAT]
+      amount: 30
+      text: "Breed 30 farm animals"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SADDLE
+          weight: 3
+        - item: LEAD
+          min: 2
+          max: 4
+          weight: 6
+        - tool: BOOTS
+          slots: true
+          weight: 5
+        - item: GOLDEN_CARROT
+          min: 8
+          max: 16
+          weight: 8
+
+  merchant:
+    name: "&2Merchant"
+    material: GREEN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oEveryone has a price."
+    drop-weight: 5
+    objective:
+      type: TRADE
+      targets: []
+      amount: 20
+      text: "Trade 20 times with villagers"
+    rewards:
+      rolls: 1
+      pool:
+        - item: EMERALD
+          min: 16
+          max: 32
+          weight: 10
+        - enchant-book: random
+          weight: 4
+        - tool: HELMET
+          slots: true
+          weight: 4
