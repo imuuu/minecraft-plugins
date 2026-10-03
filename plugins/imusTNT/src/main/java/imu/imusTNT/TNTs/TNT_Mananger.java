@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -68,17 +69,48 @@ public class TNT_Mananger
 	{
 		String str = Metods._ins.getPersistenData(stack, PD_TNT_TYPE, PersistentDataType.STRING);
 		
-		if(str == null) return TNT_TYPE.NONE;
-		
-		return TNT_TYPE.valueOf(str);
+		return ToType(str);
+	}
+	
+	// Placed custom TNT blocks are stored in their chunk's persistent data so they survive restarts.
+	// A stored type only counts while the block is still TNT, so a stale entry can't turn a later
+	// vanilla TNT into a custom one.
+	private NamespacedKey BlockKey(Block block)
+	{
+		return new NamespacedKey(ImusTNT.Instance, "tnt_" + block.getX() + "_" + block.getY() + "_" + block.getZ());
 	}
 	
 	public TNT_TYPE GetTntType(Block block)
 	{
-		if(block.getMetadata(METADATA_TNT_TYPE).isEmpty()) return TNT_TYPE.NONE;
-		String data = block.getMetadata(METADATA_TNT_TYPE).get(0).asString() ;
+		if(block.getType() != Material.TNT) return TNT_TYPE.NONE;
 		
-		return TNT_TYPE.valueOf(data);
+		String data = block.getChunk().getPersistentDataContainer().get(BlockKey(block), PersistentDataType.STRING);
+		
+		return ToType(data);
+	}
+	
+	public void SetTntType(Block block, TNT_TYPE tnt_type)
+	{
+		block.getChunk().getPersistentDataContainer().set(BlockKey(block), PersistentDataType.STRING, tnt_type.toString());
+	}
+	
+	public void RemoveTntType(Block block)
+	{
+		block.getChunk().getPersistentDataContainer().remove(BlockKey(block));
+	}
+	
+	private TNT_TYPE ToType(String data)
+	{
+		if(data == null) return TNT_TYPE.NONE;
+		
+		try
+		{
+			return TNT_TYPE.valueOf(data);
+		}
+		catch (IllegalArgumentException e)
+		{
+			return TNT_TYPE.NONE;
+		}
 	}
 	
 	public TNT_TYPE GetTntType(Entity entity)
@@ -86,7 +118,7 @@ public class TNT_Mananger
 		if(entity.getMetadata(METADATA_TNT_TYPE).isEmpty()) return TNT_TYPE.NONE;
 		String data = entity.getMetadata(METADATA_TNT_TYPE).get(0).asString() ;
 		
-		return TNT_TYPE.valueOf(data);
+		return ToType(data);
 	}
 	
 	public Player GetTntPlacer(Entity entity)
@@ -117,12 +149,6 @@ public class TNT_Mananger
 		return _tnts;
 	}
 	
-	public void SetMetadata(Player player, ItemStack placedStack, Block block)
-	{
-		block.setMetadata(METADATA_TNT_TYPE, new FixedMetadataValue(ImusTNT.Instance, GetTntType(placedStack).toString()));
-		block.setMetadata(METADATA_PLACED_BY, new FixedMetadataValue(ImusTNT.Instance, player.getUniqueId().toString()));
-	}
-	
 	public boolean IsExploded(Entity entity)
 	{
 		if(entity.getMetadata(METADATA_EXPLODE).isEmpty()) return false;
@@ -133,9 +159,9 @@ public class TNT_Mananger
 	{
 		entity.setMetadata(METADATA_EXPLODE,new FixedMetadataValue(ImusTNT.Instance, "true"));
 	}
-	public void SetMetadata(Player player, Block block, Entity entity)
+	public void SetMetadata(Player player, TNT_TYPE tnt_type, Entity entity)
 	{
-		entity.setMetadata(METADATA_TNT_TYPE,new FixedMetadataValue(ImusTNT.Instance, GetTntType(block).toString()));
+		entity.setMetadata(METADATA_TNT_TYPE,new FixedMetadataValue(ImusTNT.Instance, tnt_type.toString()));
 		entity.setMetadata(METADATA_PLACED_BY,new FixedMetadataValue(ImusTNT.Instance,player.getUniqueId().toString()));
 	}
 	

@@ -13,10 +13,17 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.TNTPrimeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -79,35 +86,41 @@ public class imusTNT_events implements Listener
     }
 	
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void OnBlockPlace(BlockPlaceEvent e)
 	{
 		if(e.getBlockPlaced().getType() != Material.TNT) return;
 		
-		if(!TNT_Mananger.Instance.IsCustomTNT(e.getItemInHand())) return;
+		Block tnt = e.getBlockPlaced();
+		TNT_TYPE tnt_type = TNT_Mananger.Instance.GetTntType(e.getItemInHand());
 		
-		Block tnt = e.getBlock();
-		e.getBlockPlaced();
+		// Vanilla TNT clears whatever was stored for this spot before
+		if(tnt_type == TNT_TYPE.NONE)
+		{
+			TNT_Mananger.Instance.RemoveTntType(tnt);
+			return;
+		}
 		
-		TNT_Mananger.Instance.SetMetadata(e.getPlayer(),e.getItemInHand(), e.getBlockPlaced());
+		TNT_Mananger.Instance.SetTntType(tnt, tnt_type);
 		
 		tnt.getWorld().spawnParticle(Particle.FLAME, tnt.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
 
 
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e)
 	{
-		
-		if(e.getPlayer().getGameMode() == GameMode.CREATIVE) return;
-		
 		Block block = e.getBlock();
 		if(block.getType() != Material.TNT) return;
 		
 		TNT_TYPE tnt_type = TNT_Mananger.Instance.GetTntType(block);
 		
 		if(tnt_type == TNT_TYPE.NONE) return;
+		
+		TNT_Mananger.Instance.RemoveTntType(block);
+		
+		if(e.getPlayer().getGameMode() == GameMode.CREATIVE) return;
 		
 		e.setDropItems(false);
 		
@@ -127,6 +140,9 @@ public class imusTNT_events implements Listener
 		
 		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		
+		// e.g. a claim plugin denied using the block
+		if(e.useInteractedBlock() == Result.DENY) return;
+		
 		if(e.getPlayer().getInventory().getItemInMainHand().getType() != Material.FLINT_AND_STEEL) return;
 		
 		
@@ -134,16 +150,66 @@ public class imusTNT_events implements Listener
 		
 		if(tnt_type == TNT_TYPE.NONE) return;
 		
+		TNT_Mananger.Instance.RemoveTntType(block);
 		block.setType(Material.AIR);
 		e.setCancelled(true);
 		Entity entity = block.getWorld().spawnEntity(block.getLocation().add(0.5f, 0.1f, 0.5f), EntityType.TNT);
-		TNT_Mananger.Instance.SetMetadata(e.getPlayer(), block, entity);
+		TNT_Mananger.Instance.SetMetadata(e.getPlayer(), tnt_type, entity);
 		
 		TNT_Mananger.Instance.GetTNT(tnt_type).OnIgnite(e.getPlayer(), entity);
 		//block.setType(Material.AIR);
 			
 	}
 	
+
+	// Custom TNT only goes off with flint and steel (OnUse). Redstone, fire or other explosions
+	// would light it as vanilla TNT and waste it, so it isn't lit, burned or blown up by them.
+	@EventHandler(ignoreCancelled = true)
+	public void OnPrime(TNTPrimeEvent e)
+	{
+		if(TNT_Mananger.Instance.GetTntType(e.getBlock()) != TNT_TYPE.NONE) e.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void OnBurn(BlockBurnEvent e)
+	{
+		if(TNT_Mananger.Instance.GetTntType(e.getBlock()) != TNT_TYPE.NONE) e.setCancelled(true);
+	}
+	
+	// Explosions leave custom TNT in place, like they leave chests in a chunk TNT's layer
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void OnExplodeBlocks(EntityExplodeEvent e)
+	{
+		e.blockList().removeIf(b -> TNT_Mananger.Instance.GetTntType(b) != TNT_TYPE.NONE);
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void OnBlockExplode(BlockExplodeEvent e)
+	{
+		e.blockList().removeIf(b -> TNT_Mananger.Instance.GetTntType(b) != TNT_TYPE.NONE);
+	}
+	
+	// The stored type stays at the block's spot, so a moved custom TNT would turn vanilla
+	@EventHandler(ignoreCancelled = true)
+	public void OnPistonExtend(BlockPistonExtendEvent e)
+	{
+		if(HasCustomTNT(e.getBlocks())) e.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void OnPistonRetract(BlockPistonRetractEvent e)
+	{
+		if(HasCustomTNT(e.getBlocks())) e.setCancelled(true);
+	}
+	
+	private boolean HasCustomTNT(List<Block> blocks)
+	{
+		for(Block b : blocks)
+		{
+			if(TNT_Mananger.Instance.GetTntType(b) != TNT_TYPE.NONE) return true;
+		}
+		return false;
+	}
 
 	void GetSettings()
 	{
