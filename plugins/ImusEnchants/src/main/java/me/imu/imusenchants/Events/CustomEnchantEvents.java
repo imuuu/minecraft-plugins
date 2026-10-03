@@ -294,7 +294,9 @@ public class CustomEnchantEvents implements Listener
 			entry.getKey().OnShoot(event, shooter, bow, entry.getValue());
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
+	// A hit another plugin cancelled (protected area, PvP off) didn't happen: no Ender Arrow
+	// teleport into it and no Retrieval
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void OnProjectileHit(ProjectileHitEvent event)
 	{
 		Projectile projectile = event.getEntity();

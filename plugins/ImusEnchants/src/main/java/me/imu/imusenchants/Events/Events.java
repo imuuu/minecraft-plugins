@@ -272,6 +272,10 @@ public class Events implements Listener
 	    List<ItemStack> loot = event.getLoot();
 	    ProcessFoundItems(loot, event.getWorld());
 
+	    // Loot generated without a container (another plugin rolling a loot table) has no holder
+	    if (event.getInventoryHolder() == null)
+	    	return;
+
 	    Inventory inventory = event.getInventoryHolder().getInventory();
 	    ProcessFoundItems(Arrays.asList(inventory.getContents()), event.getWorld());
 	}

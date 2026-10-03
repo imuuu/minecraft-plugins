@@ -172,19 +172,26 @@ public class NodeEnchant extends Node
 		_x = Integer.parseInt(parts[1]);
 		_y = Integer.parseInt(parts[2]);
 		SetFrozen(Boolean.parseBoolean(parts[3]));
+		// Keys are saved as "namespace:key,level" in a ':' separated string, so the namespace
+		// arrives as its own part. Joined back here; it used to be dropped, which only worked
+		// for minecraft: enchants and lost datapack ones.
+		String namespace = null;
 		for (int i = 4; i < parts.length; i++)
 		{
 			String[] enchantParts = parts[i].split(",");
 			if (enchantParts.length < 2)
 			{
-				// Handle the case where enchantParts does not have 2 elements
-				// This might involve logging an error or skipping this entry
+				namespace = parts[i];
 				continue;
 			}
 
-			Enchantment enchant = Enchantment.getByKey(NamespacedKey.fromString(enchantParts[0]));
-			int level = Integer.parseInt(enchantParts[1]);
-			_enchants.put(enchant, level);
+			String key = namespace == null ? enchantParts[0] : namespace + ":" + enchantParts[0];
+			namespace = null;
+
+			Enchantment enchant = Enchantment.getByKey(NamespacedKey.fromString(key));
+			if (enchant == null)
+				continue; // datapack removed
+			_enchants.put(enchant, Integer.parseInt(enchantParts[1]));
 		}
 	}
 }

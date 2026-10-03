@@ -3,7 +3,6 @@ package me.imu.imusenchants.CustomEnchants.Enchants.Bow;
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
@@ -56,13 +55,11 @@ public class RetrievalEnchant extends CustomEnchant
 		if (arrow.getPickupStatus() != AbstractArrow.PickupStatus.ALLOWED || !Roll(GetChance(level)))
 			return;
 
-		ItemStack item;
-		if (arrow instanceof SpectralArrow)
-			item = new ItemStack(Material.SPECTRAL_ARROW);
-		else if (arrow instanceof Arrow && !((Arrow) arrow).hasCustomEffects())
-			item = new ItemStack(Material.ARROW);
-		else
+		// The arrow's own pickup item: keeps a tipped arrow's potion
+		if (!(arrow instanceof Arrow || arrow instanceof SpectralArrow))
 			return;
+		ItemStack item = arrow.getItemStack().clone();
+		item.setAmount(1);
 
 		HashMap<Integer, ItemStack> leftover = shooter.getInventory().addItem(item);
 		if (leftover.isEmpty())
