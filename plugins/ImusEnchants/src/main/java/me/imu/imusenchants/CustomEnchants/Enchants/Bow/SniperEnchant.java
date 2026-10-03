@@ -3,12 +3,16 @@ package me.imu.imusenchants.CustomEnchants.Enchants.Bow;
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.ItemTarget;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Set;
 
+// Faster arrows that fly further. Vanilla arrow damage grows with speed, so the base damage is
+// lowered by the same factor: Sniper is range, not a damage buff on top of Power.
 public class SniperEnchant extends CustomEnchant
 {
 	@Override public String GetKey() { return "sniper"; }
@@ -33,6 +37,14 @@ public class SniperEnchant extends CustomEnchant
 	@Override
 	public void OnShoot(EntityShootBowEvent event, Player shooter, ItemStack bow, int level)
 	{
-		event.getProjectile().setVelocity(event.getProjectile().getVelocity().multiply(GetSpeed(level)));
+		double speed = GetSpeed(level);
+		Entity projectile = event.getProjectile();
+		projectile.setVelocity(projectile.getVelocity().multiply(speed));
+
+		if (projectile instanceof AbstractArrow)
+		{
+			AbstractArrow arrow = (AbstractArrow) projectile;
+			arrow.setDamage(arrow.getDamage() / speed);
+		}
 	}
 }
