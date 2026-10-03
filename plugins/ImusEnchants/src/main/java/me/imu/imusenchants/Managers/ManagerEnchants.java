@@ -73,9 +73,12 @@ public class ManagerEnchants
 		new InventoryEnchanting().open(player);
 	}
 
-	public void OpenEnchantingInventory(Player player, ItemStack preloadedItem)
+	// Returns false when the inventory didn't open (another plugin cancelled it)
+	public boolean OpenEnchantingInventory(Player player, ItemStack preloadedItem)
 	{
-		new InventoryEnchanting(preloadedItem).open(player);
+		InventoryEnchanting inv = new InventoryEnchanting(preloadedItem);
+		inv.open(player);
+		return player.getOpenInventory().getTopInventory().equals(inv.getInventory());
 	}
 
 	public static int GetEnchantMaxLevelCap(Enchantment enchantment) 

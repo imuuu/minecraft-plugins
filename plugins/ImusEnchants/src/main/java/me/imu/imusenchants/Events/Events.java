@@ -144,25 +144,21 @@ public class Events implements Listener
 		}
 	}
 
-	@EventHandler
+	// A slotted item gets its enchants only from the slot grid, so it can't be combined with other
+	// gear or books in an anvil. Renaming and repairs with materials (AnvilEvents: diamonds) still work.
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnPrepareAnvil(PrepareAnvilEvent event)
 	{
-
 		AnvilInventory inv = event.getInventory();
-
-		if (!ItemUtils.IsTool(inv.getItem(0) ))
-			return;
-
-		if (!ItemUtils.IsTool(inv.getItem(1)))
-			return;
-
 		ItemStack stack1 = inv.getItem(0);
 		ItemStack stack2 = inv.getItem(1);
 
-		if (EnchantedItem.HasSlots(stack1) || EnchantedItem.HasSlots(stack2))
-		{
-			event.setResult(new ItemStack(Material.AIR));
-		}
+		if (stack2 == null || stack2.getType().isAir())
+			return;
+
+		boolean combines = stack2.getType() == Material.ENCHANTED_BOOK || stack2.getType().getMaxDurability() > 0;
+		if (combines && (EnchantedItem.HasSlots(stack1) || EnchantedItem.HasSlots(stack2)))
+			event.setResult(null);
 	}
 
 	@EventHandler(priority = EventPriority.LOW)

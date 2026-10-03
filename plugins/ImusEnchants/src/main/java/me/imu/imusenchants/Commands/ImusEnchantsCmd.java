@@ -164,6 +164,14 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
+		// "core" is also a help topic: admins get the item, everyone else the topic
+		// (admins can still read it with /ien help core)
+		if (args[0].equalsIgnoreCase("core") && sender.hasPermission(PERMISSION_ADMIN))
+		{
+			GiveCore(sender, label, args);
+			return true;
+		}
+
 		if (_topics.containsKey(args[0].toLowerCase()))
 		{
 			SendTopic(sender, label, args[0].toLowerCase());

@@ -34,6 +34,9 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
 
     private boolean _blockDrag = false;
     private boolean _blockDrop = false;
+    // A drop is finished a tick later. Until then the cursor still holds the item, so a second
+    // click in the same tick would place it again.
+    private boolean _dropPending = false;
 
     public ButtonHandler(Plugin plugin, ICustomInventory customInventory)
     {
@@ -180,7 +183,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
                 case SWAP_WITH_CURSOR:
                 {
                     event.setCancelled(true);
-                    if (button != null || _blockDrop)
+                    if (button != null || _blockDrop || _dropPending)
                     {
                         return;
                     }
@@ -197,9 +200,11 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
                     final ItemStack newItem = event.getCursor().clone();
                     //event.getCursor().setAmount(0);
 
+                    _dropPending = true;
                     //next frame
                     _plugin.getServer().getScheduler().runTask(_plugin, () ->
                     {
+                        _dropPending = false;
                         _customInventory.getInventory().setItem(event.getSlot(), newItem);
                         IBUTTONN newButton = _customInventory.onDropItemSet(
                                 newItem, event.getSlot());

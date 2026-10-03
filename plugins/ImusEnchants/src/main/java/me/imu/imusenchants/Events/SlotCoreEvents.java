@@ -108,9 +108,9 @@ public class SlotCoreEvents implements Listener
 
 		event.setCancelled(true);
 
-		ItemStack stack = hand.clone();
-		player.getInventory().setItemInMainHand(null);
-		ManagerEnchants.Instance.OpenEnchantingInventory(player, stack);
+		// The table now holds the item, so only take it from the hand if the table really opened
+		if (ManagerEnchants.Instance.OpenEnchantingInventory(player, hand.clone()))
+			player.getInventory().setItemInMainHand(null);
 	}
 
 	@EventHandler(ignoreCancelled = true)

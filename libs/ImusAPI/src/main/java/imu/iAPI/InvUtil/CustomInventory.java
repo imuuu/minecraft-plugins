@@ -117,7 +117,10 @@ public abstract class CustomInventory implements ICustomInventory
     public void open(Player player)
     {
         _player = player;
-        player.openInventory(_inv);
+        // null when another plugin cancelled the open: the menu never shows and never closes,
+        // so don't set it up
+        if (player.openInventory(_inv) == null)
+            return;
         onOpen();
     }
 

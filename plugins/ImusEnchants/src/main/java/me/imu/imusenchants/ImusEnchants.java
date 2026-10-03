@@ -14,6 +14,7 @@ import me.imu.imusenchants.Events.VanillaEnchantFilter;
 import me.imu.imusenchants.Events.VillagerEvents;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import me.imu.imusenchants.SubCommands.SubOpenEnchant_InvCmd;
+import me.imu.imusenchants.Inventories.InventoryEnchanting;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -64,6 +65,7 @@ public class ImusEnchants extends JavaPlugin
     @Override
     public void onDisable()
     {
+        InventoryEnchanting.CloseAll();
         if (_customEnchantEvents != null)
             _customEnchantEvents.OnDisable();
     }

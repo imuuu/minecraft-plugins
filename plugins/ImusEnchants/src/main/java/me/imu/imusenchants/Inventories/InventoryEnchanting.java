@@ -21,7 +21,10 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class InventoryEnchanting extends CustomInventory
 {
@@ -72,6 +75,7 @@ public class InventoryEnchanting extends CustomInventory
     public void onOpen()
     {
         super.onOpen();
+        OPEN.add(this);
         // startMonitoring();
         initButtons();
 
@@ -88,7 +92,23 @@ public class InventoryEnchanting extends CustomInventory
     public void onClose()
     {
         // stopMonitoring();
+        OPEN.remove(this);
         super.onClose();
+    }
+
+    // Tables open right now. The item being enchanted lives only in the table while it is open.
+    private static final Set<InventoryEnchanting> OPEN = new HashSet<>();
+
+    // On shutdown or reload the close listeners are gone before the inventories get closed,
+    // so close them here, while closing still hands the items back
+    public static void CloseAll()
+    {
+        for (InventoryEnchanting inv : new ArrayList<>(OPEN))
+        {
+            if (inv.getPlayer() != null)
+                inv.getPlayer().closeInventory();
+        }
+        OPEN.clear();
     }
 
     private ItemStack getEnchantItem()
