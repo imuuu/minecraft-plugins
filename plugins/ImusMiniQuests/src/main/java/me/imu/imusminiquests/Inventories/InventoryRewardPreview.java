@@ -8,8 +8,11 @@ import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerEconomy;
 import me.imu.imusminiquests.Managers.ManagerQuestPoints;
+import me.imu.imusminiquests.Managers.ManagerRewardPools;
 import me.imu.imusminiquests.Quests.Quest;
 import me.imu.imusminiquests.Quests.QuestReward;
+import me.imu.imusminiquests.Quests.RewardTier;
+import me.imu.imusminiquests.Quests.RolledReward;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -32,8 +35,19 @@ public class InventoryRewardPreview extends CustomInventory
     // Which luck the rolls use: 0 = none, 1 = half of the most, 2 = the most
     private int _luckStep = 0;
 
-    /** An item in the preview; money is shown as an icon that can't be taken. */
-    private record Shown(ItemStack stack, boolean takeable) {}
+    /**
+     * An item in the preview. display is what the slot shows (with the rarity of random rewards
+     * in its lore), item what clicking gives; null for money, which can't be taken.
+     */
+    private record Shown(ItemStack display, ItemStack item) {}
+
+    private static ItemStack withTier(ItemStack stack, RewardTier tier)
+    {
+        if (tier == null) return stack;
+        ItemStack display = stack.clone();
+        ItemUtils.AddLore(display, "&8Random reward: " + tier.display(), true);
+        return display;
+    }
 
     public InventoryRewardPreview(Quest quest)
     {
@@ -88,11 +102,12 @@ public class InventoryRewardPreview extends CustomInventory
         for (int attempt = 0; attempt < ITEM_SLOTS * 4 && items.size() < ITEM_SLOTS; attempt++)
         {
             List<Shown> opened = new ArrayList<>();
-            for (QuestReward reward : _quest.rollRewards(luck))
+            for (RolledReward rolled : _quest.rollRewards(luck))
             {
-                reward.createItems(luck).forEach(item -> opened.add(new Shown(item, true)));
+                QuestReward reward = rolled.reward();
+                reward.createItems(luck).forEach(item -> opened.add(new Shown(withTier(item, rolled.tier()), item)));
                 double money = reward.rollMoney(luck);
-                if (money > 0) opened.add(new Shown(moneyIcon(money), false));
+                if (money > 0) opened.add(new Shown(withTier(moneyIcon(money), rolled.tier()), null));
                 commands |= reward.hasCommands();
             }
             if (items.size() + opened.size() > ITEM_SLOTS && !items.isEmpty()) break;
@@ -104,10 +119,10 @@ public class InventoryRewardPreview extends CustomInventory
         for (int slot = 0; slot < items.size() && slot < ITEM_SLOTS; slot++)
         {
             Shown shown = items.get(slot);
-            ItemStack item = shown.stack();
-            addButton(shown.takeable()
-                    ? new Button(slot, item, event -> InvUtil.AddItemToInventoryOrDrop(getPlayer(), item.clone()))
-                    : new Button(slot, item));
+            ItemStack item = shown.item();
+            addButton(item != null
+                    ? new Button(slot, shown.display(), event -> InvUtil.AddItemToInventoryOrDrop(getPlayer(), item.clone()))
+                    : new Button(slot, shown.display()));
         }
 
         for (int slot = ITEM_SLOTS; slot < getSize(); slot++)
@@ -123,6 +138,15 @@ public class InventoryRewardPreview extends CustomInventory
         ItemUtils.SetDisplayName(info, "&6" + _quest.getName());
         ItemUtils.AddLore(info, "&7Items from &e" + openings + "&7 openings", true);
         ItemUtils.AddLore(info, "&7Pool rolls per opening: &e" + _quest.getRolls(), true);
+        ManagerRewardPools pools = ImusMiniQuests.getInstance().getRewardPools();
+        if (_quest.getRandomRolls() > 0 && !pools.getTiers().isEmpty())
+        {
+            ItemUtils.AddLore(info, "&7Random rewards per opening: &e" + _quest.getRandomRolls(), true);
+            for (RewardTier tier : pools.getTiers())
+            {
+                ItemUtils.AddLore(info, String.format("&8 • %s &7%.1f%%", tier.display(), pools.getTierChancePercent(tier, luck)), true);
+            }
+        }
         if (commands) ItemUtils.AddLore(info, "&8Command rewards ran nothing here", true);
         ItemUtils.AddLore(info, "&eClick &7an item to take it", true);
         addButton(new Button(SLOT_INFO, info));

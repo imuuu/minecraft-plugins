@@ -1,5 +1,8 @@
 package me.imu.imusminiquests.Quests;
 
+import me.imu.imusminiquests.ImusMiniQuests;
+import me.imu.imusminiquests.Managers.ManagerRewardPools;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -23,9 +26,12 @@ public class Quest
     private final int _rolls;
     private final List<QuestReward> _poolRewards;
     private final List<QuestReward> _guaranteedRewards;
+    // Random rewards from rewards.yml, -1 = random-rewards.rolls-per-quest of config.yml
+    private final int _randomRolls;
 
     public Quest(String id, String name, Material material, NamespacedKey model, List<String> lore, int dropWeight,
-                 QuestObjective objective, int rolls, List<QuestReward> poolRewards, List<QuestReward> guaranteedRewards)
+                 QuestObjective objective, int rolls, List<QuestReward> poolRewards, List<QuestReward> guaranteedRewards,
+                 int randomRolls)
     {
         _id = id;
         _name = name;
@@ -37,6 +43,7 @@ public class Quest
         _rolls = rolls;
         _poolRewards = List.copyOf(poolRewards);
         _guaranteedRewards = List.copyOf(guaranteedRewards);
+        _randomRolls = randomRolls;
     }
 
     public String getId() {return _id;}
@@ -72,24 +79,62 @@ public class Quest
      */
     public void giveRewards(Player player, double luck)
     {
-        for (QuestReward reward : rollRewards(luck))
+        ImusMiniQuests plugin = ImusMiniQuests.getInstance();
+        for (RolledReward rolled : rollRewards(luck))
         {
-            reward.give(player, luck);
+            String given = rolled.reward().give(player, luck);
+            RewardTier tier = rolled.tier();
+            if (tier == null || given.isEmpty()) continue;
+
+            // Random rewards are a surprise, so say what came out and how rare it was
+            player.sendMessage(plugin.getMessage("random-reward")
+                    .replace("%tier%", tier.display())
+                    .replace("%reward%", given));
+            if (tier.announce())
+            {
+                Bukkit.broadcastMessage(plugin.getMessage("random-reward-announce")
+                        .replace("%player%", player.getName())
+                        .replace("%tier%", tier.display())
+                        .replace("%reward%", given)
+                        .replace("%quest%", _name));
+            }
         }
     }
 
     /**
-     * The entries one opening would give: every guaranteed reward plus the pool rolled
-     * {@link #getRolls()} times.
+     * How many random rewards from rewards.yml one opening gives: rewards.random-rolls of the
+     * quest, or random-rewards.rolls-per-quest of config.yml when the quest doesn't set it.
      */
-    public List<QuestReward> rollRewards(double luck)
+    public int getRandomRolls()
     {
-        List<QuestReward> rewards = new ArrayList<>(_guaranteedRewards);
-        if (_poolRewards.isEmpty()) return rewards;
+        return _randomRolls >= 0 ? _randomRolls : ImusMiniQuests.getInstance().getRewardPools().getDefaultRolls();
+    }
 
-        for (int i = 0; i < _rolls; i++)
+    /**
+     * The entries one opening would give: every guaranteed reward, the quest's pool rolled
+     * {@link #getRolls()} times and {@link #getRandomRolls()} random rewards from rewards.yml.
+     */
+    public List<RolledReward> rollRewards(double luck)
+    {
+        List<RolledReward> rewards = new ArrayList<>();
+        for (QuestReward reward : _guaranteedRewards)
         {
-            rewards.add(Luck.pick(_poolRewards, QuestReward::weight, luck));
+            rewards.add(new RolledReward(reward, null));
+        }
+
+        if (!_poolRewards.isEmpty())
+        {
+            for (int i = 0; i < _rolls; i++)
+            {
+                rewards.add(new RolledReward(Luck.pick(_poolRewards, QuestReward::weight, luck), null));
+            }
+        }
+
+        ManagerRewardPools pools = ImusMiniQuests.getInstance().getRewardPools();
+        for (int i = 0; i < getRandomRolls(); i++)
+        {
+            RolledReward random = pools.roll(luck);
+            if (random != null) rewards.add(random);
         }
         return rewards;
     }

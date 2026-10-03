@@ -69,14 +69,20 @@ money:
 # Every quest a player opens gives them a quest point. Quest points give luck, and luck makes
 # that player's rewards better: rare pool entries and better tool tiers come up more often,
 # and amounts (items and money) lean towards their maximum.
-# At luck 0 the weights in quests.yml are used as they are; at luck 1 every entry in a pool
-# would be equally likely.
+# Weights count as weight ^ (1 - luck): at luck 0 they are used as they are, at luck 0.5 a
+# 120-to-1 difference shrinks to about 11-to-1, at luck 1 every entry would be equally likely.
 quest-points:
   enabled: true
   # Luck for every quest point: 0.01 = +1% per quest
   luck-per-point: 0.01
   # Most luck a player can reach: 0.5 = reached after 50 quests with 0.01 per point
   max-luck: 0.5
+
+# Random rewards: every quest also rolls this many rewards from the shared rarity tiers in
+# rewards.yml (common, uncommon, rare, epic, legendary), on top of its own rewards in quests.yml.
+# A quest can set its own count with rewards.random-rolls.
+random-rewards:
+  rolls-per-quest: 2
 
 # ImusChallenges: opening a quest also gives challenge points (lifetime points too)
 imuschallenges:
@@ -87,6 +93,8 @@ messages:
   money: "&6+%money%"
   quest-points: "&7Quest points: &e%points% &8(luck %luck%)"
   challenge-points: "&d+%points% challenge point(s)"
+  random-reward: "&7Random reward %tier%&7: &f%reward%"
+  random-reward-announce: "&6%player% &7opened %quest% &7and got %tier%&7: &f%reward%"
   action-bar: "&6%quest% &7%progress%&8/&7%amount%"
   completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
   claimed: "&aYou opened %quest%&a!"
@@ -103,6 +111,8 @@ lore:
   rewards-pool-one: "&7One of:"
   rewards-pool-many: "&7%rolls% of:"
   reward-line: "&8 • &f%reward%"
+  # %count% random rewards, %range% = "Common to Legendary"
+  random-rewards: "&d+%count% random reward(s) &8(%range%&8)"
   # Shown on every panel that isn't finished yet
   instructions:
     - "&8&m                              "

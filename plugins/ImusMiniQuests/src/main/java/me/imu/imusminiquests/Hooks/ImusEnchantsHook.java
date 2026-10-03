@@ -30,7 +30,7 @@ public final class ImusEnchantsHook
         CustomEnchant enchant = key == null || key.equalsIgnoreCase("random")
                 ? CustomEnchantRegistry.GetRandom()
                 : CustomEnchantRegistry.Get(key);
-        return enchant == null ? null : CustomEnchantBook.Create(enchant, Math.max(1, level));
+        return enchant == null ? null : CustomEnchantBook.Create(enchant, Math.max(1, Math.min(level, enchant.GetMaxLevel())));
     }
 
     /**

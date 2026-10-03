@@ -3,6 +3,7 @@ package me.imu.imusminiquests.Quests;
 import imu.iAPI.Other.Metods;
 import me.imu.imusminiquests.CONSTANTS;
 import me.imu.imusminiquests.ImusMiniQuests;
+import me.imu.imusminiquests.Managers.ManagerRewardPools;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -127,7 +128,9 @@ public final class QuestItem
     {
         List<String> guaranteed = describe(quest.getGuaranteedRewards());
         List<String> pool = quest.getRolls() > 0 ? describe(quest.getPoolRewards()) : List.of();
-        if (guaranteed.isEmpty() && pool.isEmpty()) return;
+        ManagerRewardPools pools = ImusMiniQuests.getInstance().getRewardPools();
+        int randomRolls = pools.getTiers().isEmpty() ? 0 : quest.getRandomRolls();
+        if (guaranteed.isEmpty() && pool.isEmpty() && randomRolls == 0) return;
 
         String line = config.getString("lore.reward-line", "&8 • &f%reward%");
         lore.add("");
@@ -135,13 +138,22 @@ public final class QuestItem
         for (String reward : guaranteed)
             lore.add(Metods.msgC(line.replace("%reward%", reward)));
 
-        if (pool.isEmpty()) return;
-        String poolHeader = quest.getRolls() == 1
-                ? config.getString("lore.rewards-pool-one", "&7One of:")
-                : config.getString("lore.rewards-pool-many", "&7%rolls% of:");
-        lore.add(Metods.msgC(poolHeader.replace("%rolls%", String.valueOf(quest.getRolls()))));
-        for (String reward : pool)
-            lore.add(Metods.msgC(line.replace("%reward%", reward)));
+        if (!pool.isEmpty())
+        {
+            String poolHeader = quest.getRolls() == 1
+                    ? config.getString("lore.rewards-pool-one", "&7One of:")
+                    : config.getString("lore.rewards-pool-many", "&7%rolls% of:");
+            lore.add(Metods.msgC(poolHeader.replace("%rolls%", String.valueOf(quest.getRolls()))));
+            for (String reward : pool)
+                lore.add(Metods.msgC(line.replace("%reward%", reward)));
+        }
+
+        if (randomRolls > 0)
+        {
+            lore.add(Metods.msgC(config.getString("lore.random-rewards", "&d+%count% random reward(s) &8(%range%&8)")
+                    .replace("%count%", String.valueOf(randomRolls))
+                    .replace("%range%", pools.describeRange())));
+        }
     }
 
     private static List<String> describe(List<QuestReward> rewards)

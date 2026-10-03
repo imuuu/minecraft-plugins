@@ -8,6 +8,7 @@ import me.imu.imusminiquests.Managers.ManagerEconomy;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -151,6 +152,28 @@ public class QuestReward
     }
 
     /**
+     * Reads a list of reward entries, such as rewards.pool of a quest or a tier in rewards.yml.
+     * Entries that can't be read are logged and left out.
+     */
+    public static List<QuestReward> listFromConfig(ConfigurationSection section, String path, Logger log, String context)
+    {
+        List<QuestReward> rewards = new ArrayList<>();
+        List<Map<?, ?>> entries = section.getMapList(path);
+        for (int i = 0; i < entries.size(); i++)
+        {
+            YamlConfiguration entry = new YamlConfiguration();
+            for (Map.Entry<?, ?> e : entries.get(i).entrySet())
+            {
+                entry.set(String.valueOf(e.getKey()), e.getValue());
+            }
+
+            QuestReward reward = fromConfig(entry, log, context + " " + path + "[" + i + "]");
+            if (reward != null) rewards.add(reward);
+        }
+        return rewards;
+    }
+
+    /**
      * Reads one entry of rewards.pool or rewards.guaranteed. Returns null and logs a warning when
      * the entry gives nothing.
      */
@@ -163,26 +186,41 @@ public class QuestReward
         DoubleFunction<ItemStack> item = null;
         String description = null;
 
-        if (section.isString("item") || section.isString("tool"))
+        if (section.contains("item") || section.contains("tool"))
         {
             DoubleFunction<Material> material;
-            if (section.isString("item"))
+            if (section.contains("item"))
             {
-                Material itemMaterial = Material.matchMaterial(section.getString("item"));
-                if (itemMaterial == null || !itemMaterial.isItem())
+                // item: DIAMOND, or item: [DIAMOND, EMERALD, GOLD_INGOT] for a random one of them
+                List<Material> materials = new ArrayList<>();
+                for (String name : stringOrList(section, "item"))
                 {
-                    log.warning(context + ": unknown item " + section.getString("item"));
-                    return null;
+                    Material itemMaterial = Material.matchMaterial(name);
+                    if (itemMaterial == null || !itemMaterial.isItem()) log.warning(context + ": unknown item " + name);
+                    else materials.add(itemMaterial);
                 }
-                material = luck -> itemMaterial;
-                description = amountText + (section.isString("name") ? section.getString("name") : prettyName(itemMaterial.name()));
+                if (materials.isEmpty()) return null;
+
+                material = luck -> materials.get(ThreadLocalRandom.current().nextInt(materials.size()));
+                description = amountText + (section.isString("name") ? section.getString("name") : describeChoice(materials));
             }
             else
             {
-                List<Tier> tiers = new ArrayList<>();
-                description = parseToolTiers(section, tiers, log, context);
-                if (description == null) return null;
-                material = luck -> Luck.pick(tiers, Tier::weight, luck).material();
+                // tool: PICKAXE, a list of them, or RANDOM (any tool), ARMOR (any piece) or GEAR (either)
+                List<List<Tier>> toolTiers = new ArrayList<>();
+                List<String> tools = expandTools(stringOrList(section, "tool"));
+                for (String tool : tools)
+                {
+                    List<Tier> tiers = new ArrayList<>();
+                    String toolDescription = parseToolTiers(section, tool, tiers, log, context);
+                    if (toolDescription == null) continue;
+                    toolTiers.add(tiers);
+                    if (description == null) description = toolDescription;
+                }
+                if (toolTiers.isEmpty()) return null;
+
+                material = luck -> Luck.pick(toolTiers.get(ThreadLocalRandom.current().nextInt(toolTiers.size())), Tier::weight, luck).material();
+                if (toolTiers.size() > 1) description = describeToolChoice(description, tools);
                 if (section.isString("name")) description = section.getString("name");
             }
 
@@ -269,6 +307,57 @@ public class QuestReward
         };
     }
 
+    private static final List<String> ALL_TOOLS = List.of("PICKAXE", "AXE", "SHOVEL", "HOE", "SWORD");
+    private static final List<String> ALL_ARMOR = List.of("HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS");
+
+    /** A key that can be one value or a list of them. */
+    private static List<String> stringOrList(ConfigurationSection section, String key)
+    {
+        return section.isList(key) ? section.getStringList(key) : List.of(section.getString(key, ""));
+    }
+
+    /** RANDOM, ARMOR and GEAR become the tool types they stand for. */
+    private static List<String> expandTools(List<String> names)
+    {
+        List<String> tools = new ArrayList<>();
+        for (String name : names)
+        {
+            switch (name.toUpperCase(Locale.ROOT))
+            {
+                case "RANDOM" -> tools.addAll(ALL_TOOLS);
+                case "ARMOR" -> tools.addAll(ALL_ARMOR);
+                case "GEAR" ->
+                {
+                    tools.addAll(ALL_TOOLS);
+                    tools.addAll(ALL_ARMOR);
+                }
+                default -> tools.add(name.toUpperCase(Locale.ROOT));
+            }
+        }
+        return tools;
+    }
+
+    /** "Diamond / Emerald / Gold Ingot", or "Diamond / Emerald / ..." for longer lists. */
+    private static String describeChoice(List<Material> materials)
+    {
+        List<String> names = materials.stream().limit(3).map(m -> prettyName(m.name())).toList();
+        return String.join(" / ", names) + (materials.size() > 3 ? " / ..." : "");
+    }
+
+    /**
+     * "Wooden-Diamond Pickaxe" of the first tool becomes "Wooden-Diamond Tool", "... Armor" or
+     * "... Gear" when several tool types can come out.
+     */
+    private static String describeToolChoice(String firstDescription, List<String> tools)
+    {
+        boolean anyArmor = tools.stream().anyMatch(ARMOR_PIECES::contains);
+        boolean anyTool = tools.stream().anyMatch(t -> !ARMOR_PIECES.contains(t));
+        String kind = anyArmor && anyTool ? "Gear" : anyArmor ? "Armor" : "Tool";
+        int lastSpace = firstDescription.lastIndexOf(' ');
+        String tierRange = lastSpace > 0 ? firstDescription.substring(0, lastSpace) : firstDescription;
+        return tierRange + " " + kind;
+    }
+
     /** One tier of a tool reward and how likely it is. */
     private record Tier(Material material, int weight) {}
 
@@ -277,9 +366,8 @@ public class QuestReward
      * returns its name for the reward list, like "Wooden-Diamond Pickaxe". Null when no tier is
      * valid.
      */
-    private static String parseToolTiers(ConfigurationSection section, List<Tier> table, Logger log, String context)
+    private static String parseToolTiers(ConfigurationSection section, String tool, List<Tier> table, Logger log, String context)
     {
-        String tool = section.getString("tool").toUpperCase(Locale.ROOT);
         boolean armor = ARMOR_PIECES.contains(tool);
 
         Map<String, Integer> tiers = new LinkedHashMap<>();
@@ -386,12 +474,20 @@ public class QuestReward
         return _money == null ? 0 : _money.roll(luck);
     }
 
-    public void give(Player player, double luck)
+    /**
+     * Gives the entry and returns what was given, like "3 x Diamond, $1,200", for messages.
+     * Empty when nothing visible was given (only commands without a display text).
+     */
+    public String give(Player player, double luck)
     {
+        List<String> given = new ArrayList<>();
+        Map<String, Integer> counted = new LinkedHashMap<>();
         for (ItemStack stack : createItems(luck))
         {
             InvUtil.AddItemToInventoryOrDrop(player, stack);
+            counted.merge(itemName(stack), stack.getAmount(), Integer::sum);
         }
+        counted.forEach((name, amount) -> given.add(amount > 1 ? amount + " x " + name : name));
 
         double money = rollMoney(luck);
         if (money > 0 && ManagerEconomy.isAvailable())
@@ -399,13 +495,24 @@ public class QuestReward
             ManagerEconomy.deposit(player, money);
             player.sendMessage(ImusMiniQuests.getInstance().getMessage("money")
                     .replace("%money%", ManagerEconomy.format(money)));
+            given.add(Metods.msgC("&6" + ManagerEconomy.format(money)));
         }
 
         for (String command : _commands)
         {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
         }
+        if (given.isEmpty() && _hasDisplay) given.add(_description);
 
         if (_message != null) player.sendMessage(Metods.msgC(_message));
+        return String.join(Metods.msgC("&7, &f"), given);
+    }
+
+    /** The item's custom name, or its material written out: DIAMOND_PICKAXE -> Diamond Pickaxe */
+    private static String itemName(ItemStack stack)
+    {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+        return Metods.msgC("&f") + prettyName(stack.getType().name());
     }
 }

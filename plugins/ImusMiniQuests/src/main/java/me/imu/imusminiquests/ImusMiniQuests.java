@@ -32,6 +32,7 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerQuestProgress _managerQuestProgress;
     private ManagerEconomy _managerEconomy;
     private ManagerQuestPoints _managerQuestPoints;
+    private ManagerRewardPools _managerRewardPools;
 
     @Override
     public void onEnable()
@@ -41,6 +42,8 @@ public class ImusMiniQuests extends JavaPlugin
         QuestItem.init(this);
         _managerEconomy = new ManagerEconomy(this);
         _managerQuestPoints = new ManagerQuestPoints(this);
+        _managerRewardPools = new ManagerRewardPools(this);
+        _managerRewardPools.load();
 
         _managerQuests = new ManagerQuests(this);
         _managerQuests.load();
@@ -71,12 +74,13 @@ public class ImusMiniQuests extends JavaPlugin
     }
 
     /**
-     * Re-reads config.yml and quests.yml. Quest items already in inventories keep their progress
+     * Re-reads config.yml, rewards.yml and quests.yml. Quest items already in inventories keep their progress
      * and pick up the new name, lore and amount the next time they move forward.
      */
     public void reloadSettings()
     {
         reloadConfig();
+        _managerRewardPools.load();
         _managerQuests.load();
         _managerQuestDrops.reload();
         _managerEconomy.start();
@@ -100,6 +104,8 @@ public class ImusMiniQuests extends JavaPlugin
     public ManagerEconomy getEconomy() {return _managerEconomy;}
 
     public ManagerQuestPoints getQuestPoints() {return _managerQuestPoints;}
+
+    public ManagerRewardPools getRewardPools() {return _managerRewardPools;}
 
     private ConfigMenu createConfigMenu()
     {
@@ -143,6 +149,12 @@ public class ImusMiniQuests extends JavaPlugin
                 .note("now");
         menu.addDouble("quest-points.max-luck", "Most luck", Material.GOLDEN_CARROT, 0, 1)
                 .description("0.5 = halfway to every reward being equally likely")
+                .note("now");
+
+        menu.addInt("random-rewards.rolls-per-quest", "Random rewards per quest", Material.ENDER_CHEST, 0, 10)
+                .description("Rewards from the shared rarity tiers in rewards.yml,")
+                .description("on top of each quest's own rewards. A quest's own")
+                .description("rewards.random-rolls overrides this")
                 .note("now");
 
         menu.addBoolean("imuschallenges.enabled", "ImusChallenges points", Material.NETHER_STAR)

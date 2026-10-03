@@ -1,0 +1,220 @@
+# Shared random rewards. Every quest rolls random-rewards.rolls-per-quest (config.yml) of these
+# on top of its own rewards in quests.yml; a quest can set its own count with
+# rewards.random-rolls.
+#
+# A roll first picks a tier by the tiers' weights, then a reward of that tier by the rewards'
+# weights. With the weights below (1000 in total) a roll is common 60%, uncommon 25%,
+# rare 11%, epic 3.3% and legendary 0.7%. Luck from quest points makes the rare tiers and the
+# rare rewards inside a tier likelier, and amounts lean towards their maximum.
+#
+# display    the tier's name in messages and the panel lore
+# weight     how often this tier is picked
+# announce   tell the whole server when someone gets a reward from this tier
+# rewards    entries in the same format as quests.yml. Extra here:
+#              item: [A, B, C]   a random one of these items each time
+#              tool: RANDOM      any tool (pickaxe, axe, shovel, hoe, sword)
+#              tool: ARMOR       any armor piece, tool: GEAR either, or a list of them
+#              item: BOOK + enchant-levels: 20   a random vanilla enchanted book
+
+tiers:
+  common:
+    display: "&fCommon"
+    weight: 600
+    rewards:
+      - item: [IRON_INGOT, GOLD_INGOT, COPPER_INGOT]
+        min: 4
+        max: 12
+        weight: 10
+      - item: [COAL, CHARCOAL]
+        min: 16
+        max: 32
+        weight: 8
+      - item: [REDSTONE, LAPIS_LAZULI]
+        min: 12
+        max: 32
+        weight: 6
+      - item: [BREAD, COOKED_BEEF, COOKED_PORKCHOP, BAKED_POTATO, COOKED_SALMON]
+        min: 8
+        max: 16
+        weight: 8
+      - item: [ARROW, TORCH]
+        min: 16
+        max: 48
+        weight: 6
+      - item: EXPERIENCE_BOTTLE
+        min: 4
+        max: 10
+        weight: 8
+      - item: EMERALD
+        min: 2
+        max: 6
+        weight: 6
+      - item: [LEATHER, STRING, FEATHER, BONE, SLIME_BALL]
+        min: 6
+        max: 16
+        weight: 6
+      - item: [OAK_SAPLING, BIRCH_SAPLING, SPRUCE_SAPLING, JUNGLE_SAPLING, CHERRY_SAPLING, MANGROVE_PROPAGULE]
+        min: 4
+        max: 8
+        weight: 3
+      - item: [MELON_SEEDS, PUMPKIN_SEEDS, BEETROOT_SEEDS, SWEET_BERRIES, COCOA_BEANS]
+        min: 4
+        max: 12
+        weight: 3
+      - tool: RANDOM
+        tiers: {WOODEN: 40, STONE: 45, IRON: 15}
+        weight: 4
+      - money: 1-2%
+        weight: 5
+
+  uncommon:
+    display: "&aUncommon"
+    weight: 250
+    rewards:
+      - item: DIAMOND
+        min: 1
+        max: 2
+        weight: 8
+      - item: GOLDEN_APPLE
+        min: 1
+        max: 2
+        weight: 6
+      - item: ENDER_PEARL
+        min: 2
+        max: 6
+        weight: 6
+      - item: BOOK
+        enchant-levels: 15
+        display: "Enchanted Book"
+        weight: 6
+      - item: [NAME_TAG, SADDLE, LEAD]
+        min: 1
+        max: 2
+        weight: 4
+      - item: [BLAZE_ROD, GHAST_TEAR, MAGMA_CREAM]
+        min: 2
+        max: 6
+        weight: 4
+      - item: [QUARTZ, AMETHYST_SHARD, PRISMARINE_SHARD, GLOWSTONE_DUST]
+        min: 8
+        max: 24
+        weight: 5
+      - tool: RANDOM
+        slots: true
+        tiers: {STONE: 40, IRON: 50, DIAMOND: 10}
+        weight: 6
+      - tool: ARMOR
+        slots: true
+        tiers: {LEATHER: 30, CHAINMAIL: 30, IRON: 40}
+        weight: 5
+      - item: [BOW, CROSSBOW, FISHING_ROD, SHIELD]
+        slots: true
+        weight: 4
+      - item: GOLDEN_CARROT
+        min: 8
+        max: 16
+        weight: 5
+      - money: 3-5%
+        weight: 5
+
+  rare:
+    display: "&9Rare"
+    weight: 110
+    rewards:
+      - item: DIAMOND
+        min: 3
+        max: 6
+        weight: 8
+      - enchant-book: random
+        weight: 10
+      - slot-core: true
+        weight: 6
+      - tool: RANDOM
+        slots: true
+        tiers: {IRON: 50, DIAMOND: 50}
+        weight: 8
+      - tool: ARMOR
+        slots: true
+        tiers: {IRON: 50, DIAMOND: 50}
+        weight: 6
+      - item: BOOK
+        enchant-levels: 30
+        display: "Enchanted Book &8(level 30)"
+        weight: 6
+      - item: GOLDEN_APPLE
+        min: 3
+        max: 5
+        weight: 4
+      - item: [EMERALD_BLOCK, DIAMOND_BLOCK]
+        weight: 2
+      - item: [TRIDENT, SPYGLASS, RECOVERY_COMPASS]
+        weight: 3
+      - item: [MUSIC_DISC_PIGSTEP, MUSIC_DISC_OTHERSIDE, MUSIC_DISC_RELIC, MUSIC_DISC_CREATOR]
+        weight: 2
+      - money: 5-10%
+        weight: 6
+
+  epic:
+    display: "&5Epic"
+    weight: 33
+    announce: true
+    rewards:
+      - item: NETHERITE_SCRAP
+        min: 1
+        max: 3
+        weight: 6
+      - item: ENCHANTED_GOLDEN_APPLE
+        weight: 4
+      - item: TOTEM_OF_UNDYING
+        weight: 4
+      - slot-core: true
+        min: 2
+        max: 3
+        weight: 5
+      - enchant-book: random
+        min: 2
+        max: 3
+        weight: 5
+      - tool: GEAR
+        slots: true
+        tiers: {DIAMOND: 100}
+        weight: 6
+      - item: [HEART_OF_THE_SEA, SHULKER_SHELL, NAUTILUS_SHELL]
+        min: 1
+        max: 2
+        weight: 3
+      - item: [DIAMOND_HORSE_ARMOR, WOLF_ARMOR, HEAVY_CORE]
+        weight: 2
+      - money: 10-15%
+        weight: 5
+
+  legendary:
+    display: "&6&lLegendary"
+    weight: 7
+    announce: true
+    rewards:
+      - item: NETHERITE_INGOT
+        weight: 6
+      - item: ELYTRA
+        slots: true
+        weight: 3
+      - tool: [PICKAXE, SWORD, AXE]
+        slots: true
+        tiers: {NETHERITE: 100}
+        weight: 4
+      - item: [NETHER_STAR, BEACON]
+        weight: 2
+      - enchant-book: random
+        min: 3
+        max: 5
+        weight: 4
+      - slot-core: true
+        min: 4
+        max: 6
+        weight: 4
+      - item: ENCHANTED_GOLDEN_APPLE
+        min: 2
+        max: 4
+        weight: 3
+      - money: 20-30%
+        weight: 4

@@ -125,8 +125,8 @@ public class ManagerQuests
         QuestObjective objective = new QuestObjective(type, targets, amount, objectiveSection.getString("text"));
 
         int rolls = section.getInt("rewards.rolls", 1);
-        List<QuestReward> pool = parseRewards(section, "rewards.pool", log, context);
-        List<QuestReward> guaranteed = parseRewards(section, "rewards.guaranteed", log, context);
+        List<QuestReward> pool = QuestReward.listFromConfig(section, "rewards.pool", log, context);
+        List<QuestReward> guaranteed = QuestReward.listFromConfig(section, "rewards.guaranteed", log, context);
 
         if (pool.isEmpty() && guaranteed.isEmpty())
             log.warning(context + ": has no rewards");
@@ -142,25 +142,8 @@ public class ManagerQuests
                 objective,
                 Math.max(0, rolls),
                 pool,
-                guaranteed);
-    }
-
-    private List<QuestReward> parseRewards(ConfigurationSection section, String path, Logger log, String context)
-    {
-        List<QuestReward> rewards = new ArrayList<>();
-        List<Map<?, ?>> entries = section.getMapList(path);
-        for (int i = 0; i < entries.size(); i++)
-        {
-            YamlConfiguration entry = new YamlConfiguration();
-            for (Map.Entry<?, ?> e : entries.get(i).entrySet())
-            {
-                entry.set(String.valueOf(e.getKey()), e.getValue());
-            }
-
-            QuestReward reward = QuestReward.fromConfig(entry, log, context + " " + path + "[" + i + "]");
-            if (reward != null) rewards.add(reward);
-        }
-        return rewards;
+                guaranteed,
+                section.getInt("rewards.random-rolls", -1));
     }
 
     public Quest getQuest(String id)
