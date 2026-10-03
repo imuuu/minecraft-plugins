@@ -14,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import imu.iAPI.Events.FakeBlockBreakEvent;
 import imu.imusTNT.enums.TNT_TYPE;
 
 public class TNT_Chunk extends TNT
@@ -66,7 +67,7 @@ public class TNT_Chunk extends TNT
 			//b.setType(Material.AIR);
 			if(player != null)
 			{
-				BlockBreakEvent bBreakEvent = new BlockBreakEvent(b, player);
+				BlockBreakEvent bBreakEvent = new FakeBlockBreakEvent(b, player);
 				Bukkit.getServer().getPluginManager().callEvent(bBreakEvent);
 				
 				if(bBreakEvent.isCancelled()) continue;

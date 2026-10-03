@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Events;
 
+import imu.iAPI.Events.FakeBlockBreakEvent;
 import imu.iAPI.Other.Metods;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
@@ -140,6 +141,10 @@ public class CustomEnchantEvents implements Listener
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void OnBlockBreak(BlockBreakEvent event)
 	{
+		// e.g. a custom TNT asking claims whether it may break the block: the held tool isn't mining it
+		if (event instanceof FakeBlockBreakEvent)
+			return;
+
 		Player player = event.getPlayer();
 		if (!IsActivePlayer(player))
 			return;
