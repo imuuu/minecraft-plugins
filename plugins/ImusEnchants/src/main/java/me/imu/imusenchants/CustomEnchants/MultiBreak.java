@@ -1,13 +1,17 @@
 package me.imu.imusenchants.CustomEnchants;
 
+import me.imu.imusenchants.ImusEnchants;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +20,8 @@ import java.util.UUID;
 // Breaks extra blocks for mining enchants. Blocks are broken with Player#breakBlock, so it
 // behaves like the player broke them: protection plugins can cancel it, drops use
 // Fortune/Silk Touch, the tool takes durability (Unbreaking works) and XP drops.
+// The extra blocks are broken a tick after the original one, and only if it really broke: a
+// plugin listening after us (mcMMO, jobs, anti-cheat) can still cancel the original break.
 public class MultiBreak
 {
 	// Blocks up to this hardness can always be broken, harder ones only if the mined block is as hard.
@@ -57,27 +63,47 @@ public class MultiBreak
 		return !(extra.getState() instanceof TileState);
 	}
 
-	// Returns how many blocks were broken
-	public static int BreakBlocks(Player player, List<Block> blocks)
+	// Call from the BlockBreakEvent of origin. The blocks are broken on the next tick.
+	public static void BreakBlocks(Player player, Block origin, List<Block> blocks)
 	{
-		int broken = 0;
-		_breaking.add(player.getUniqueId());
-		try
-		{
-			for (Block block : blocks)
-			{
-				if (!HasDurabilityLeft(player.getInventory().getItemInMainHand()))
-					break;
+		if (blocks.isEmpty())
+			return;
 
-				if (player.breakBlock(block))
-					broken++;
-			}
-		}
-		finally
+		BlockData originBefore = origin.getBlockData();
+		Material toolType = player.getInventory().getItemInMainHand().getType();
+		List<BlockData> blocksBefore = new ArrayList<>();
+		for (Block block : blocks)
+			blocksBefore.add(block.getBlockData());
+
+		Bukkit.getScheduler().runTask(ImusEnchants.Instance, () ->
 		{
-			_breaking.remove(player.getUniqueId());
-		}
-		return broken;
+			// Unchanged means the original break was cancelled after we saw it
+			if (!player.isOnline() || player.isDead() || origin.getBlockData().equals(originBefore))
+				return;
+
+			// Switched to another item in between: don't break blocks with it
+			if (player.getInventory().getItemInMainHand().getType() != toolType)
+				return;
+
+			_breaking.add(player.getUniqueId());
+			try
+			{
+				for (int i = 0; i < blocks.size(); i++)
+				{
+					if (!HasDurabilityLeft(player.getInventory().getItemInMainHand()))
+						break;
+
+					// Something else changed the block during the tick
+					Block block = blocks.get(i);
+					if (block.getBlockData().equals(blocksBefore.get(i)))
+						player.breakBlock(block);
+				}
+			}
+			finally
+			{
+				_breaking.remove(player.getUniqueId());
+			}
+		});
 	}
 
 	private static boolean HasDurabilityLeft(ItemStack tool)

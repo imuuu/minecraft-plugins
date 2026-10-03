@@ -110,7 +110,7 @@ public class VeinMinerEnchant extends CustomEnchant
 		if (!origin.isPreferredTool(tool))
 			return false;
 
-		MultiBreak.BreakBlocks(player, FindVein(origin, family, GetMaxBlocks(level) - 1));
+		MultiBreak.BreakBlocks(player, origin, FindVein(origin, family, GetMaxBlocks(level) - 1));
 		return true;
 	}
 

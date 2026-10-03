@@ -106,7 +106,7 @@ public class TimberEnchant extends CustomEnchant
 				breakable.add(log);
 		}
 
-		MultiBreak.BreakBlocks(player, breakable);
+		MultiBreak.BreakBlocks(player, origin, breakable);
 		return true;
 	}
 

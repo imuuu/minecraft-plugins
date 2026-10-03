@@ -78,7 +78,7 @@ public class TunnelEnchant extends CustomEnchant
 				blocks.add(block);
 		}
 
-		MultiBreak.BreakBlocks(player, blocks);
+		MultiBreak.BreakBlocks(player, origin, blocks);
 		return true;
 	}
 

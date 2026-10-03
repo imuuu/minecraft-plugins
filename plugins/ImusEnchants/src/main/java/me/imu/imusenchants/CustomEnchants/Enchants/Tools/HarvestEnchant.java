@@ -59,7 +59,7 @@ public class HarvestEnchant extends CustomEnchant
 			}
 		}
 
-		MultiBreak.BreakBlocks(player, crops);
+		MultiBreak.BreakBlocks(player, origin, crops);
 		return true;
 	}
 
