@@ -50,10 +50,7 @@ public class TablePlayerPoints
 
     public void setPoints(double points)
     {
-        if(points < 0)
-            this.points = 0;
-
-        this.points = points;
+        this.points = Math.max(0, points);
     }
     public void addPoints(int pointsToAdd) {
         this.points += pointsToAdd;

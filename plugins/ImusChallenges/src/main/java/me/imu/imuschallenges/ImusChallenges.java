@@ -44,6 +44,7 @@ public class ImusChallenges extends JavaPlugin
     public void onEnable()
     {
         _instance = this;
+        saveDefaultConfig();
         connectDataBase();
         registerCommands();
         System.out.println("ImusChallenges has been enabled!");
@@ -66,6 +67,10 @@ public class ImusChallenges extends JavaPlugin
     @Override
     public void onDisable()
     {
+        if (_managerChallengeShop != null)
+            _managerChallengeShop.shutdown();
+        if (_managerPlayerPoints != null)
+            _managerPlayerPoints.shutdown();
         System.out.println("ImusChallenges has been disabled!");
 
     }

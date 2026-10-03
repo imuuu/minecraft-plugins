@@ -2,18 +2,7 @@ package me.imu.imuschallenges;
 
 public class CONSTANTS
 {
-    public static final int PLAYER_SHOP_STATS_DEFAULT_VALUE = 2;
-    public static final int PLAYER_SHOP_STATS_DEFAULT_SPECIAL = 1;
-    public static final int SHOP_COST_SPECIAL_BASE_ITEM_COST = 12;
-    public static Integer SHOP_COST_MIN_CHALLENGE_POINTS_NORMAL = 1;
-    public static Integer SHOP_COST_MAX_CHALLENGE_POINTS_NORMAL = 6;
-
-    public static double SHOP_COST_FIRST_NORMAL_SLOT_PRICE = 40000;
-    public static double SHOP_COST_FIRST_NORMAL_SLOT_PRICE_POW = 3;
-
-    public static double SHOP_COST_FIRST_SPECIAL_SLOT_PRICE = 150000;
-    public static double SHOP_COST_FIRST_SPECIAL_SLOT_PRICE_POW = 4;
-
+    // Challenge shop GUI layout; prices, timers and loot are in config.yml
     public static int NORMAL_SLOT_ROWS = 2;
     public static int NORMAL_SLOT_COLUMNS = 4;
     public static int SPECIAL_SLOTS = 4;

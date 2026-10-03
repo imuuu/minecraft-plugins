@@ -41,7 +41,7 @@ public class ItemFactory
         int quality = ThreadLocalRandom.current().nextInt(1, 5); // 1-4
         ItemUtils.AddLore(item, "&9Quality: &e"+quality, true);
         ItemUtils.SetPersistenData(item, "ic_mystery_box_quality", PersistentDataType.INTEGER, quality);
-        item.setAmount(ThreadLocalRandom.current().nextInt(1));
+        item.setAmount(1);
         return item;
     }
 

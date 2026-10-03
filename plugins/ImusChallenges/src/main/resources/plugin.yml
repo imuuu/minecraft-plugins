@@ -6,6 +6,8 @@ authors: [ imukuppikorvaa ]
 description: The challanges for drevaria server
 depend:
   - imusAPI
+softdepend:
+  - GadgedMenu
 commands:
   imuschallenges:
     description: imusChallenges

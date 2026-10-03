@@ -1,0 +1,101 @@
+# ImusChallenges settings.
+
+shop:
+  # How a loot entry works:
+  #   item:   a Material name, or one of RANDOM (any item, see random-item-excluded),
+  #           MYSTERY_BOX or MYSTERY_DUST (both need the GadgedMenu plugin; skipped when it is missing)
+  #   weight: chance relative to the other entries in the same list
+  #   max:    largest stack size the entry can roll
+  #
+  # Slot counts per tier are fixed by the GUI layout (normal 8, special 4).
+  # default-slots only applies to players who have never opened the shop.
+
+  normal:
+    refresh-minutes: 160
+    default-slots: 2
+    item-cost-min: 1
+    item-cost-max: 5
+    slot-price-first: 40000
+    slot-price-multiplier: 3
+    loot:
+      - { item: RANDOM, weight: 250, max: 64 }
+      - { item: DIAMOND, weight: 22, max: 64 }
+      - { item: DIAMOND_BLOCK, weight: 10, max: 16 }
+      - { item: NETHER_STAR, weight: 1, max: 1 }
+      - { item: NETHERITE_SCRAP, weight: 15, max: 64 }
+      - { item: NETHERITE_BLOCK, weight: 1, max: 1 }
+      - { item: NETHERITE_INGOT, weight: 4, max: 12 }
+      - { item: EMERALD_BLOCK, weight: 30, max: 33 }
+      - { item: ELYTRA, weight: 1, max: 1 }
+      - { item: EMERALD_ORE, weight: 35, max: 64 }
+      - { item: IRON_INGOT, weight: 40, max: 64 }
+      - { item: GOLD_INGOT, weight: 40, max: 64 }
+      - { item: LAPIS_LAZULI, weight: 37, max: 64 }
+      - { item: COAL, weight: 70, max: 64 }
+      - { item: COAL_BLOCK, weight: 22, max: 64 }
+      - { item: IRON_BLOCK, weight: 25, max: 64 }
+      - { item: GOLD_BLOCK, weight: 23, max: 64 }
+      - { item: LAPIS_BLOCK, weight: 16, max: 30 }
+      - { item: MYSTERY_DUST, weight: 3, max: 1 }
+      - { item: MYSTERY_BOX, weight: 1, max: 1 }
+
+  special:
+    refresh-minutes: 780
+    default-slots: 1
+    item-cost-min: 13
+    item-cost-max: 17
+    slot-price-first: 150000
+    slot-price-multiplier: 4
+    loot:
+      - { item: DIAMOND, weight: 22, max: 64 }
+      - { item: DIAMOND_BLOCK, weight: 10, max: 64 }
+      - { item: NETHER_STAR, weight: 1, max: 1 }
+      - { item: NETHERITE_SCRAP, weight: 15, max: 64 }
+      - { item: NETHERITE_BLOCK, weight: 1, max: 3 }
+      - { item: NETHERITE_INGOT, weight: 4, max: 22 }
+      - { item: ELYTRA, weight: 1, max: 1 }
+      - { item: GOLD_BLOCK, weight: 28, max: 64 }
+      - { item: LAPIS_BLOCK, weight: 20, max: 64 }
+      - { item: TOTEM_OF_UNDYING, weight: 2, max: 1 }
+      - { item: MYSTERY_DUST, weight: 4, max: 1 }
+      - { item: MYSTERY_BOX, weight: 2, max: 1 }
+
+  # Materials a RANDOM entry never rolls. * matches any text, so *_SPAWN_EGG covers every spawn egg.
+  # Materials excluded from the collect-materials challenge are skipped as well.
+  random-item-excluded:
+    # valuable items that have their own loot entries
+    - NETHER_STAR
+    - NETHERITE_SCRAP
+    - NETHERITE_INGOT
+    - NETHERITE_BLOCK
+    - EMERALD_BLOCK
+    - EMERALD_ORE
+    - DIAMOND_BLOCK
+    - ELYTRA
+    - TOTEM_OF_UNDYING
+    # admin, creative-only and unobtainable items
+    - BEDROCK
+    - BARRIER
+    - LIGHT
+    - DEBUG_STICK
+    - KNOWLEDGE_BOOK
+    - '*COMMAND_BLOCK*'
+    - 'STRUCTURE_*'
+    - JIGSAW
+    - TEST_BLOCK
+    - TEST_INSTANCE_BLOCK
+    - '*_SPAWN_EGG'
+    - SPAWNER
+    - TRIAL_SPAWNER
+    - VAULT
+    - END_PORTAL_FRAME
+    - DRAGON_EGG
+    - REINFORCED_DEEPSLATE
+    - BUDDING_AMETHYST
+    - PETRIFIED_OAK_SLAB
+    - CHORUS_PLANT
+    - FARMLAND
+    - DIRT_PATH
+    - FROGSPAWN
+    - '*INFESTED_*'
+    - PLAYER_HEAD

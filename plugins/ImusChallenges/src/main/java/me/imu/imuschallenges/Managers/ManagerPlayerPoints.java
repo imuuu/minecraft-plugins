@@ -8,13 +8,17 @@ import me.imu.imuschallenges.Database.Tables.TablePlayers;
 import me.imu.imuschallenges.Database.Tables.TablePointType;
 import me.imu.imuschallenges.Enums.POINT_TYPE;
 import me.imu.imuschallenges.ImusChallenges;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class ManagerPlayerPoints
 {
@@ -31,6 +35,9 @@ public class ManagerPlayerPoints
     private final ImusChallenges _main;
     private final Dao<TablePlayerPoints, Integer> playerPointsDao;
 
+    // Every point write runs on this one thread, so a read-modify-write can't overlap another one
+    private final ExecutorService _writeExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "ImusChallenges-points"));
+
     public ManagerPlayerPoints(ImusChallenges main)
     {
         _main = main;
@@ -45,15 +52,34 @@ public class ManagerPlayerPoints
         }
     }
 
-    private void addPoints(TablePlayers player, TablePointType pointType, int points)
+    public void shutdown()
+    {
+        _writeExecutor.shutdown();
+        try
+        {
+            if (!_writeExecutor.awaitTermination(10, TimeUnit.SECONDS))
+                _main.getLogger().warning("Point writes did not finish in 10 seconds");
+        } catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private List<TablePlayerPoints> findPoints(TablePlayers player, TablePointType pointType) throws SQLException
+    {
+        Map<String, Object> fieldValues = new HashMap<>();
+        fieldValues.put("player_id", player.getId());
+        fieldValues.put("point_type_id", pointType.getId());
+        return playerPointsDao.queryForFieldValues(fieldValues);
+    }
+
+    private void addPoints(TablePlayers player, TablePointType pointType, int points, boolean countLifetime)
     {
         try
         {
-            // Query for existing record
-            Map<String, Object> fieldValues = new HashMap<>();
-            fieldValues.put("player_id", player.getId());
-            fieldValues.put("point_type_id", pointType.getId());
-            List<TablePlayerPoints> existingPoints = playerPointsDao.queryForFieldValues(fieldValues);
+            List<TablePlayerPoints> existingPoints = findPoints(player, pointType);
+            // Lifetime points count what was earned, so taking points away never lowers them
+            int lifetimeGain = countLifetime ? Math.max(0, points) : 0;
 
             if (existingPoints.isEmpty())
             {
@@ -62,7 +88,7 @@ public class ManagerPlayerPoints
                 playerPoints.setPlayer(player);
                 playerPoints.setPointType(pointType);
                 playerPoints.setPoints(points);
-                playerPoints.setLifetimePoints(points); // Adjust according to your requirement
+                playerPoints.setLifetimePoints(lifetimeGain);
                 playerPointsDao.create(playerPoints);
             }
             else
@@ -70,7 +96,7 @@ public class ManagerPlayerPoints
                 // Update existing record
                 TablePlayerPoints playerPoints = existingPoints.get(0);
                 playerPoints.setPoints(playerPoints.getPoints() + points);
-                playerPoints.setLifetimePoints(playerPoints.getLifetimePoints() + points); // Adjust according to your requirement
+                playerPoints.setLifetimePoints(playerPoints.getLifetimePoints() + lifetimeGain);
                 playerPointsDao.update(playerPoints);
             }
         } catch (SQLException e)
@@ -79,12 +105,12 @@ public class ManagerPlayerPoints
         }
     }
 
-    private void addPoints(Player player, String pointType, double amount) throws SQLException
+    private void addPoints(Player player, String pointType, double amount, boolean countLifetime) throws SQLException
     {
         int points = (int) amount;
         TablePointType tablePointType = _managerPointType.findOrCreatePointType(pointType);
         TablePlayers tablePlayer = _managerTablePlayers.findOrCreatePlayer(player);
-        addPoints(tablePlayer, tablePointType, points);
+        addPoints(tablePlayer, tablePointType, points, countLifetime);
     }
 
     public void addPointsAsync(Player player, POINT_TYPE pointType, double amount)
@@ -94,20 +120,76 @@ public class ManagerPlayerPoints
 
     public void addPointsAsync(Player player, String pointType, double amount)
     {
-        new BukkitRunnable()
+        _writeExecutor.execute(() ->
         {
-            @Override
-            public void run()
+            try
             {
-                try
-                {
-                    addPoints(player, pointType, amount);
-                } catch (SQLException e)
-                {
-                    e.printStackTrace();
-                }
+                addPoints(player, pointType, amount, true);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
             }
-        }.runTaskAsynchronously(_main);
+        });
+    }
+
+    /**
+     * Gives back points taken by {@link #trySpendPointsAsync} without counting them as earned again.
+     */
+    public void refundPointsAsync(Player player, POINT_TYPE pointType, int amount)
+    {
+        _writeExecutor.execute(() ->
+        {
+            try
+            {
+                addPoints(player, pointType.toString(), amount, false);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Takes points only if the player has at least that many, checked against the database.
+     *
+     * @param callback runs on the main thread with true when the points were taken
+     */
+    public void trySpendPointsAsync(Player player, POINT_TYPE pointType, int cost, Consumer<Boolean> callback)
+    {
+        _writeExecutor.execute(() ->
+        {
+            boolean spent = false;
+            try
+            {
+                spent = trySpendPoints(player, pointType.toString(), cost);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            final boolean result = spent;
+            if (_main.isEnabled())
+                Bukkit.getScheduler().runTask(_main, () -> callback.accept(result));
+        });
+    }
+
+    private boolean trySpendPoints(Player player, String pointType, int cost) throws SQLException
+    {
+        TablePointType tablePointType = _managerPointType.findOrCreatePointType(pointType);
+        if (tablePointType == null)
+            return false;
+
+        TablePlayers tablePlayer = _managerTablePlayers.findOrCreatePlayer(player);
+        List<TablePlayerPoints> existingPoints = findPoints(tablePlayer, tablePointType);
+        if (existingPoints.isEmpty())
+            return false;
+
+        TablePlayerPoints playerPoints = existingPoints.get(0);
+        if (playerPoints.getPoints() < cost)
+            return false;
+
+        playerPoints.setPoints(playerPoints.getPoints() - cost);
+        return playerPointsDao.update(playerPoints) == 1;
     }
 
 
