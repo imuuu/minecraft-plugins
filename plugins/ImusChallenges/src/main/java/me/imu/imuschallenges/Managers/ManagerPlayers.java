@@ -60,6 +60,15 @@ public class ManagerPlayers
         }
         return null;
     }
+    /**
+     * @return the player with this name as last seen, or null
+     */
+    public TablePlayers findByName(String playerName) throws SQLException
+    {
+        List<TablePlayers> players = _tablePlayersDao.queryForEq("player_name", playerName);
+        return players.isEmpty() ? null : players.get(0);
+    }
+
     public TablePlayers findOrCreatePlayer(Player player) throws SQLException
     {
         List<TablePlayers> players = _tablePlayersDao.queryForEq("player_uuid", player.getUniqueId().toString());

@@ -240,6 +240,10 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub4, new SubAddPointsCmd());
         handler.setPermissionOnLastCmd("ic.add.points");
 
+        String cmd1_sub9 = "reset points";
+        handler.registerSubCmd(cmd1, cmd1_sub9, new SubResetPointsCmd());
+        handler.setPermissionOnLastCmd("ic.reset.points");
+
         String cmd1_sub7 = "reload";
         handler.registerSubCmd(cmd1, cmd1_sub7, new SubReloadCmd());
         handler.setPermissionOnLastCmd("ic.reload");
@@ -252,7 +256,8 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubGetPointsCmd());
         handler.setPermissionOnLastCmd("ic.view.points");
 
-        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "reload", "config" });
+        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "reset", "reload", "config" });
+        cmd1AndArguments.put("reset", new String[] { "points" });
         cmd1AndArguments.put("view", new String[] { "points","materials","advancements"});
         cmd1AndArguments.put("add", new String[] { "points" });
 

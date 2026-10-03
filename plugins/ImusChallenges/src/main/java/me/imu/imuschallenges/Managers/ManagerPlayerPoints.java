@@ -2,6 +2,8 @@ package me.imu.imuschallenges.Managers;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.UpdateBuilder;
+import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.table.TableUtils;
 import me.imu.imuschallenges.Database.Tables.TablePlayerPoints;
 import me.imu.imuschallenges.Database.Tables.TablePlayers;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -214,6 +217,60 @@ public class ManagerPlayerPoints
             {
                 e.printStackTrace();
             }
+        });
+    }
+
+    /**
+     * Sets challenge points and lifetime points back to zero, for one player or for everyone.
+     *
+     * @param playerName null resets everyone
+     * @param callback   runs on the main thread with the number of rows reset and the player's name as stored,
+     *                   which is null when no such player exists
+     */
+    public void resetPointsAsync(String playerName, BiConsumer<Integer, String> callback)
+    {
+        _writeExecutor.execute(() ->
+        {
+            int rows = 0;
+            String resolvedName = null;
+            try
+            {
+                TablePointType pointType = _managerPointType.getPointTypeByName(POINT_TYPE.CHALLENGE_POINT.toString());
+                TablePlayers tablePlayer = playerName == null ? null : _managerTablePlayers.findByName(playerName);
+                if (tablePlayer != null)
+                    resolvedName = tablePlayer.getPlayer_name();
+
+                if (pointType != null && (playerName == null || tablePlayer != null))
+                {
+                    UpdateBuilder<TablePlayerPoints, Integer> update = playerPointsDao.updateBuilder();
+                    update.updateColumnValue("points", 0).updateColumnValue("lifetime_points", 0);
+                    Where<TablePlayerPoints, Integer> where = update.where().eq("point_type_id", pointType.getId());
+                    if (tablePlayer != null)
+                        where.and().eq("player_id", tablePlayer.getId());
+                    rows = update.update();
+                }
+
+                // The leader is looked up again on the next points earned
+                _leaderLoaded = false;
+                _leaderPlayerId = -1;
+                _leaderName = null;
+                _leaderLifetime = 0;
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            final int resetRows = rows;
+            final String name = resolvedName;
+            if (_main.isEnabled())
+                Bukkit.getScheduler().runTask(_main, () ->
+                {
+                    if (playerName == null)
+                        ManagerPointsScoreboard.getInstance().resetAll();
+                    else if (name != null)
+                        ManagerPointsScoreboard.getInstance().setPoints(name, 0);
+                    callback.accept(resetRows, name);
+                });
         });
     }
 

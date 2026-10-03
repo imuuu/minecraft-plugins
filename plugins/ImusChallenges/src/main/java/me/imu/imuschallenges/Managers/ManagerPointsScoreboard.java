@@ -87,6 +87,22 @@ public class ManagerPointsScoreboard implements Listener
         getObjective().getScore(playerName).setScore(lifetimePoints);
     }
 
+    /**
+     * Clears every score, then shows zero for the players online. Main thread.
+     */
+    public void resetAll()
+    {
+        Objective objective = getObjective();
+        Scoreboard scoreboard = objective.getScoreboard();
+        if (scoreboard != null)
+        {
+            for (String entry : scoreboard.getEntries())
+                objective.getScore(entry).resetScore();
+        }
+        for (Player player : Bukkit.getOnlinePlayers())
+            setPoints(player.getName(), 0);
+    }
+
     private void loadPoints(Player player)
     {
         ManagerPlayerPoints.getInstance().getLifetimePointsAsync(player, points ->
