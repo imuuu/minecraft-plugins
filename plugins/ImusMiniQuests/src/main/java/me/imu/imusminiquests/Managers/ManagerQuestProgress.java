@@ -17,6 +17,7 @@ import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -29,10 +30,13 @@ import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.FurnaceExtractEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -258,5 +262,28 @@ public class ManagerQuestProgress implements Listener
     {
         Material type = event.getTrade().getResult().getType();
         addProgress(event.getPlayer(), OBJECTIVE_TYPE.TRADE, o -> o.targets().matches(type), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onConsume(PlayerItemConsumeEvent event)
+    {
+        Material type = event.getItem().getType();
+        addProgress(event.getPlayer(), OBJECTIVE_TYPE.EAT, o -> o.targets().matches(type), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTame(EntityTameEvent event)
+    {
+        if (!(event.getOwner() instanceof Player player)) return;
+
+        LivingEntity tamed = event.getEntity();
+        addProgress(player, OBJECTIVE_TYPE.TAME, o -> o.targets().matches(tamed), 1);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onShear(PlayerShearEntityEvent event)
+    {
+        Entity sheared = event.getEntity();
+        addProgress(event.getPlayer(), OBJECTIVE_TYPE.SHEAR, o -> o.targets().matches(sheared), 1);
     }
 }

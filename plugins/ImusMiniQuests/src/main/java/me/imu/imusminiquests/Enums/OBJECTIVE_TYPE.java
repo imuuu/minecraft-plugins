@@ -21,7 +21,13 @@ public enum OBJECTIVE_TYPE
     /** Targets are entity types of the animals bred. */
     BREED("Breed", true),
     /** Targets are item materials bought from villagers and wandering traders. */
-    TRADE("Trade for", false);
+    TRADE("Trade for", false),
+    /** Targets are item materials eaten or drunk. */
+    EAT("Eat", false),
+    /** Targets are entity types tamed (wolves, cats, horses, parrots...). */
+    TAME("Tame", true),
+    /** Targets are entity types sheared (sheep, mooshrooms, snow golems...). */
+    SHEAR("Shear", true);
 
     private final String _verb;
     private final boolean _targetsEntities;

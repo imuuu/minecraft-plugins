@@ -21,6 +21,9 @@
 #                     ENCHANT      items enchanted at an enchanting table
 #                     BREED        animals bred (mob types)
 #                     TRADE        items bought from villagers, one per trade
+#                     EAT          items eaten or drunk
+#                     TAME         animals tamed (mob types)
+#                     SHEAR        animals sheared (mob types)
 # objective.targets   what counts. Empty or missing = anything.
 #                     Blocks/items: OAK_LOG, *_ORE (wildcard), #logs (tag), *
 #                     Mobs:         ZOMBIE, *_SPIDER, #skeletons (tag), @hostile, *
@@ -756,3 +759,555 @@ quests:
           min: 16
           max: 32
           weight: 6
+
+  shepherd:
+    name: "&fShepherd"
+    material: WHITE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSoft wool, warm winters."
+    drop-weight: 6
+    objective:
+      type: SHEAR
+      targets: [SHEEP]
+      amount: 48
+      text: "Shear 48 sheep"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SHEARS
+          enchant-levels: 20
+          weight: 6
+        - tool: LEGGINGS
+          slots: true
+          weight: 5
+        - item: EMERALD
+          min: 4
+          max: 10
+          weight: 6
+
+  beast_tamer:
+    name: "&6Beast Tamer"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oA friend for every road."
+    drop-weight: 3
+    objective:
+      type: TAME
+      targets: [WOLF, CAT, PARROT]
+      amount: 3
+      text: "Tame 3 wolves, cats or parrots"
+    rewards:
+      rolls: 1
+      pool:
+        - item: NAME_TAG
+          min: 1
+          max: 3
+          weight: 8
+        - item: WOLF_ARMOR
+          weight: 3
+        - item: LEAD
+          min: 2
+          max: 4
+          weight: 5
+
+  horse_whisperer:
+    name: "&6Horse Whisperer"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThey only buck the first time."
+    drop-weight: 3
+    objective:
+      type: TAME
+      targets: [HORSE, DONKEY, MULE, LLAMA]
+      amount: 3
+      text: "Tame 3 horses, donkeys or llamas"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SADDLE
+          weight: 6
+        - item: IRON_HORSE_ARMOR
+          weight: 5
+        - item: GOLDEN_HORSE_ARMOR
+          weight: 3
+        - item: DIAMOND_HORSE_ARMOR
+          weight: 1
+
+  # ---- Food ----
+
+  gourmet:
+    name: "&eGourmet"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSecond breakfast counts."
+    drop-weight: 6
+    objective:
+      type: EAT
+      targets: []
+      amount: 50
+      text: "Eat 50 times"
+    rewards:
+      rolls: 1
+      pool:
+        - item: GOLDEN_CARROT
+          min: 8
+          max: 16
+          weight: 8
+        - item: RABBIT_STEW
+          weight: 4
+        - enchant-book: saturation
+          weight: 2
+
+  golden_feast:
+    name: "&6Golden Feast"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oOnly the finest."
+    drop-weight: 2
+    objective:
+      type: EAT
+      targets: [GOLDEN_APPLE, GOLDEN_CARROT, ENCHANTED_GOLDEN_APPLE]
+      amount: 16
+      text: "Eat 16 golden apples or golden carrots"
+    rewards:
+      rolls: 1
+      pool:
+        - item: ENCHANTED_GOLDEN_APPLE
+          weight: 2
+        - item: GOLDEN_APPLE
+          min: 4
+          max: 8
+          weight: 8
+        - tool: HELMET
+          slots: true
+          tiers: {GOLDEN: 70, DIAMOND: 30}
+          weight: 4
+
+  sweet_tooth:
+    name: "&dSweet Tooth"
+    material: PINK_STAINED_GLASS_PANE
+    lore:
+      - "&7&oJust one more."
+    drop-weight: 4
+    objective:
+      type: EAT
+      targets: [HONEY_BOTTLE, COOKIE, PUMPKIN_PIE]
+      amount: 32
+      text: "Eat 32 cookies or pies, or drink honey"
+    rewards:
+      rolls: 1
+      pool:
+        - item: HONEY_BLOCK
+          min: 2
+          max: 6
+          weight: 6
+        - item: CAKE
+          weight: 6
+        - enchant-book: regrowth
+          weight: 2
+
+  # ---- More combat ----
+
+  witch_hunter:
+    name: "&5Witch Hunter"
+    material: PURPLE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oMind the potions."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [WITCH]
+      amount: 10
+      text: "Kill 10 witches"
+    rewards:
+      rolls: 1
+      pool:
+        - item: GLOWSTONE_DUST
+          min: 16
+          max: 32
+          weight: 6
+        - item: BREWING_STAND
+          weight: 3
+        - enchant-book: withering
+          weight: 2
+        - tool: CHESTPLATE
+          slots: true
+          weight: 4
+
+  raid_breaker:
+    name: "&8Raid Breaker"
+    material: GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe village sleeps safe tonight."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [PILLAGER, VINDICATOR, EVOKER, RAVAGER, VEX]
+      amount: 30
+      text: "Kill 30 illagers"
+    rewards:
+      rolls: 2
+      pool:
+        - tool: AXE
+          slots: true
+          tiers: {IRON: 50, DIAMOND: 50}
+          weight: 6
+        - item: TOTEM_OF_UNDYING
+          weight: 2
+        - item: EMERALD
+          min: 16
+          max: 32
+          weight: 8
+        - enchant-book: cleave
+          weight: 2
+
+  deep_sea_hunter:
+    name: "&3Deep Sea Hunter"
+    material: BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSomething moves under the waves."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: [DROWNED, GUARDIAN, ELDER_GUARDIAN]
+      amount: 40
+      text: "Kill 40 drowned or guardians"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: HELMET
+          slots: true
+          weight: 6
+        - enchant-book: aquatic
+          weight: 3
+        - item: PRISMARINE_CRYSTALS
+          min: 8
+          max: 16
+          weight: 6
+        - item: TRIDENT
+          weight: 1
+
+  night_watch:
+    name: "&9Night Watch"
+    material: BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oGo to bed, they said."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [PHANTOM]
+      amount: 15
+      text: "Kill 15 phantoms"
+    rewards:
+      rolls: 1
+      pool:
+        - item: PHANTOM_MEMBRANE
+          min: 4
+          max: 8
+          weight: 8
+        - tool: BOOTS
+          slots: true
+          weight: 5
+        - enchant-book: fall_guard
+          weight: 2
+
+  slime_rancher:
+    name: "&aSlime Rancher"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oBouncy."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: [SLIME]
+      amount: 40
+      text: "Kill 40 slimes"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SLIME_BLOCK
+          min: 2
+          max: 6
+          weight: 8
+        - item: STICKY_PISTON
+          min: 2
+          max: 4
+          weight: 5
+        - enchant-book: jump_boost
+          weight: 2
+
+  # ---- More gathering ----
+
+  nether_woodcutter:
+    name: "&cNether Woodcutter"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThese trees bite back."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [CRIMSON_STEM, WARPED_STEM]
+      amount: 64
+      text: "Chop 64 crimson or warped stems"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: AXE
+          slots: true
+          tiers: {IRON: 60, DIAMOND: 40}
+          weight: 8
+        - enchant-book: timber
+          weight: 2
+        - item: SHROOMLIGHT
+          min: 4
+          max: 8
+          weight: 5
+
+  geode_cracker:
+    name: "&dGeode Cracker"
+    material: MAGENTA_STAINED_GLASS_PANE
+    lore:
+      - "&7&oIt hums when you hold it."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [AMETHYST_CLUSTER]
+      amount: 24
+      text: "Break 24 amethyst clusters"
+    rewards:
+      rolls: 1
+      pool:
+        - item: SPYGLASS
+          weight: 4
+        - item: TINTED_GLASS
+          min: 4
+          max: 8
+          weight: 6
+        - item: BUDDING_AMETHYST
+          weight: 1
+        - tool: PICKAXE
+          slots: true
+          weight: 5
+
+  diamond_seeker:
+    name: "&bDiamond Seeker"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe blue glint, deep below."
+    drop-weight: 3
+    objective:
+      type: BREAK_BLOCK
+      targets: [DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE]
+      amount: 8
+      text: "Mine 8 diamond ore"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          tiers: {IRON: 40, DIAMOND: 60}
+          weight: 8
+        - enchant-book: vein_miner
+          weight: 3
+        - item: DIAMOND
+          min: 2
+          max: 4
+          weight: 5
+      guaranteed:
+        - slot-core: true
+
+  ice_harvester:
+    name: "&bIce Harvester"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oCold hands, full pockets."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [ICE, PACKED_ICE, BLUE_ICE]
+      amount: 64
+      text: "Break 64 ice"
+    rewards:
+      rolls: 1
+      pool:
+        - item: BLUE_ICE
+          min: 8
+          max: 16
+          weight: 6
+        - tool: BOOTS
+          slots: true
+          weight: 5
+        - enchant-book: magma_walker
+          weight: 2
+
+  obsidian_breaker:
+    name: "&5Obsidian Breaker"
+    material: PURPLE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oPatience, and a good pickaxe."
+    drop-weight: 3
+    objective:
+      type: BREAK_BLOCK
+      targets: [OBSIDIAN, CRYING_OBSIDIAN]
+      amount: 32
+      text: "Mine 32 obsidian"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          tiers: {DIAMOND: 100}
+          weight: 5
+        - enchant-book: haste
+          weight: 3
+        - item: ENDER_EYE
+          min: 2
+          max: 4
+          weight: 5
+
+  fishmonger:
+    name: "&3Fishmonger"
+    material: CYAN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFresh catch of the day."
+    drop-weight: 5
+    objective:
+      type: FISH
+      targets: [COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+      amount: 64
+      text: "Catch 64 fish"
+    rewards:
+      rolls: 1
+      pool:
+        - item: FISHING_ROD
+          slots: true
+          weight: 6
+        - enchant-book: seasoned_angler
+          weight: 3
+        - item: COOKED_SALMON
+          min: 16
+          max: 32
+          weight: 6
+
+  # ---- More crafting and smelting ----
+
+  redstone_engineer:
+    name: "&cRedstone Engineer"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oIt works, don't touch it."
+    drop-weight: 4
+    objective:
+      type: CRAFT
+      targets: [REPEATER, COMPARATOR, PISTON, STICKY_PISTON, OBSERVER, HOPPER, DISPENSER, DROPPER]
+      amount: 32
+      text: "Craft 32 redstone components"
+    rewards:
+      rolls: 1
+      pool:
+        - item: REDSTONE_BLOCK
+          min: 4
+          max: 8
+          weight: 8
+        - item: SLIME_BLOCK
+          min: 2
+          max: 4
+          weight: 5
+        - slot-core: true
+          weight: 2
+
+  armorer:
+    name: "&7Armorer"
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oMeasure twice, hammer once."
+    drop-weight: 5
+    objective:
+      type: CRAFT
+      targets: ["*_HELMET", "*_CHESTPLATE", "*_LEGGINGS", "*_BOOTS"]
+      amount: 8
+      text: "Craft 8 pieces of armor"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: CHESTPLATE
+          slots: true
+          weight: 6
+        - tool: LEGGINGS
+          slots: true
+          weight: 6
+        - enchant-book: reflect
+          weight: 2
+
+  charcoal_burner:
+    name: "&8Charcoal Burner"
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSlow fire, black gold."
+    drop-weight: 5
+    objective:
+      type: SMELT
+      targets: [CHARCOAL]
+      amount: 64
+      text: "Burn 64 charcoal"
+    rewards:
+      rolls: 1
+      pool:
+        - item: COAL_BLOCK
+          min: 4
+          max: 12
+          weight: 8
+        - tool: AXE
+          slots: true
+          weight: 5
+        - enchant-book: smelting
+          weight: 2
+
+  potter:
+    name: "&6Potter"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oEvery pattern a little different."
+    drop-weight: 3
+    objective:
+      type: SMELT
+      targets: ["*_GLAZED_TERRACOTTA"]
+      amount: 64
+      text: "Fire 64 glazed terracotta"
+    rewards:
+      rolls: 1
+      pool:
+        - item: DECORATED_POT
+          min: 1
+          max: 3
+          weight: 6
+        - item: EMERALD
+          min: 8
+          max: 16
+          weight: 6
+        - item: BRUSH
+          weight: 3
+
+  emerald_hoarder:
+    name: "&2Emerald Hoarder"
+    material: GREEN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oGreen is the best colour."
+    drop-weight: 4
+    objective:
+      type: TRADE
+      targets: [EMERALD]
+      amount: 32
+      text: "Sell to villagers 32 times"
+    rewards:
+      rolls: 1
+      pool:
+        - item: EMERALD_BLOCK
+          min: 2
+          max: 5
+          weight: 8
+        - tool: SWORD
+          slots: true
+          weight: 4
+        - enchant-book: random
+          weight: 3
