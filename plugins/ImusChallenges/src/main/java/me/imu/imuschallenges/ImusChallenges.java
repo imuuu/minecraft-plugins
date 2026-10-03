@@ -4,6 +4,7 @@ import com.j256.ormlite.jdbc.DataSourceConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.zaxxer.hikari.HikariDataSource;
 import imu.iAPI.CmdUtil.CmdHelper;
+import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handelers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
 import imu.iAPI.Other.MySQL;
@@ -12,6 +13,7 @@ import me.imu.imuschallenges.Managers.*;
 import me.imu.imuschallenges.SubCommands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,12 +42,15 @@ public class ImusChallenges extends JavaPlugin
     private ManagerChallengeShop _managerChallengeShop;
     private ManagerAdvancement _managerAdvancement;
 
+    private ConfigMenu _configMenu;
+
     @Override
     public void onEnable()
     {
         _instance = this;
         saveDefaultConfig();
         connectDataBase();
+        _configMenu = createConfigMenu();
         registerCommands();
         System.out.println("ImusChallenges has been enabled!");
         registerPermissions();
@@ -60,6 +65,7 @@ public class ImusChallenges extends JavaPlugin
         _managerAdvancement = new ManagerAdvancement();
         getServer().getPluginManager().registerEvents(_managerCCollectMaterial, this);
         getServer().getPluginManager().registerEvents(new ManagerAchievementChallenges(), this);
+        _configMenu.register();
 
 
     }
@@ -67,12 +73,54 @@ public class ImusChallenges extends JavaPlugin
     @Override
     public void onDisable()
     {
+        if (_configMenu != null)
+            _configMenu.unregister();
         if (_managerChallengeShop != null)
             _managerChallengeShop.shutdown();
         if (_managerPlayerPoints != null)
             _managerPlayerPoints.shutdown();
         System.out.println("ImusChallenges has been disabled!");
 
+    }
+
+    /**
+     * The values of config.yml that can be changed in game with /ic config or /ia config.
+     */
+    private ConfigMenu createConfigMenu()
+    {
+        ConfigMenu menu = new ConfigMenu(this, "ImusChallenges", CONSTANTS.PERM_CONFIG, () -> _managerChallengeShop.reload());
+
+        menu.addInt("shop.reminder-interval-minutes", "Unspent points reminder (min)", Material.BELL, 0, 1440)
+                .description("How often players who can afford something are reminded")
+                .description("0 turns the reminder off")
+                .note("now");
+
+        addShopTierEntries(menu, "normal", "Normal", CONSTANTS.NORMAL_SLOT_COLUMNS * CONSTANTS.NORMAL_SLOT_ROWS);
+        addShopTierEntries(menu, "special", "Special", CONSTANTS.SPECIAL_SLOTS);
+        return menu;
+    }
+
+    private void addShopTierEntries(ConfigMenu menu, String tier, String name, int slotCount)
+    {
+        String path = "shop." + tier + ".";
+        menu.addInt(path + "refresh-minutes", name + ": refresh time (min)", Material.CLOCK, 1, 10080)
+                .description("How long one set of " + name.toLowerCase() + " items stays in the shop")
+                .note("next rotation, a shorter time also ends the current one");
+        menu.addInt(path + "default-slots", name + ": free slots", Material.CHEST, 0, slotCount)
+                .description("Slots open without buying them")
+                .note("players who have never opened the shop");
+        menu.addInt(path + "item-cost-min", name + ": item cost min", Material.IRON_NUGGET, 0, 100000)
+                .description("Lowest challenge point price an item can roll")
+                .note("next rotation");
+        menu.addInt(path + "item-cost-max", name + ": item cost max", Material.GOLD_NUGGET, 0, 100000)
+                .description("Highest challenge point price an item can roll")
+                .note("next rotation");
+        menu.addDouble(path + "slot-price-first", name + ": first slot price ($)", Material.GOLD_INGOT, 0, 1_000_000_000_000d)
+                .description("Money price of the first extra slot")
+                .note("now");
+        menu.addDouble(path + "slot-price-multiplier", name + ": slot price multiplier", Material.EXPERIENCE_BOTTLE, 1, 100)
+                .description("Each further slot costs this many times the previous one")
+                .note("now");
     }
 
     private void registerPermissions()
@@ -148,11 +196,19 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub4, new SubAddPointsCmd());
         handler.setPermissionOnLastCmd("ic.add.points");
 
+        String cmd1_sub7 = "reload";
+        handler.registerSubCmd(cmd1, cmd1_sub7, new SubReloadCmd());
+        handler.setPermissionOnLastCmd("ic.reload");
+
+        String cmd1_sub8 = "config";
+        handler.registerSubCmd(cmd1, cmd1_sub8, new SubConfigCmd(_configMenu));
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_CONFIG);
+
         String cmd1_sub6 = "view points";
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubGetPointsCmd());
         handler.setPermissionOnLastCmd("ic.view.points");
 
-        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add" });
+        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "reload", "config" });
         cmd1AndArguments.put("view", new String[] { "points","materials","advancements"});
         cmd1AndArguments.put("add", new String[] { "points" });
 

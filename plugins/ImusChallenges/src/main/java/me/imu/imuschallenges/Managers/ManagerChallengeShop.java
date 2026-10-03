@@ -26,6 +26,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,8 +55,10 @@ public class ManagerChallengeShop
     // Slot reads and writes share one thread, so reopening the shop right after buying a slot sees it
     private final ExecutorService _statsExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "ImusChallenges-shop"));
 
-    private final List<Pattern> _randomItemExcluded = new ArrayList<>();
-    private final Material[] _randomItemCandidates;
+    private Material[] _randomItemCandidates;
+
+    private BukkitTask _reminderTask;
+    private long _reminderIntervalMinutes = -1;
 
     private final File _stateFile;
 
@@ -78,19 +81,47 @@ public class ManagerChallengeShop
         _normal = new ShopTier("normal", false, CONSTANTS.NORMAL_SLOT_COLUMNS * CONSTANTS.NORMAL_SLOT_ROWS, config.getConfigurationSection("normal"));
         _special = new ShopTier("special", true, CONSTANTS.SPECIAL_SLOTS, config.getConfigurationSection("special"));
 
-        for (String excluded : config.getStringList("random-item-excluded"))
-        {
-            _randomItemExcluded.add(Pattern.compile(Pattern.quote(excluded.toUpperCase(Locale.ROOT)).replace("*", "\\E.*\\Q")));
-        }
-        _randomItemCandidates = Arrays.stream(Material.values())
-                .filter(m -> m.isItem() && !m.isAir() && !m.isLegacy())
-                .filter(m -> _randomItemExcluded.stream().noneMatch(p -> p.matcher(m.name()).matches()))
-                .toArray(Material[]::new);
+        loadRandomItemCandidates(config);
 
         _stateFile = new File(main.getDataFolder(), "shop_state.yml");
         loadState();
         scheduleItemGeneration();
         scheduleReminders(config.getLong("reminder-interval-minutes"));
+    }
+
+    /**
+     * Re-reads config.yml and applies it without a restart. What changes when is described in
+     * {@link ShopTier#applyConfig}; the reminder interval and slot prices apply at once.
+     */
+    public void reload()
+    {
+        ImusChallenges main = ImusChallenges.getInstance();
+        main.reloadConfig();
+        ConfigurationSection config = main.getConfig().getConfigurationSection("shop");
+        if (config == null)
+        {
+            main.getLogger().severe("config.yml has no shop section, the shop keeps its old settings");
+            return;
+        }
+
+        _normal.applyConfig(config.getConfigurationSection("normal"));
+        _special.applyConfig(config.getConfigurationSection("special"));
+        loadRandomItemCandidates(config);
+        scheduleReminders(config.getLong("reminder-interval-minutes"));
+        saveState();
+    }
+
+    private void loadRandomItemCandidates(ConfigurationSection config)
+    {
+        List<Pattern> excluded = new ArrayList<>();
+        for (String name : config.getStringList("random-item-excluded"))
+        {
+            excluded.add(Pattern.compile(Pattern.quote(name.toUpperCase(Locale.ROOT)).replace("*", "\\E.*\\Q")));
+        }
+        _randomItemCandidates = Arrays.stream(Material.values())
+                .filter(m -> m.isItem() && !m.isAir() && !m.isLegacy())
+                .filter(m -> excluded.stream().noneMatch(p -> p.matcher(m.name()).matches()))
+                .toArray(Material[]::new);
     }
 
     public void shutdown()
@@ -191,11 +222,20 @@ public class ManagerChallengeShop
 
     private void scheduleReminders(long intervalMinutes)
     {
+        if (intervalMinutes == _reminderIntervalMinutes)
+            return;
+
+        _reminderIntervalMinutes = intervalMinutes;
+        if (_reminderTask != null)
+        {
+            _reminderTask.cancel();
+            _reminderTask = null;
+        }
         if (intervalMinutes <= 0)
             return;
 
         long intervalTicks = intervalMinutes * 60 * 20;
-        Bukkit.getScheduler().runTaskTimer(ImusChallenges.getInstance(), () ->
+        _reminderTask = Bukkit.getScheduler().runTaskTimer(ImusChallenges.getInstance(), () ->
         {
             for (Player player : Bukkit.getOnlinePlayers())
             {

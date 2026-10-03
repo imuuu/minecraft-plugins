@@ -29,13 +29,14 @@ public class ShopTier
     private final boolean _special;
     private final int _slotCount;
 
-    private final long _refreshMillis;
-    private final int _defaultSlots;
-    private final int _itemCostMin;
-    private final int _itemCostMax;
-    private final double _slotPriceFirst;
-    private final double _slotPriceMultiplier;
-    private final LootTableItemStack _lootTable = new LootTableItemStack();
+    // Settings from config.yml, replaced by applyConfig on a reload
+    private long _refreshMillis;
+    private int _defaultSlots;
+    private int _itemCostMin;
+    private int _itemCostMax;
+    private double _slotPriceFirst;
+    private double _slotPriceMultiplier;
+    private LootTableItemStack _lootTable = new LootTableItemStack();
     private final Map<Material, String> _placeholders = new HashMap<>();
 
     private final List<ItemStack> _items = new ArrayList<>();
@@ -49,17 +50,31 @@ public class ShopTier
         _name = name;
         _special = special;
         _slotCount = slotCount;
-        _refreshMillis = config.getLong("refresh-minutes") * 60_000L;
+        applyConfig(config);
+    }
+
+    /**
+     * Takes new settings. Prices and loot apply from the next rotation; a shorter refresh time also cuts the
+     * current rotation short, a longer one waits for the next.
+     */
+    public void applyConfig(ConfigurationSection config)
+    {
+        _refreshMillis = Math.max(1, config.getLong("refresh-minutes")) * 60_000L;
         _defaultSlots = config.getInt("default-slots");
         _itemCostMin = config.getInt("item-cost-min");
         _itemCostMax = Math.max(_itemCostMin, config.getInt("item-cost-max"));
         _slotPriceFirst = config.getDouble("slot-price-first");
         _slotPriceMultiplier = config.getDouble("slot-price-multiplier");
         loadLoot(config.getMapList("loot"));
+
+        if (_generation > 0)
+            _nextRefresh = Math.min(_nextRefresh, System.currentTimeMillis() + _refreshMillis);
     }
 
     private void loadLoot(List<Map<?, ?>> entries)
     {
+        _lootTable = new LootTableItemStack();
+        _placeholders.clear();
         // Placeholders need a unique material each so getLoot()'s clone can be mapped back
         Map<String, Material> placeholderMaterials = Map.of(
                 TAG_RANDOM, Material.BARRIER,

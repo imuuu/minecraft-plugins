@@ -15,6 +15,7 @@ import imu.iAPI.Managers.Manager_CommandSender;
 import imu.iAPI.Managers.Manager_Database;
 import imu.iAPI.Managers.Manager_Vault;
 import imu.iAPI.Other.*;
+import imu.iAPI.SubCommands.Sub_Cmd_OpenConfigMenus;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenLootTablesInvs;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenNamedInvs;
 import org.bukkit.Bukkit;
@@ -155,7 +156,13 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         handler.registerSubCmd(cmd1, cmd1_sub2, new Sub_Cmd_OpenLootTablesInvs(_cmdHelper.getCmdData(full_sub2)));
         handler.setPermissionOnLastCmd("ia.lootTables");
 
-        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables"});
+        String cmd1_sub3 = "config";
+        String full_sub3 = cmd1 + " " + cmd1_sub3;
+        _cmdHelper.setCmd(full_sub3, "Open plugin settings", full_sub3);
+        handler.registerSubCmd(cmd1, cmd1_sub3, new Sub_Cmd_OpenConfigMenus(_cmdHelper.getCmdData(full_sub3)));
+        handler.setPermissionOnLastCmd("ia.config");
+
+        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config"});
 
         // register cmds
         getCommand(cmd1).setExecutor(handler);
