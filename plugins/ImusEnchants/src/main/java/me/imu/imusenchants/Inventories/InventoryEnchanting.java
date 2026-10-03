@@ -385,6 +385,14 @@ public class InventoryEnchanting extends CustomInventory
             {
                 if (ItemUtils.HasTag(button.getItemStack(), PD_LOCKED))
                 {
+                    // Removing saves the item with every piece in the grid, but the pieces placed
+                    // since the last Enchant would still be handed back on close
+                    if (hasPendingPieces())
+                    {
+                        getPlayer().sendMessage(Metods.msgC("&cPress &eEnchant &cor take your pieces out first!"));
+                        return false;
+                    }
+
                     removeNode(button);
                     return false;
                 }
@@ -422,6 +430,17 @@ public class InventoryEnchanting extends CustomInventory
             return true;
         }
 
+        return false;
+    }
+
+    // Books, boosters and other pieces placed since the last Enchant
+    private boolean hasPendingPieces()
+    {
+        for (INode node : _enchantedItem.getUnlockedNodes())
+        {
+            if (!node.IsFrozen() && node.getClass() != Node.class)
+                return true;
+        }
         return false;
     }
 

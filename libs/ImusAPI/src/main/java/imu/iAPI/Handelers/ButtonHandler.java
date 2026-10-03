@@ -159,7 +159,10 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
 
         if (area == INVENTORY_AREA.LOWER_INV)
         {
-            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)
+            // Double click (COLLECT_TO_CURSOR) gathers matching items from the menu too, taking
+            // them out from under their buttons while the buttons still hand them out
+            if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                    || event.getAction() == InventoryAction.COLLECT_TO_CURSOR)
             {
                 event.setCancelled(true);
                 return;

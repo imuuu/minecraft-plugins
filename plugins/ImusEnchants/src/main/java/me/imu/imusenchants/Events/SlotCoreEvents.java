@@ -2,23 +2,27 @@ package me.imu.imusenchants.Events;
 
 import imu.iAPI.Other.Metods;
 import me.imu.imusenchants.Enchants.EnchantedItem;
+import me.imu.imusenchants.Enchants.NodeBooster;
 import me.imu.imusenchants.Items.SlotCore;
 import me.imu.imusenchants.Managers.ChestLoot;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.Crafter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.CrafterCraftEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.AnvilInventory;
@@ -138,17 +142,48 @@ public class SlotCoreEvents implements Listener
 			event.setResult(null);
 	}
 
-	// Don't let the core get eaten by vanilla amethyst shard recipes
+	// Slot Cores are amethyst shards and boosters are netherite upgrade templates. Neither may be
+	// used as the vanilla item: a booster would copy itself into two real templates.
+	private static boolean IsPluginItem(ItemStack stack)
+	{
+		return SlotCore.IsSlotCore(stack) || NodeBooster.IsBooster(stack);
+	}
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void OnCraftWithCore(PrepareItemCraftEvent event)
 	{
 		for (ItemStack stack : event.getInventory().getMatrix())
 		{
-			if (SlotCore.IsSlotCore(stack))
+			if (IsPluginItem(stack))
 			{
 				event.getInventory().setResult(null);
 				return;
 			}
 		}
+	}
+
+	// The crafter block doesn't go through PrepareItemCraftEvent
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void OnCrafterCraft(CrafterCraftEvent event)
+	{
+		if (!(event.getBlock().getState() instanceof Crafter))
+			return;
+
+		for (ItemStack stack : ((Crafter) event.getBlock().getState()).getInventory().getContents())
+		{
+			if (IsPluginItem(stack))
+			{
+				event.setCancelled(true);
+				return;
+			}
+		}
+	}
+
+	// A booster in the template slot would upgrade diamond gear to netherite like a real template
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void OnSmithWithBooster(PrepareSmithingEvent event)
+	{
+		if (IsPluginItem(event.getInventory().getInputTemplate()))
+			event.setResult(null);
 	}
 }

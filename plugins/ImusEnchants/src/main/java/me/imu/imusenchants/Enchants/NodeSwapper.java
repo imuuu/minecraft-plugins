@@ -27,23 +27,19 @@ public class NodeSwapper extends NodeDirectional
 		if (enchantedItem == null)
 			return false;
 
-		Material toolMateril = ItemUtilToolsArmors.GetToolMainMaterial(enchantedItem.GetItemStack());
-		
-		if (toolMateril.isAir())
+		Material material = MainMaterial(enchantedItem);
+
+		if (material.isAir())
 			return false;
 
-		return stack.getType() == toolMateril;
+		return stack.getType() == material;
 
 	}
 
 	@Override
 	public ItemStack GetGUIitemLoad(EnchantedItem enchantedItem)
 	{
-		ItemStack stack;
-		if(ItemUtils.IsTool(enchantedItem.GetItemStack()))
-			stack = new ItemStack(ItemUtilToolsArmors.GetToolMainMaterial(enchantedItem.GetItemStack()));
-		else
-			stack = new ItemStack(ItemUtilToolsArmors.GetArmorMainMaterial(enchantedItem.GetItemStack()));
+		ItemStack stack = new ItemStack(MainMaterial(enchantedItem));
 
 		ItemUtils.AddTextToDisplayName(stack, " &8(&9Swapper&8)", DisplayNamePosition.BACK);
 		ItemUtils.AddLore(stack, "&6Activate by &bM2", true);
@@ -58,7 +54,17 @@ public class NodeSwapper extends NodeDirectional
 	@Override
 	public ItemStack GetGUIitemUnLoad(EnchantedItem enchantedItem, ItemStack stack)
 	{
-		return new ItemStack(ItemUtilToolsArmors.GetToolMainMaterial(enchantedItem.GetItemStack()));
+		return new ItemStack(MainMaterial(enchantedItem));
+	}
+
+	// The material the swapper is paid with, shown as and given back as. These used to differ
+	// for armor, which turned a diamond into a netherite ingot.
+	private static Material MainMaterial(EnchantedItem enchantedItem)
+	{
+		ItemStack item = enchantedItem.GetItemStack();
+		return ItemUtils.IsTool(item)
+				? ItemUtilToolsArmors.GetToolMainMaterial(item)
+				: ItemUtilToolsArmors.GetArmorMainMaterial(item);
 	}
 	
 	@Override
