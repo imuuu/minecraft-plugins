@@ -1,5 +1,13 @@
 # ImusChallenges settings.
 
+# Announce to everyone when a player takes the lead in lifetime challenge points
+leader-broadcast:
+  enabled: true
+  # A new leader with fewer points than this is not announced
+  min-points: 10
+  # At most one announcement per this many minutes; 0 = no limit
+  cooldown-minutes: 5
+
 shop:
   # Every this many minutes, players who can afford something in the shop get a
   # "you have unspent points" message with a clickable link to open it. 0 turns it off.

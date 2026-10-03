@@ -38,6 +38,12 @@ public class ManagerPlayerPoints
     // Every point write runs on this one thread, so a read-modify-write can't overlap another one
     private final ExecutorService _writeExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "ImusChallenges-points"));
 
+    // Who has the most lifetime challenge points; only touched on the write thread
+    private boolean _leaderLoaded = false;
+    private int _leaderPlayerId = -1;
+    private String _leaderName = null;
+    private int _leaderLifetime = 0;
+
     public ManagerPlayerPoints(ImusChallenges main)
     {
         _main = main;
@@ -90,6 +96,8 @@ public class ManagerPlayerPoints
                 playerPoints.setPoints(points);
                 playerPoints.setLifetimePoints(lifetimeGain);
                 playerPointsDao.create(playerPoints);
+                if (lifetimeGain > 0)
+                    checkLeader(player, pointType, playerPoints.getLifetimePoints());
             }
             else
             {
@@ -98,11 +106,55 @@ public class ManagerPlayerPoints
                 playerPoints.setPoints(playerPoints.getPoints() + points);
                 playerPoints.setLifetimePoints(playerPoints.getLifetimePoints() + lifetimeGain);
                 playerPointsDao.update(playerPoints);
+                if (lifetimeGain > 0)
+                    checkLeader(player, pointType, playerPoints.getLifetimePoints());
             }
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Runs on the write thread after a player earned challenge points; reports when they passed the leader.
+     */
+    private void checkLeader(TablePlayers player, TablePointType pointType, int lifetime) throws SQLException
+    {
+        if (!pointType.getPointTypeName().equalsIgnoreCase(POINT_TYPE.CHALLENGE_POINT.toString()))
+            return;
+
+        if (!_leaderLoaded)
+        {
+            // Read after this gain was saved, so a player who already led stays the leader quietly
+            _leaderLoaded = true;
+            TablePlayerPoints top = playerPointsDao.queryBuilder()
+                    .orderBy("lifetime_points", false)
+                    .where().eq("point_type_id", pointType.getId())
+                    .queryForFirst();
+            if (top != null)
+            {
+                _leaderPlayerId = top.getPlayer().getId();
+                _leaderName = top.getPlayer().getPlayer_name();
+                _leaderLifetime = top.getLifetimePoints();
+            }
+        }
+
+        if (player.getId() == _leaderPlayerId)
+        {
+            _leaderLifetime = lifetime;
+            return;
+        }
+        if (lifetime <= _leaderLifetime)
+            return;
+
+        String previousLeader = _leaderName;
+        _leaderPlayerId = player.getId();
+        _leaderName = player.getPlayer_name();
+        _leaderLifetime = lifetime;
+
+        String newLeader = _leaderName;
+        if (_main.isEnabled())
+            Bukkit.getScheduler().runTask(_main, () -> ManagerChallengeLeader.getInstance().onNewLeader(newLeader, lifetime, previousLeader));
     }
 
     private void addPoints(Player player, String pointType, double amount, boolean countLifetime) throws SQLException

@@ -22,6 +22,7 @@ public class CONSTANTS
 
     public static String PERM_CHALLENGE_SHOP = "ic.shop";
     public static String PERM_CONFIG = "ic.config";
+    public static String PERM_BROADCAST_LEADER = "imuschallenges.broadcast.leader";
     public static String PERM_BROADCAST_CHALLENGE_SHOP_UPDATE = "imuschallenges.broadcast.challengeshop";
 
 

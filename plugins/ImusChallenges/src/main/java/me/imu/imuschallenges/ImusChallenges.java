@@ -61,6 +61,7 @@ public class ImusChallenges extends JavaPlugin
         _managerCCollectMaterial = new ManagerCCollectMaterial(this);
         _managerPointType = new ManagerPointType(this);
         _managerPlayerPoints = new ManagerPlayerPoints(this);
+        new ManagerChallengeLeader();
         _managerChallengeShop = new ManagerChallengeShop();
         _managerAdvancement = new ManagerAdvancement();
         getServer().getPluginManager().registerEvents(_managerCCollectMaterial, this);
@@ -93,6 +94,17 @@ public class ImusChallenges extends JavaPlugin
         menu.addInt("shop.reminder-interval-minutes", "Unspent points reminder (min)", Material.BELL, 0, 1440)
                 .description("How often players who can afford something are reminded")
                 .description("0 turns the reminder off")
+                .note("now");
+
+        menu.addBoolean("leader-broadcast.enabled", "Leader broadcast", Material.GOAT_HORN)
+                .description("Tell everyone when a player takes the lead in lifetime challenge points")
+                .note("now");
+        menu.addInt("leader-broadcast.min-points", "Leader broadcast: min points", Material.EXPERIENCE_BOTTLE, 0, 100000)
+                .description("A new leader with fewer points is not announced")
+                .note("now");
+        menu.addInt("leader-broadcast.cooldown-minutes", "Leader broadcast: cooldown (min)", Material.CLOCK, 0, 1440)
+                .description("At most one announcement per this many minutes, so two players")
+                .description("passing each other don't flood the chat. 0 = no limit")
                 .note("now");
 
         addShopTierEntries(menu, "normal", "Normal", CONSTANTS.NORMAL_SLOT_COLUMNS * CONSTANTS.NORMAL_SLOT_ROWS);
@@ -139,6 +151,10 @@ public class ImusChallenges extends JavaPlugin
 
         permissionNode = CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST;
         permission = new Permission(permissionNode, "Allows hear other achievement findings", PermissionDefault.FALSE);
+        Bukkit.getPluginManager().addPermission(permission);
+
+        permissionNode = CONSTANTS.PERM_BROADCAST_LEADER;
+        permission = new Permission(permissionNode, "Hear when someone takes the lead in challenge points", PermissionDefault.TRUE);
         Bukkit.getPluginManager().addPermission(permission);
 
         permissionNode = CONSTANTS.PERM_BROADCAST_CHALLENGE_SHOP_UPDATE;
