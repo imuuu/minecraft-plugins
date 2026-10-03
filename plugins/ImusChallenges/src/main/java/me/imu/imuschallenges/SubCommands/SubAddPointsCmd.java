@@ -15,9 +15,9 @@ public class SubAddPointsCmd implements CommandInterface
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args)
     {
-        if (args.length < 3)
+        if (args.length < 4)
         {
-            commandSender.sendMessage(ChatColor.RED + "Usage: /" + label + " add points <pointType> <amount> <target>");
+            commandSender.sendMessage(ChatColor.RED + "Usage: /" + label + " add points <pointType> <amount> [player]");
             return true;
         }
         String pointTypeName = args[2].toUpperCase();
@@ -47,11 +47,24 @@ public class SubAddPointsCmd implements CommandInterface
             return false;
         }
 
-        // Get target player
-        Player targetPlayer = Bukkit.getPlayer(args[4]);
-        if (targetPlayer == null)
+        // The player is optional and defaults to whoever runs the command
+        Player targetPlayer;
+        if (args.length >= 5)
         {
-            commandSender.sendMessage(ChatColor.RED + "Player not found: " + args[4]);
+            targetPlayer = Bukkit.getPlayer(args[4]);
+            if (targetPlayer == null)
+            {
+                commandSender.sendMessage(ChatColor.RED + "Player not found: " + args[4]);
+                return true;
+            }
+        }
+        else if (commandSender instanceof Player player)
+        {
+            targetPlayer = player;
+        }
+        else
+        {
+            commandSender.sendMessage(ChatColor.RED + "Usage from the console: /" + label + " add points <pointType> <amount> <player>");
             return true;
         }
 
@@ -65,6 +78,6 @@ public class SubAddPointsCmd implements CommandInterface
     @Override
     public void FailedMsg(CommandSender commandSender, String s)
     {
-        commandSender.sendMessage(ChatColor.RED + "Usage: /" + s + " add points <pointType> <amount> <target>");
+        commandSender.sendMessage(ChatColor.RED + "Usage: /" + s + " add points <pointType> <amount> [player]");
     }
 }
