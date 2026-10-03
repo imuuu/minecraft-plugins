@@ -33,6 +33,7 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerEconomy _managerEconomy;
     private ManagerQuestPoints _managerQuestPoints;
     private ManagerRewardPools _managerRewardPools;
+    private ManagerUnlocks _managerUnlocks;
 
     @Override
     public void onEnable()
@@ -42,6 +43,8 @@ public class ImusMiniQuests extends JavaPlugin
         QuestItem.init(this);
         _managerEconomy = new ManagerEconomy(this);
         _managerQuestPoints = new ManagerQuestPoints(this);
+        _managerUnlocks = new ManagerUnlocks(this);
+        _managerUnlocks.load();
         _managerRewardPools = new ManagerRewardPools(this);
         _managerRewardPools.load();
 
@@ -54,6 +57,7 @@ public class ImusMiniQuests extends JavaPlugin
         getServer().getPluginManager().registerEvents(_managerQuestProgress, this);
         getServer().getPluginManager().registerEvents(new ManagerQuestItemGuard(this, _managerQuests), this);
         getServer().getPluginManager().registerEvents(_managerQuestDrops, this);
+        getServer().getPluginManager().registerEvents(_managerUnlocks, this);
         if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))
             getServer().getPluginManager().registerEvents(new ManagerBetterStructuresLoot(_managerQuestDrops), this);
 
@@ -71,6 +75,8 @@ public class ImusMiniQuests extends JavaPlugin
             _configMenu.unregister();
         if (_managerEconomy != null)
             _managerEconomy.stop();
+        if (_managerUnlocks != null)
+            _managerUnlocks.stop();
     }
 
     /**
@@ -80,6 +86,7 @@ public class ImusMiniQuests extends JavaPlugin
     public void reloadSettings()
     {
         reloadConfig();
+        _managerUnlocks.load();
         _managerRewardPools.load();
         _managerQuests.load();
         _managerQuestDrops.reload();
@@ -106,6 +113,8 @@ public class ImusMiniQuests extends JavaPlugin
     public ManagerQuestPoints getQuestPoints() {return _managerQuestPoints;}
 
     public ManagerRewardPools getRewardPools() {return _managerRewardPools;}
+
+    public ManagerUnlocks getUnlocks() {return _managerUnlocks;}
 
     private ConfigMenu createConfigMenu()
     {
@@ -210,7 +219,11 @@ public class ImusMiniQuests extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub8, new SubPointsCmd());
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_POINTS);
 
-        cmd1AndArguments.put(cmd1, new String[] { "points", "menu", "give", "list", "complete", "economy", "reload", "config" });
+        String cmd1_sub9 = "unlocks";
+        handler.registerSubCmd(cmd1, cmd1_sub9, new SubUnlocksCmd());
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_UNLOCKS);
+
+        cmd1AndArguments.put(cmd1, new String[] { "points", "unlocks", "menu", "give", "list", "complete", "economy", "reload", "config" });
         cmd1AndArguments.put("economy", new String[] { "refresh" });
 
         getCommand(cmd1).setExecutor(handler);

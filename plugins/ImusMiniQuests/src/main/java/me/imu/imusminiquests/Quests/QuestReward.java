@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleFunction;
 import java.util.logging.Logger;
 
@@ -60,9 +61,12 @@ public class QuestReward
     private final boolean _hasDisplay;
     private final MoneyRange _money;
     private final int _weight;
+    // False while everything this entry can give is locked (see ManagerUnlocks)
+    private final BooleanSupplier _available;
 
     private QuestReward(DoubleFunction<ItemStack> item, int minAmount, int maxAmount, List<String> commands, String message,
-                        String description, boolean hasDisplay, MoneyRange money, int weight)
+                        String description, boolean hasDisplay, MoneyRange money, int weight,
+                        BooleanSupplier available)
     {
         _item = item;
         _minAmount = minAmount;
@@ -73,9 +77,21 @@ public class QuestReward
         _hasDisplay = hasDisplay;
         _money = money;
         _weight = weight;
+        _available = available;
     }
 
     public int weight() {return _weight;}
+
+    /**
+     * False while every item this entry could give is locked, so rolls skip it. An entry that
+     * pays money or runs commands is always available.
+     */
+    public boolean isAvailable() {return _available.getAsBoolean();}
+
+    private static boolean locked(Material material)
+    {
+        return ImusMiniQuests.getInstance().getUnlocks().isLocked(material);
+    }
 
     /**
      * The reward line on the quest panel, or null when the entry shouldn't be listed (only
@@ -184,6 +200,7 @@ public class QuestReward
         String amountText = min == max ? (min == 1 ? "" : min + " x ") : min + "-" + max + " x ";
 
         DoubleFunction<ItemStack> item = null;
+        BooleanSupplier available = () -> true;
         String description = null;
 
         if (section.contains("item") || section.contains("tool"))
@@ -201,7 +218,12 @@ public class QuestReward
                 }
                 if (materials.isEmpty()) return null;
 
-                material = luck -> materials.get(ThreadLocalRandom.current().nextInt(materials.size()));
+                material = luck ->
+                {
+                    List<Material> open = materials.stream().filter(m -> !locked(m)).toList();
+                    return open.isEmpty() ? null : open.get(ThreadLocalRandom.current().nextInt(open.size()));
+                };
+                available = () -> materials.stream().anyMatch(m -> !locked(m));
                 description = amountText + (section.isString("name") ? section.getString("name") : describeChoice(materials));
             }
             else
@@ -219,7 +241,17 @@ public class QuestReward
                 }
                 if (toolTiers.isEmpty()) return null;
 
-                material = luck -> Luck.pick(toolTiers.get(ThreadLocalRandom.current().nextInt(toolTiers.size())), Tier::weight, luck).material();
+                // Only tool types and tiers that aren't locked, e.g. no netherite before it is unlocked
+                material = luck ->
+                {
+                    List<List<Tier>> open = toolTiers.stream()
+                            .map(tiers -> tiers.stream().filter(t -> !locked(t.material())).toList())
+                            .filter(tiers -> !tiers.isEmpty())
+                            .toList();
+                    if (open.isEmpty()) return null;
+                    return Luck.pick(open.get(ThreadLocalRandom.current().nextInt(open.size())), Tier::weight, luck).material();
+                };
+                available = () -> toolTiers.stream().flatMap(List::stream).anyMatch(t -> !locked(t.material()));
                 if (toolTiers.size() > 1) description = describeToolChoice(description, tools);
                 if (section.isString("name")) description = section.getString("name");
             }
@@ -231,8 +263,17 @@ public class QuestReward
                 slots = false;
             }
             int enchantLevels = Math.max(0, section.getInt("enchant-levels", 0));
-            item = gear(material, slots, enchantLevels, section);
-            description += slots ? " &d(with slots)" : enchantLevels > 0 ? " &b(enchanted)" : "";
+            EnchantSet enchants = EnchantSet.fromConfig(section, log, context);
+            if (enchants != null && slots)
+            {
+                // Giving an item slots wipes its enchants, so the two can't go together
+                log.warning(context + ": an item with enchants can't also have slots, slots ignored");
+                slots = false;
+            }
+            item = gear(material, slots, enchantLevels, enchants, section);
+            description += slots ? " &d(with slots)"
+                    : enchants != null ? " &b(" + enchants.describe() + ")"
+                    : enchantLevels > 0 ? " &b(enchanted)" : "";
         }
         else if (section.contains("enchant-book"))
         {
@@ -288,20 +329,31 @@ public class QuestReward
             return null;
         }
         return new QuestReward(item, min, max, commands, message,
-                description == null ? null : Metods.msgC("&f" + description), hasDisplay, money, weight);
+                description == null ? null : Metods.msgC("&f" + description), hasDisplay, money, weight,
+                money != null || !commands.isEmpty() ? () -> true : available);
     }
 
     /**
-     * A new item of the rolled material, with ImusEnchants slots or vanilla enchants when asked.
+     * A new item of the rolled material, with ImusEnchants slots, exact enchants or random
+     * enchanting-table enchants when asked.
      */
-    private static DoubleFunction<ItemStack> gear(DoubleFunction<Material> material, boolean slots, int enchantLevels, ConfigurationSection section)
+    private static DoubleFunction<ItemStack> gear(DoubleFunction<Material> material, boolean slots, int enchantLevels,
+                                                  EnchantSet enchants, ConfigurationSection section)
     {
         return luck ->
         {
-            ItemStack stack = new ItemStack(material.apply(luck));
+            Material rolled = material.apply(luck);
+            if (rolled == null) return null;
+            ItemStack stack = new ItemStack(rolled);
             if (slots) stack = ImusEnchantsHook.addSlots(stack);
-            else if (enchantLevels > 0)
-                stack = Bukkit.getItemFactory().enchantWithLevels(stack, enchantLevels, false, ThreadLocalRandom.current());
+            else
+            {
+                if (enchantLevels > 0)
+                    stack = Bukkit.getItemFactory().enchantWithLevels(stack, enchantLevels, false, ThreadLocalRandom.current());
+                if (enchants != null) stack = enchants.apply(stack, luck);
+                // The enchanting table roll doesn't know which enchants the server switched off
+                if (ImusEnchantsHook.isEnabled()) ImusEnchantsHook.stripDisabledEnchants(stack);
+            }
             applyNameAndLore(stack, section);
             return stack;
         };

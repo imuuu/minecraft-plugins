@@ -35,7 +35,9 @@
 # rewards.guaranteed  always given
 # A reward entry is one of:
 #   item: DIAMOND                 min/max amount, optional name and lore. Gear can also have
-#                                 slots / enchant-levels like tool below
+#                                 slots / enchant-levels like tool below. item: [A, B] picks one
+#                                 enchants: [FORTUNE:3, EFFICIENCY:4]   exact enchants, with
+#                                 enchant-count: 2 for a random few (see rewards.yml)
 #   tool: PICKAXE                 one tool, its tier rolled from "tiers" (weights). Default
 #                                 tiers: WOODEN 40, STONE 30, IRON 20, GOLDEN 5, DIAMOND 5
 #                                 (armor: LEATHER, CHAINMAIL, IRON, GOLDEN, DIAMOND).
@@ -95,6 +97,10 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - item: [DIAMOND_SWORD, IRON_SWORD]
+          enchants: [SHARPNESS:4, LOOTING:3, UNBREAKING:3, MENDING]
+          enchant-count: 2
+          weight: 3
         - money: 3-10%
           weight: 4
         - tool: SWORD
@@ -124,6 +130,9 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - item: [DIAMOND_PICKAXE, IRON_PICKAXE]
+          enchants: [FORTUNE:3, EFFICIENCY:4, UNBREAKING:3]
+          weight: 2
         - money: 3-10%
           weight: 4
         - tool: PICKAXE
@@ -1115,6 +1124,10 @@ quests:
     rewards:
       rolls: 1
       pool:
+        - item: DIAMOND_PICKAXE
+          enchants: [FORTUNE:3, EFFICIENCY:5, UNBREAKING:4, MENDING]
+          enchant-count: 2
+          weight: 3
         - tool: PICKAXE
           slots: true
           tiers: {IRON: 40, DIAMOND: 60}

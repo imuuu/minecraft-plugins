@@ -119,14 +119,16 @@ public class Quest
         List<RolledReward> rewards = new ArrayList<>();
         for (QuestReward reward : _guaranteedRewards)
         {
-            rewards.add(new RolledReward(reward, null));
+            if (reward.isAvailable()) rewards.add(new RolledReward(reward, null));
         }
 
-        if (!_poolRewards.isEmpty())
+        // Entries whose items are all still locked (netherite before anyone found it...) sit out
+        List<QuestReward> pool = _poolRewards.stream().filter(QuestReward::isAvailable).toList();
+        if (!pool.isEmpty())
         {
             for (int i = 0; i < _rolls; i++)
             {
-                rewards.add(new RolledReward(Luck.pick(_poolRewards, QuestReward::weight, luck), null));
+                rewards.add(new RolledReward(Luck.pick(pool, QuestReward::weight, luck), null));
             }
         }
 

@@ -10,6 +10,9 @@ public final class CONSTANTS
     public static final String PERM_ECONOMY = "imq.economy";
     public static final String PERM_POINTS = "imq.points";
     public static final String PERM_POINTS_OTHERS = "imq.points.others";
+    public static final String PERM_UNLOCKS = "imq.unlocks";
+    public static final String PERM_UNLOCKS_EXEMPT = "imq.unlocks.exempt";
+    public static final String PERM_UNLOCKS_ADMIN = "imq.unlocks.admin";
     public static final String PERM_LIST = "imq.list";
     public static final String PERM_COMPLETE = "imq.complete";
     public static final String PERM_RELOAD = "imq.reload";

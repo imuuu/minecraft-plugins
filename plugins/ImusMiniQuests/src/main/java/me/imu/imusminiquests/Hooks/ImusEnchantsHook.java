@@ -3,8 +3,10 @@ package me.imu.imusminiquests.Hooks;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
+import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Items.SlotCore;
 import org.bukkit.Bukkit;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -41,6 +43,18 @@ public final class ImusEnchantsHook
     {
         CustomEnchant enchant = CustomEnchantRegistry.Get(key);
         return enchant == null ? null : enchant.GetName();
+    }
+
+    /** False when the enchant is switched off in ImusEnchants' /ien admin. */
+    public static boolean isVanillaEnchantEnabled(Enchantment enchantment)
+    {
+        return EnchantSettings.IsEnabled(enchantment);
+    }
+
+    /** Removes vanilla enchants that are switched off in ImusEnchants from the item. */
+    public static void stripDisabledEnchants(ItemStack stack)
+    {
+        EnchantSettings.StripDisabled(stack);
     }
 
     public static ItemStack createSlotCore(int amount)

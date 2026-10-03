@@ -75,10 +75,15 @@ public class ManagerRewardPools
      */
     public RolledReward roll(double luck)
     {
-        RewardTier tier = Luck.pick(_tiers, RewardTier::weight, luck);
+        // Locked entries sit out; a tier with nothing unlocked left isn't picked at all
+        List<RewardTier> open = _tiers.stream()
+                .filter(tier -> tier.rewards().stream().anyMatch(QuestReward::isAvailable))
+                .toList();
+        RewardTier tier = Luck.pick(open, RewardTier::weight, luck);
         if (tier == null) return null;
 
-        return new RolledReward(Luck.pick(tier.rewards(), QuestReward::weight, luck), tier);
+        List<QuestReward> rewards = tier.rewards().stream().filter(QuestReward::isAvailable).toList();
+        return new RolledReward(Luck.pick(rewards, QuestReward::weight, luck), tier);
     }
 
     /** How many random rewards a quest without its own rewards.random-rolls gets. */
@@ -104,8 +109,13 @@ public class ManagerRewardPools
     /** Chance of a tier in percent at the given luck, for the reward list in /imq menu. */
     public double getTierChancePercent(RewardTier tier, double luck)
     {
+        if (tier.rewards().stream().noneMatch(QuestReward::isAvailable)) return 0;
+
         double total = 0;
-        for (RewardTier t : _tiers) total += Luck.effectiveWeight(t.weight(), luck);
+        for (RewardTier t : _tiers)
+        {
+            if (t.rewards().stream().anyMatch(QuestReward::isAvailable)) total += Luck.effectiveWeight(t.weight(), luck);
+        }
         return total <= 0 ? 0 : Luck.effectiveWeight(tier.weight(), luck) * 100 / total;
     }
 }

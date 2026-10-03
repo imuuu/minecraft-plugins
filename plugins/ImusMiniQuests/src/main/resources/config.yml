@@ -84,6 +84,28 @@ quest-points:
 random-rewards:
   rolls-per-quest: 2
 
+# Unlocks: quests don't give the best things before anyone on the server has earned them.
+# While an unlock is locked, rewards made of its items or carrying its enchants are left out of
+# every roll (a netherite tier of a tool is skipped, a mending enchant isn't put on, an elytra
+# entry isn't picked). The first player to get one of the items, enchants or advancements in
+# normal play unlocks it for everyone, silently: only admins are told. Admins never count: ops,
+# players with imq.unlocks.exempt, and anyone in creative or spectator.
+# /imq unlocks shows the state; /imq unlocks <name> unlock|lock changes it by hand.
+unlocks:
+  enabled: true
+  list:
+    netherite:
+      display: "&4Netherite"
+      items: [ANCIENT_DEBRIS, "NETHERITE_*"]
+      advancements: ["minecraft:nether/obtain_ancient_debris"]
+    elytra:
+      display: "&5Elytra"
+      items: [ELYTRA]
+      advancements: ["minecraft:end/elytra"]
+    mending:
+      display: "&bMending"
+      enchants: [MENDING]
+
 # ImusChallenges: opening a quest also gives challenge points (lifetime points too)
 imuschallenges:
   enabled: true
@@ -94,6 +116,8 @@ messages:
   quest-points: "&7Quest points: &e%points% &8(luck %luck%)"
   challenge-points: "&d+%points% challenge point(s)"
   random-reward: "&7Random reward %tier%&7: &f%reward%"
+  # Only admins (imq.unlocks.admin) see this, unlocks are silent for players
+  unlocked: "&8[MiniQuests] &7%player% found %unlock% &7first, it can now come from quest rewards"
   random-reward-announce: "&6%player% &7opened %quest% &7and got %tier%&7: &f%reward%"
   action-bar: "&6%quest% &7%progress%&8/&7%amount%"
   completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
