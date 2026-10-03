@@ -72,6 +72,15 @@ public class NodeEnchant extends Node
 				if (!EnchantSettings.IsEnabled(enchant))
 					return false;
 
+				// An enchant that does nothing on this item (Protection on a sword) would only use up
+				// a slot. Conflicting enchants are allowed on purpose, this only checks the item type.
+				if (!enchant.canEnchantItem(new ItemStack(enchantedItem.GetItemStack().getType())))
+				{
+					if (enchantedItem.GetPlayer() != null)
+						enchantedItem.GetPlayer().sendMessage(Metods.msgC("&cThis enchant doesn't work on this item!"));
+					return false;
+				}
+
 				for (CustomEnchant custom : enchantedItem.GetCustomEnchantNodes())
 				{
 					if (custom.GetVanillaConflicts().contains(enchant))
