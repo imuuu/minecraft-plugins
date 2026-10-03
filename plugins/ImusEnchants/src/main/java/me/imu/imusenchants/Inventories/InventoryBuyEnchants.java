@@ -344,19 +344,16 @@ public class InventoryBuyEnchants extends CustomInventory
 
 	private void reducePlayerLevel(int reduce)
 	{
-		if(getPlayer().getLevel() <= 0)
-		{
-			XpUtil.SetPlayerLevel(getPlayer(), 0);
-			return;
-		}
-		XpUtil.SetPlayerLevel(getPlayer(), getPlayer().getLevel()-reduce);
+		// Creative players skip the level check, so this can be more than they have
+		XpUtil.SetPlayerLevel(getPlayer(), Math.max(0, getPlayer().getLevel() - reduce));
 	}
 	
 	private boolean playerHasEnoughLevelsEnchant(ENCHANTMENT_TIER tier)
 	{
 		if(getPlayer().getGameMode() == GameMode.CREATIVE) return true;
 		
-	    int requiredLevel = CONSTANTS.GetCapEnchant(tier);
+	    // The cost can be set above the level requirement in config.yml; never charge more than the player has
+	    int requiredLevel = Math.max(CONSTANTS.GetCapEnchant(tier), CONSTANTS.GetCostEnchant(tier));
 	    
 	    boolean hasEnough = getPlayer().getLevel() >= requiredLevel;
 	    
@@ -381,6 +378,7 @@ public class InventoryBuyEnchants extends CustomInventory
 			case TIER_3: requiredLevel = CONSTANTS.CAP_FIRST_3_BOOSTER;
 				break;
 		}
+	    requiredLevel = Math.max(requiredLevel, CONSTANTS.GetCostBooster(tier));
 
 	    boolean hasEnough = getPlayer().getLevel() >= requiredLevel;
 	    
