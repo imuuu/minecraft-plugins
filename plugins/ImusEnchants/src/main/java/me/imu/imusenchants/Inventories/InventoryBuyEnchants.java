@@ -448,64 +448,53 @@ public class InventoryBuyEnchants extends CustomInventory
 
 	}
 
-	// Sometimes the bought book is a custom enchant of the category instead, always level I
-	private boolean giveCustomBook(ITEM_CATEGORY category)
-	{
-		if(!rollChance(CONSTANTS.CUSTOM_BOOK_SHOP_CHANCE)) return false;
-
-		CustomEnchant enchant = CustomEnchantRegistry.GetRandomForShop(category);
-		if(enchant == null) return false;
-
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), CustomEnchantBook.Create(enchant, 1));
-		return true;
-	}
-
 	private void buttonBuyTool(ENCHANTMENT_TIER bookTier)
 	{
-		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
-	    
-		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
-
-		if(giveCustomBook(ITEM_CATEGORY.TOOL)) return;
-
-		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
-		
-		Enchantment enchant = EnchantUtil.GetRandomEnchantment(ITEM_CATEGORY.TOOL, enchantTier, _excludedEnchants);
-		ItemStack book = EnchantUtil.GetEnchantedBook(enchant);
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), book);
-		 
+		buyBook(bookTier, ITEM_CATEGORY.TOOL);
 	}
-	
+
 	private void buttonBuyWeapon(ENCHANTMENT_TIER bookTier)
 	{
-		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
-		
-		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
-		
-		if(giveCustomBook(ITEM_CATEGORY.WEAPON)) return;
-
-		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
-		
-		Enchantment enchant = EnchantUtil.GetRandomEnchantment(ITEM_CATEGORY.WEAPON, enchantTier, _excludedEnchants);
-		ItemStack book = EnchantUtil.GetEnchantedBook(enchant);
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), book);
+		buyBook(bookTier, ITEM_CATEGORY.WEAPON);
 	}
-	
+
 	private void buttonBuyArmor(ENCHANTMENT_TIER bookTier)
 	{
-		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
-		
-		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
-		
-		if(giveCustomBook(ITEM_CATEGORY.ARMOR)) return;
+		buyBook(bookTier, ITEM_CATEGORY.ARMOR);
+	}
 
-		ENCHANTMENT_TIER enchantTier = getEnchantTier(bookTier);
-		
-		Enchantment enchant = EnchantUtil.GetRandomEnchantment(ITEM_CATEGORY.ARMOR,enchantTier, _excludedEnchants);
-		ItemStack book = EnchantUtil.GetEnchantedBook(enchant);
+	// The book is picked before the levels are taken: when every enchant of the category is
+	// switched off in /ien admin there is nothing to give, and nothing is charged
+	private void buyBook(ENCHANTMENT_TIER bookTier, ITEM_CATEGORY category)
+	{
+		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
+
+		ItemStack book = pickBook(bookTier, category);
+		if(book == null)
+		{
+			getPlayer().sendMessage(Metods.msgC("&cNo enchants of this kind are available right now"));
+			return;
+		}
+
+		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
 		InvUtil.AddItemToInventoryOrDrop(getPlayer(), book);
 	}
-	
+
+	// Sometimes the bought book is a custom enchant of the category instead, always level I.
+	// If no vanilla enchant of the category is left, a custom one is given if there is any.
+	private ItemStack pickBook(ENCHANTMENT_TIER bookTier, ITEM_CATEGORY category)
+	{
+		CustomEnchant custom = rollChance(CONSTANTS.CUSTOM_BOOK_SHOP_CHANCE)
+				? CustomEnchantRegistry.GetRandomForShop(category) : null;
+		if(custom != null) return CustomEnchantBook.Create(custom, 1);
+
+		Enchantment enchant = EnchantUtil.GetRandomEnchantment(category, getEnchantTier(bookTier), _excludedEnchants);
+		if(enchant != null) return EnchantUtil.GetEnchantedBook(enchant);
+
+		custom = CustomEnchantRegistry.GetRandomForShop(category);
+		return custom == null ? null : CustomEnchantBook.Create(custom, 1);
+	}
+
 	private void buttonBuyAll(ENCHANTMENT_TIER bookTier)
 	{
 		if(!playerHasEnoughLevelsEnchant(bookTier)) return;

@@ -364,7 +364,8 @@ public class Events implements Listener
 			maxSlots = Math.max(slots, maxSlots);
 		}
 
-		if (sameMaterialCount == 2)
+		// Two slotted items can't be merged by the vanilla repair recipe. Plain tools still repair.
+		if (sameMaterialCount == 2 && enchantedItems > 0)
 		{
 			event.getInventory().setResult(new ItemStack(Material.AIR));
 			return;
