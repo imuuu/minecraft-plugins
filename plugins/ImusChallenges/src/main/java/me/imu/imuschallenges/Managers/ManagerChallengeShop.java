@@ -90,13 +90,12 @@ public class ManagerChallengeShop
     }
 
     /**
-     * Re-reads config.yml and applies it without a restart. What changes when is described in
-     * {@link ShopTier#applyConfig}; the reminder interval and slot prices apply at once.
+     * Applies config.yml again after {@link ImusChallenges#reloadSettings} re-read it. What changes when is
+     * described in {@link ShopTier#applyConfig}; the reminder interval and slot prices apply at once.
      */
     public void reload()
     {
         ImusChallenges main = ImusChallenges.getInstance();
-        main.reloadConfig();
         ConfigurationSection config = main.getConfig().getConfigurationSection("shop");
         if (config == null)
         {

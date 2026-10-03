@@ -1,5 +1,22 @@
 # ImusChallenges settings.
 
+# Challenge points players earn
+points:
+  # Being the first on the server to pick up a material
+  first-material: 1
+  # Completing an advancement, by its frame
+  advancement-task: 3
+  advancement-goal: 5
+  advancement-challenge: 10
+  # Extra for being the first on the server to complete an advancement
+  # (needs the imuschallenges.server.achievement.achievement permission)
+  first-advancement-bonus: 10
+
+# Where each player's lifetime challenge points are shown:
+# PLAYER_LIST (after the name in tab), BELOW_NAME (under the name tag), SIDEBAR or NONE
+scoreboard:
+  display: PLAYER_LIST
+
 # Announce to everyone when a player takes the lead in lifetime challenge points
 leader-broadcast:
   enabled: true

@@ -187,22 +187,17 @@ public class ManagerAchievementChallenges implements Listener
         }
 
         String advancementKey = PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
-        int points = ManagerAdvancement.getInstance().getPoints(player, advancement).getPoints();
-        if (!_globalCompletedAdvancements.contains(advancementKey))
+        int points = ManagerAdvancement.getInstance().getPoints(advancement);
+        // Only players in the server-wide competition can claim being first and its bonus
+        if (!_globalCompletedAdvancements.contains(advancementKey)
+                && player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE))
         {
-            if(!player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE))
-            {
-                return;
-            }
-
-            points += CONSTANTS.FIRST_ADVANCEMENT_COMPLITION;
-            ManagerPlayerPoints.getInstance().addPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, points);
+            points += _main.getConfig().getInt("points.first-advancement-bonus");
             buffer.offer(new PlayerAdvancementPair(player, advancementKey));
         }
-        else
-        {
+
+        if (points > 0)
             ManagerPlayerPoints.getInstance().addPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, points);
-        }
     }
 
 

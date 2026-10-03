@@ -1,6 +1,7 @@
 package me.imu.imuschallenges.Managers;
 
 import me.imu.imuschallenges.Datas.DataPlayerAdvancements;
+import me.imu.imuschallenges.ImusChallenges;
 import org.bukkit.Bukkit;
 import org.bukkit.advancement.Advancement;
 import io.papermc.paper.advancement.AdvancementDisplay;
@@ -57,27 +58,22 @@ public class ManagerAdvancement
         return data;
     }
 
-    public DataPlayerAdvancements getPoints(Player player, Advancement advancement)
+    /**
+     * Challenge points for completing this one advancement, by its frame (task, goal or challenge).
+     */
+    public int getPoints(Advancement advancement)
     {
-        DataPlayerAdvancements data = checkPlayerAchievements(player);
         AdvancementDisplay display = advancement.getDisplay();
-        if (display != null)
+        if (display == null)
+            return 0;
+
+        String path = switch (display.frame())
         {
-            String type = display.frame().name();
-            switch (type)
-            {
-                case "CHALLENGE":
-                    data.incrementCompletedChallenges();
-                    break;
-                case "GOAL":
-                    data.incrementCompletedGoals();
-                    break;
-                case "TASK":
-                    data.incrementCompletedTasks();
-                    break;
-            }
-        }
-        return data;
+            case CHALLENGE -> "points.advancement-challenge";
+            case GOAL -> "points.advancement-goal";
+            default -> "points.advancement-task";
+        };
+        return ImusChallenges.getInstance().getConfig().getInt(path);
     }
 
 

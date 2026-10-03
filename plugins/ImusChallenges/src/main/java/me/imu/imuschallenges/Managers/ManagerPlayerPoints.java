@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class ManagerPlayerPoints
 {
@@ -97,7 +98,7 @@ public class ManagerPlayerPoints
                 playerPoints.setLifetimePoints(lifetimeGain);
                 playerPointsDao.create(playerPoints);
                 if (lifetimeGain > 0)
-                    checkLeader(player, pointType, playerPoints.getLifetimePoints());
+                    onLifetimePointsChanged(player, pointType, playerPoints.getLifetimePoints());
             }
             else
             {
@@ -107,7 +108,7 @@ public class ManagerPlayerPoints
                 playerPoints.setLifetimePoints(playerPoints.getLifetimePoints() + lifetimeGain);
                 playerPointsDao.update(playerPoints);
                 if (lifetimeGain > 0)
-                    checkLeader(player, pointType, playerPoints.getLifetimePoints());
+                    onLifetimePointsChanged(player, pointType, playerPoints.getLifetimePoints());
             }
         } catch (SQLException e)
         {
@@ -116,12 +117,17 @@ public class ManagerPlayerPoints
     }
 
     /**
-     * Runs on the write thread after a player earned challenge points; reports when they passed the leader.
+     * Runs on the write thread after a player earned challenge points: updates the scoreboard and reports when
+     * they passed the leader.
      */
-    private void checkLeader(TablePlayers player, TablePointType pointType, int lifetime) throws SQLException
+    private void onLifetimePointsChanged(TablePlayers player, TablePointType pointType, int lifetime) throws SQLException
     {
         if (!pointType.getPointTypeName().equalsIgnoreCase(POINT_TYPE.CHALLENGE_POINT.toString()))
             return;
+
+        String playerName = player.getPlayer_name();
+        if (_main.isEnabled())
+            Bukkit.getScheduler().runTask(_main, () -> ManagerPointsScoreboard.getInstance().setPoints(playerName, lifetime));
 
         if (!_leaderLoaded)
         {
@@ -177,6 +183,33 @@ public class ManagerPlayerPoints
             try
             {
                 addPoints(player, pointType, amount, true);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * @param callback runs on the main thread with the player's lifetime challenge points
+     */
+    public void getLifetimePointsAsync(Player player, IntConsumer callback)
+    {
+        _writeExecutor.execute(() ->
+        {
+            try
+            {
+                TablePointType pointType = _managerPointType.getPointTypeByName(POINT_TYPE.CHALLENGE_POINT.toString());
+                int lifetime = 0;
+                if (pointType != null)
+                {
+                    List<TablePlayerPoints> points = findPoints(_managerTablePlayers.findOrCreatePlayer(player), pointType);
+                    if (!points.isEmpty())
+                        lifetime = points.get(0).getLifetimePoints();
+                }
+                final int result = lifetime;
+                if (_main.isEnabled())
+                    Bukkit.getScheduler().runTask(_main, () -> callback.accept(result));
             } catch (Exception e)
             {
                 e.printStackTrace();

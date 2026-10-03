@@ -113,10 +113,18 @@ public class ConfigMenuInventory extends CustomInventory
             ItemUtils.AddLore(stack, "&9Default: &7" + entry.format(defaultValue), true);
         if (entry.hasRange())
             ItemUtils.AddLore(stack, "&9Allowed: &7" + entry.rangeText(), true);
+        if (entry.getType() == ConfigEntry.Type.CHOICE)
+            ItemUtils.AddLore(stack, "&9Options: &7" + String.join(", ", entry.getOptions()), true);
         if (entry.getNote() != null)
             ItemUtils.AddLore(stack, "&9Takes effect: &e" + entry.getNote(), true);
         ItemUtils.AddLore(stack, " ", true);
-        ItemUtils.AddLore(stack, entry.getType() == ConfigEntry.Type.BOOLEAN ? "&bLeft click &7to toggle" : "&bLeft click &7to change", true);
+        String leftClick = switch (entry.getType())
+        {
+            case BOOLEAN -> "&bLeft click &7to toggle";
+            case CHOICE -> "&bLeft click &7for the next option";
+            default -> "&bLeft click &7to change";
+        };
+        ItemUtils.AddLore(stack, leftClick, true);
         if (defaultValue != null)
             ItemUtils.AddLore(stack, "&bRight click &7to reset to default", true);
         ItemUtils.AddLore(stack, "&8" + entry.getPath(), true);
@@ -130,6 +138,12 @@ public class ConfigMenuInventory extends CustomInventory
         if (entry.getType() == ConfigEntry.Type.BOOLEAN)
         {
             _menu.setValue(getPlayer(), entry, !Boolean.TRUE.equals(entry.get(config)));
+            refresh();
+            return;
+        }
+        if (entry.getType() == ConfigEntry.Type.CHOICE)
+        {
+            _menu.setValue(getPlayer(), entry, entry.nextOption(config));
             refresh();
             return;
         }

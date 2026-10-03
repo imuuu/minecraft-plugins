@@ -44,7 +44,6 @@ public class ManagerCCollectMaterial implements Listener
     private final Dao<TableCollected_materials, String> _collectedMaterialsDao;
     private final Dao<TableExludedCollectMaterials, String> _excludedMaterialsDao;
 
-    private final double POINT_PER_MATERIAL = 1;
     public ManagerCCollectMaterial(ImusChallenges main)
     {
         _instance = this;
@@ -365,7 +364,9 @@ public class ManagerCCollectMaterial implements Listener
             // Add to buffer for asynchronous database update
             buffer.offer(new PlayerMaterialPair(player, material));
 
-            getManagerPlayerPoints().addPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, POINT_PER_MATERIAL);
+            int points = ImusChallenges.getInstance().getConfig().getInt("points.first-material");
+            if (points > 0)
+                getManagerPlayerPoints().addPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, points);
         }
     }
 

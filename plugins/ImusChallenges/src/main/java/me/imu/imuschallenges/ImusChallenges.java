@@ -66,6 +66,7 @@ public class ImusChallenges extends JavaPlugin
         _managerAdvancement = new ManagerAdvancement();
         getServer().getPluginManager().registerEvents(_managerCCollectMaterial, this);
         getServer().getPluginManager().registerEvents(new ManagerAchievementChallenges(), this);
+        getServer().getPluginManager().registerEvents(new ManagerPointsScoreboard(), this);
         _configMenu.register();
 
 
@@ -85,11 +86,38 @@ public class ImusChallenges extends JavaPlugin
     }
 
     /**
+     * Re-reads config.yml and applies it to everything that keeps settings, without a restart.
+     */
+    public void reloadSettings()
+    {
+        reloadConfig();
+        _managerChallengeShop.reload();
+        ManagerPointsScoreboard.getInstance().applyConfig();
+    }
+
+    /**
      * The values of config.yml that can be changed in game with /ic config or /ia config.
      */
     private ConfigMenu createConfigMenu()
     {
-        ConfigMenu menu = new ConfigMenu(this, "ImusChallenges", CONSTANTS.PERM_CONFIG, () -> _managerChallengeShop.reload());
+        ConfigMenu menu = new ConfigMenu(this, "ImusChallenges", CONSTANTS.PERM_CONFIG, this::reloadSettings);
+
+        menu.addInt("points.first-material", "Points: first to find a material", Material.GRASS_BLOCK, 0, 1000)
+                .description("For being the first on the server to pick up a material")
+                .note("now");
+        menu.addInt("points.advancement-task", "Points: task advancement", Material.PAPER, 0, 1000)
+                .note("now");
+        menu.addInt("points.advancement-goal", "Points: goal advancement", Material.MAP, 0, 1000)
+                .note("now");
+        menu.addInt("points.advancement-challenge", "Points: challenge advancement", Material.FILLED_MAP, 0, 1000)
+                .note("now");
+        menu.addInt("points.first-advancement-bonus", "Points: first advancement bonus", Material.NETHER_STAR, 0, 1000)
+                .description("Extra for being the first on the server to complete an advancement")
+                .note("now");
+        menu.addChoice("scoreboard.display", "Points on scoreboard", Material.OAK_SIGN, ManagerPointsScoreboard.DISPLAY_OPTIONS)
+                .description("Where lifetime challenge points are shown")
+                .description("PLAYER_LIST = after the name in tab")
+                .note("now");
 
         menu.addInt("shop.reminder-interval-minutes", "Unspent points reminder (min)", Material.BELL, 0, 1440)
                 .description("How often players who can afford something are reminded")

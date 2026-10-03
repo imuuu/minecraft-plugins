@@ -1,8 +1,9 @@
 package me.imu.imuschallenges.Datas;
 
 import imu.iAPI.Utilities.ImusUtilities;
-import me.imu.imuschallenges.CONSTANTS;
+import me.imu.imuschallenges.ImusChallenges;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 public class DataPlayerAdvancements {
@@ -46,10 +47,11 @@ public class DataPlayerAdvancements {
 
     public int getPoints()
     {
+        FileConfiguration config = ImusChallenges.getInstance().getConfig();
         int points = 0;
-        points += getCompletedChallenges() * CONSTANTS.POINTS_PER_ADVANCEMENT_CHALLENGE;
-        points += getCompletedGoals() * CONSTANTS.POINTS_PER_GOAL_CHALLENGE;
-        points += getCompletedTasks() * CONSTANTS.POINTS_PER_TASK_CHALLENGE;
+        points += getCompletedChallenges() * config.getInt("points.advancement-challenge");
+        points += getCompletedGoals() * config.getInt("points.advancement-goal");
+        points += getCompletedTasks() * config.getInt("points.advancement-task");
         return points;
     }
 

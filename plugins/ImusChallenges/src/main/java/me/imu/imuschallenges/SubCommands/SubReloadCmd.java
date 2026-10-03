@@ -2,7 +2,7 @@ package me.imu.imuschallenges.SubCommands;
 
 import imu.iAPI.Interfaces.CommandInterface;
 import imu.iAPI.Other.Metods;
-import me.imu.imuschallenges.Managers.ManagerChallengeShop;
+import me.imu.imuschallenges.ImusChallenges;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -11,7 +11,7 @@ public class SubReloadCmd implements CommandInterface
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
     {
-        ManagerChallengeShop.getInstance().reload();
+        ImusChallenges.getInstance().reloadSettings();
         sender.sendMessage(Metods.msgC("&9ImusChallenges config reloaded"));
         return true;
     }

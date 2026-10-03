@@ -64,6 +64,14 @@ public class ConfigMenu
         return add(new ConfigEntry(path, name, icon, ConfigEntry.Type.STRING));
     }
 
+    /**
+     * A value picked from a fixed list; clicking it in the menu moves to the next option.
+     */
+    public ConfigEntry addChoice(String path, String name, Material icon, List<String> options)
+    {
+        return add(new ConfigEntry(path, name, icon, ConfigEntry.Type.CHOICE).options(options));
+    }
+
     private ConfigEntry add(ConfigEntry entry)
     {
         _entries.add(entry);

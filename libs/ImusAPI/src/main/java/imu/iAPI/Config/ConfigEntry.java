@@ -15,7 +15,7 @@ public class ConfigEntry
 {
     public enum Type
     {
-        INT, DOUBLE, BOOLEAN, STRING
+        INT, DOUBLE, BOOLEAN, STRING, CHOICE
     }
 
     private final String _path;
@@ -26,6 +26,7 @@ public class ConfigEntry
     private double _max = Double.MAX_VALUE;
     private final List<String> _description = new ArrayList<>();
     private String _note;
+    private List<String> _options = List.of();
 
     ConfigEntry(String path, String name, Material icon, Type type)
     {
@@ -39,6 +40,12 @@ public class ConfigEntry
     {
         _min = min;
         _max = max;
+        return this;
+    }
+
+    ConfigEntry options(List<String> options)
+    {
+        _options = List.copyOf(options);
         return this;
     }
 
@@ -67,8 +74,29 @@ public class ConfigEntry
             case INT -> config.getInt(_path);
             case DOUBLE -> config.getDouble(_path);
             case BOOLEAN -> config.getBoolean(_path);
-            case STRING -> config.getString(_path, "");
+            case STRING, CHOICE -> config.getString(_path, "");
         };
+    }
+
+    /**
+     * For a CHOICE: the option after the current one, wrapping around.
+     */
+    public String nextOption(FileConfiguration config)
+    {
+        if (_options.isEmpty())
+            return "";
+        int index = indexOfOption(String.valueOf(get(config)));
+        return _options.get((index + 1) % _options.size());
+    }
+
+    private int indexOfOption(String value)
+    {
+        for (int i = 0; i < _options.size(); i++)
+        {
+            if (_options.get(i).equalsIgnoreCase(value))
+                return i;
+        }
+        return -1;
     }
 
     /**
@@ -85,7 +113,7 @@ public class ConfigEntry
             case INT -> defaults.getInt(_path);
             case DOUBLE -> defaults.getDouble(_path);
             case BOOLEAN -> defaults.getBoolean(_path);
-            case STRING -> defaults.getString(_path);
+            case STRING, CHOICE -> defaults.getString(_path);
         };
     }
 
@@ -135,6 +163,13 @@ public class ConfigEntry
                     case "false", "no", "off" -> false;
                     default -> throw new IllegalArgumentException("'" + text + "' is not true or false");
                 };
+            }
+            case CHOICE ->
+            {
+                int index = indexOfOption(text);
+                if (index < 0)
+                    throw new IllegalArgumentException("'" + text + "' is not one of " + String.join(", ", _options));
+                return _options.get(index);
             }
             default ->
             {
@@ -198,5 +233,10 @@ public class ConfigEntry
     public String getNote()
     {
         return _note;
+    }
+
+    public List<String> getOptions()
+    {
+        return _options;
     }
 }

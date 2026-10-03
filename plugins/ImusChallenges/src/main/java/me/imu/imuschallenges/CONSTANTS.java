@@ -7,12 +7,6 @@ public class CONSTANTS
     public static int NORMAL_SLOT_COLUMNS = 4;
     public static int SPECIAL_SLOTS = 4;
 
-    // ADVANCEMENT CHALLENGE
-    public static final int FIRST_ADVANCEMENT_COMPLITION = 10;
-    public static int POINTS_PER_ADVANCEMENT_CHALLENGE = 10;
-    public static int POINTS_PER_GOAL_CHALLENGE = 5;
-    public static int POINTS_PER_TASK_CHALLENGE = 3;
-
     // PERMISSIONS
     public static String PERM_SERVER_WIDE_COLLECTION_CHALLENGE_BROADCAST = "imuschallenges.server.collection.broadcast";
     public static String PERM_SERVER_WIDE_COLLECTION_CHALLENGE = "imuschallenges.server.collection.material";
