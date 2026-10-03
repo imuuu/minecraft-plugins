@@ -6,6 +6,7 @@ public final class CONSTANTS
 
     // Permissions
     public static final String PERM_GIVE = "imq.give";
+    public static final String PERM_MENU = "imq.menu";
     public static final String PERM_LIST = "imq.list";
     public static final String PERM_COMPLETE = "imq.complete";
     public static final String PERM_RELOAD = "imq.reload";

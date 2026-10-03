@@ -268,20 +268,35 @@ public class QuestReward
         return sb.toString();
     }
 
+    /**
+     * Rolls the items this entry gives, without giving them. Empty for command-only entries.
+     */
+    public List<ItemStack> createItems()
+    {
+        List<ItemStack> items = new ArrayList<>();
+        if (_item == null) return items;
+
+        int amount = ThreadLocalRandom.current().nextInt(_minAmount, _maxAmount + 1);
+        while (amount > 0)
+        {
+            ItemStack stack = _item.get();
+            if (stack == null) break;
+
+            stack.setAmount(Math.min(amount, stack.getMaxStackSize()));
+            amount -= stack.getAmount();
+            items.add(stack);
+        }
+        return items;
+    }
+
+    /** True when this entry runs commands, which a preview can't show as items. */
+    public boolean hasCommands() {return !_commands.isEmpty();}
+
     public void give(Player player)
     {
-        if (_item != null)
+        for (ItemStack stack : createItems())
         {
-            int amount = ThreadLocalRandom.current().nextInt(_minAmount, _maxAmount + 1);
-            while (amount > 0)
-            {
-                ItemStack stack = _item.get();
-                if (stack == null) break;
-
-                stack.setAmount(Math.min(amount, stack.getMaxStackSize()));
-                amount -= stack.getAmount();
-                InvUtil.AddItemToInventoryOrDrop(player, stack);
-            }
+            InvUtil.AddItemToInventoryOrDrop(player, stack);
         }
 
         for (String command : _commands)

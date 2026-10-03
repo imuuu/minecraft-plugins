@@ -188,6 +188,9 @@ public class ManagerQuests
         return _anyBlockIsBreakTarget || _breakTargets.contains(material);
     }
 
+    /** Sum of all drop weights, what a quest's drop-weight is a share of. */
+    public int getTotalDropWeight() {return _dropTable.getTotalWeight();}
+
     /**
      * A random quest weighted by drop-weight, or null when no quest can drop.
      */

@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,16 +77,33 @@ public class Quest
      */
     public void giveRewards(Player player)
     {
-        for (QuestReward reward : _guaranteedRewards)
+        for (QuestReward reward : rollRewards())
         {
             reward.give(player);
         }
+    }
 
-        if (_rewardPool.getTotalWeight() <= 0) return;
+    /**
+     * The entries one opening would give: every guaranteed reward plus the pool rolled
+     * {@link #getRolls()} times.
+     */
+    public List<QuestReward> rollRewards()
+    {
+        List<QuestReward> rewards = new ArrayList<>(_guaranteedRewards);
+        if (_rewardPool.getTotalWeight() <= 0) return rewards;
 
         for (Object loot : _rewardPool.getLoot(_rolls))
         {
-            if (loot instanceof QuestReward reward) reward.give(player);
+            if (loot instanceof QuestReward reward) rewards.add(reward);
         }
+        return rewards;
+    }
+
+    /**
+     * Chance in percent that a found panel is this quest, from its share of all drop weights.
+     */
+    public double getDropChancePercent(int totalDropWeight)
+    {
+        return totalDropWeight <= 0 ? 0 : _dropWeight * 100.0 / totalDropWeight;
     }
 }

@@ -154,7 +154,11 @@ public class ImusMiniQuests extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub5, new SubConfigCmd(_configMenu));
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_CONFIG);
 
-        cmd1AndArguments.put(cmd1, new String[] { "give", "list", "complete", "reload", "config" });
+        String cmd1_sub6 = "menu";
+        handler.registerSubCmd(cmd1, cmd1_sub6, new SubMenuCmd());
+        handler.setPermissionOnLastCmd(CONSTANTS.PERM_MENU);
+
+        cmd1AndArguments.put(cmd1, new String[] { "menu", "give", "list", "complete", "reload", "config" });
 
         getCommand(cmd1).setExecutor(handler);
 
