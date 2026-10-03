@@ -17,7 +17,8 @@ run/               local test server (git-ignored, see below)
 
 The modules that are built are the ones that were running on the old 1.20.1
 server: `ImusAPI`, `DontLoseItems`, `ImusChallenges`, `ImusEnchants`,
-`imusGS`, `imusSpawners`, `imusTNT`, `imusWaystones`, plus `imusMcCards`.
+`imusGS`, `imusSpawners`, `imusTNT`, `imusWaystones`, plus `imusMcCards` and
+`ImusMiniQuests`.
 
 ## Prerequisites
 

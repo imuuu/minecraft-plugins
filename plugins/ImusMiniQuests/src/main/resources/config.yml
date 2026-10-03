@@ -1,0 +1,81 @@
+# ImusMiniQuests settings. The quests themselves are in quests.yml.
+# Most values can be changed in game with /imq config (or /ia config).
+
+progress:
+  # FIRST = only the first unfinished matching quest panel in the inventory gets the progress
+  # ALL   = every unfinished matching quest panel gets it
+  mode: FIRST
+  # Show "Lumberjack 45/100" above the hotbar when a quest moves forward
+  action-bar: true
+  # Mobs from spawners count towards KILL_ENTITY quests
+  count-spawner-mobs: false
+  # Blocks a player placed themselves don't count towards BREAK_BLOCK quests
+  # (stops place-and-break farming). Crops are always allowed, but only when fully grown.
+  ignore-player-placed-blocks: true
+
+item:
+  # Name of every quest panel, %name% is the quest's own name from quests.yml
+  name-format: "&6MiniQuest &8- %name%"
+  # Quest panels always have the enchantment glint
+  glint: true
+  # Item model a completed panel switches to, so a finished one stands out in the inventory.
+  # Empty = keep the quest's own look.
+  complete-model: "minecraft:lime_stained_glass_pane"
+
+drops:
+  enabled: true
+
+  # Loot chests: a quest panel can be in a chest the first time it is opened
+  # (dungeons, villages, shipwrecks... and BetterStructures chests when that plugin is on)
+  chest-chance: 0.15
+  # Which vanilla loot tables can contain one. Wildcards work: minecraft:chests/* is every
+  # chest, minecraft:chests/village/* only village chests. Empty = all chest loot.
+  chest-loot-tables:
+    - "minecraft:chests/*"
+  # Chance for a BetterStructures chest. 0 = never
+  betterstructures-chest-chance: 0.2
+
+  # Chance (0.0 - 1.0) that killing a mob drops a random quest panel
+  mob-kill-chance: 0.002
+  # Only mobs that are hostile (zombies, skeletons...) can drop quest panels
+  only-hostile-mobs: true
+  # Chance (0.0 - 1.0) that breaking one of the blocks below drops a random quest panel
+  block-break-chance: 0.0
+  # Blocks that can roll a block drop. Same format as quest targets:
+  # OAK_LOG, *_ORE, #logs (a block tag), * (anything)
+  block-break-materials:
+    - "#logs"
+    - "*_ORE"
+
+messages:
+  action-bar: "&6%quest% &7%progress%&8/&7%amount%"
+  completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
+  claimed: "&aYou opened %quest%&a!"
+  not-complete: "&7%quest%&7: &e%progress%&7/&e%amount%"
+  dropped: "&6A quest panel dropped: %quest%"
+  unknown-quest: "&cThis quest no longer exists"
+
+lore:
+  objective: "&6Quest: &f%objective%"
+  progress: "%bar% &e%progress%&7/&e%amount%"
+  # List what the panel can give
+  show-rewards: true
+  rewards-header: "&6Rewards:"
+  rewards-pool-one: "&7One of:"
+  rewards-pool-many: "&7%rolls% of:"
+  reward-line: "&8 • &f%reward%"
+  # Shown on every panel that isn't finished yet
+  instructions:
+    - "&8&m                              "
+    - "&7Keep this panel in your inventory"
+    - "&7and do what the quest asks."
+    - "&7When it is complete, &eright-click"
+    - "&7it to break it open for a reward."
+  # Replaces the instructions once the panel is finished
+  complete:
+    - "&8&m                              "
+    - "&a&lComplete!"
+    - "&eRight-click &7to claim your reward"
+  bar-length: 20
+  bar-filled: "&a|"
+  bar-empty: "&8|"

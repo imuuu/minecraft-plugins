@@ -1,0 +1,17 @@
+name: ImusMiniQuests
+version: '${project.version}'
+main: me.imu.imusminiquests.ImusMiniQuests
+api-version: '26.2'
+authors: [ imukuppikorvaa ]
+description: Quest items that fill up as you play (break 100 logs, kill 100 mobs...) and open into rewards
+depend:
+  - imusAPI
+softdepend:
+  - BetterStructures
+  - ImusEnchants
+commands:
+  imusminiquests:
+    description: ImusMiniQuests
+    usage: /<command>
+    aliases:
+      - imq

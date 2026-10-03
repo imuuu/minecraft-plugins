@@ -1,0 +1,172 @@
+# Every quest under "quests" becomes a quest panel. The key (lumberjack, ...) is its id:
+# /imq give <player> <id>. Renaming a key breaks the panels already handed out.
+#
+# name          the quest's name, put into item.name-format of config.yml ("MiniQuest - <name>")
+# material      the item the panel is made of, a glass pane by default. Quest panels can't be
+#               placed, crafted with or used as anything else, whatever the material.
+# model         (optional) item model shown instead of the material, e.g. minecraft:oak_sapling
+# lore          flavour text. The quest, progress bar, reward list and instructions are added
+#               below it (see "lore" in config.yml)
+# drop-weight   how often this quest is picked when a panel is put in a chest or dropped.
+#               0 = never found, can only be given with /imq give
+#
+# objective.type      BREAK_BLOCK, KILL_ENTITY or FISH
+# objective.targets   what counts. Empty or missing = anything.
+#                     Blocks/items: OAK_LOG, *_ORE (wildcard), #logs (tag), *
+#                     Mobs:         ZOMBIE, *_SPIDER, #skeletons (tag), @hostile, *
+# objective.amount    how many are needed
+# objective.text      (optional) what the lore says, default is generated from the targets
+#
+# rewards.rolls       how many times the pool is rolled
+# rewards.pool        weighted entries, one is picked per roll
+# rewards.guaranteed  always given
+# A reward entry is one of:
+#   item: DIAMOND                 min/max amount, optional name and lore. Gear can also have
+#                                 slots / enchant-levels like tool below
+#   tool: PICKAXE                 one tool, its tier rolled from "tiers" (weights). Default
+#                                 tiers: WOODEN 40, STONE 30, IRON 20, GOLDEN 5, DIAMOND 5
+#                                 (armor: LEATHER, CHAINMAIL, IRON, GOLDEN, DIAMOND).
+#                                 Tools: PICKAXE, AXE, SHOVEL, HOE, SWORD, HELMET, CHESTPLATE,
+#                                 LEGGINGS, BOOTS...
+#                                 slots: true          comes with ImusEnchants slots
+#                                 enchant-levels: 20   vanilla enchants, like an enchanting table
+#   enchant-book: random          ImusEnchants custom enchant book, or an enchant key such as
+#                                 timber, vein_miner, beheading. Optional level (default 1)
+#   slot-core: true               ImusEnchants Slot Core, min/max amount
+# and every entry can also have:
+#   commands                      console commands, %player% = the player's name
+#   message                       sent to the player when this entry is given
+#   display                       text in the panel's reward list (replaces the generated one)
+#   weight                        only in the pool, default 1
+
+quests:
+  lumberjack:
+    name: "&eLumberjack"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe forest owes you something."
+    drop-weight: 10
+    objective:
+      type: BREAK_BLOCK
+      targets: ["#logs"]
+      amount: 100
+      text: "Chop 100 logs"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: AXE
+          slots: true
+          weight: 10
+        - enchant-book: timber
+          weight: 3
+        - enchant-book: replanter
+          weight: 3
+      guaranteed:
+        - item: EXPERIENCE_BOTTLE
+          min: 8
+          max: 16
+
+  monster_hunter:
+    name: "&cMonster Hunter"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oProof of a hundred fights."
+    drop-weight: 10
+    objective:
+      type: KILL_ENTITY
+      targets: ["@hostile"]
+      amount: 100
+      text: "Kill 100 hostile mobs"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: SWORD
+          slots: true
+          weight: 10
+        - tool: CHESTPLATE
+          slots: true
+          weight: 6
+        - enchant-book: random
+          weight: 4
+      guaranteed:
+        - item: EXPERIENCE_BOTTLE
+          min: 16
+          max: 32
+
+  miner:
+    name: "&bMiner"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSomething glitters down there."
+    drop-weight: 8
+    objective:
+      type: BREAK_BLOCK
+      targets: ["*_ORE"]
+      amount: 64
+      text: "Mine 64 ores"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: PICKAXE
+          slots: true
+          weight: 10
+        - enchant-book: vein_miner
+          weight: 3
+        - slot-core: true
+          weight: 3
+      guaranteed:
+        - item: IRON_INGOT
+          min: 4
+          max: 12
+
+  angler:
+    name: "&3Angler"
+    material: CYAN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oPatience pays."
+    drop-weight: 5
+    objective:
+      type: FISH
+      targets: []
+      amount: 30
+      text: "Catch 30 things while fishing"
+    rewards:
+      rolls: 1
+      pool:
+        - item: FISHING_ROD
+          slots: true
+          weight: 10
+        - enchant-book: double_catch
+          weight: 3
+        - item: NAUTILUS_SHELL
+          min: 1
+          max: 2
+          weight: 5
+
+  harvester:
+    name: "&eHarvester"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oA good year for the fields."
+    drop-weight: 6
+    objective:
+      type: BREAK_BLOCK
+      targets: [WHEAT, CARROTS, POTATOES, BEETROOTS]
+      amount: 200
+      text: "Harvest 200 fully grown crops"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: HOE
+          slots: true
+          weight: 10
+        - enchant-book: replanter
+          weight: 4
+        - item: BREAD
+          min: 16
+          max: 32
+          weight: 5
+        - commands: ["eco give %player% 500"]
+          message: "&a+500$"
+          display: "&a500$"
+          weight: 5

@@ -17,6 +17,7 @@
         <module>plugins/DontLoseItems</module>
         <module>plugins/ImusChallenges</module>
         <module>plugins/ImusEnchants</module>
+        <module>plugins/ImusMiniQuests</module>
         <module>plugins/imusGS</module>
         <module>plugins/imusMcCards</module>
         <module>plugins/imusSpawners</module>
