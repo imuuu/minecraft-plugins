@@ -194,6 +194,11 @@ public class ManagerQuestProgress implements Listener
         if (event instanceof FakeBlockBreakEvent) return;
 
         Block block = event.getBlock();
+        Material type = block.getType();
+        // Most blocks broken are nothing any quest or drop counts, so stop before reading the
+        // chunk's placed-block data. Only these materials are ever marked as placed anyway.
+        if (!_quests.isBreakTarget(type) && !_drops.isDropMaterial(type)) return;
+
         boolean placed = _placedBlocks.isPlacedByPlayer(block);
         if (placed) _placedBlocks.unmark(block);
 
@@ -202,7 +207,6 @@ public class ManagerQuestProgress implements Listener
         if (placed && _plugin.getConfig().getBoolean("progress.ignore-player-placed-blocks", true)) return;
         if (isUnripeCrop(block)) return;
 
-        Material type = block.getType();
         addProgress(player, OBJECTIVE_TYPE.BREAK_BLOCK, o -> o.targets().matches(type), 1);
         _drops.rollBlockDrop(player, type, block.getLocation());
     }
@@ -302,6 +306,10 @@ public class ManagerQuestProgress implements Listener
 
     // Walked distance not yet counted, per player: progress moves in whole blocks
     private final Map<UUID, Double> _walked = new HashMap<>();
+    // Whole blocks walked on one surface but not saved to the panel yet
+    private record WalkBatch(Material surface, int blocks) {}
+    private static final int WALK_BATCH = 5;
+    private final Map<UUID, WalkBatch> _walkBatches = new HashMap<>();
     // Blocks walked since a player without a walk panel was last checked
     private final Map<UUID, Integer> _blocksSinceCheck = new HashMap<>();
 
@@ -351,13 +359,41 @@ public class ManagerQuestProgress implements Listener
             return;
         }
 
+        // Saving the panel every block would send the client a slot update 5 times a second, so
+        // blocks are collected and saved in batches; a change of surface saves the batch first so
+        // "walk on sand" quests count only the sand
         Material underfoot = to.clone().subtract(0, 0.1, 0).getBlock().getType();
-        addProgress(player, OBJECTIVE_TYPE.WALK, o -> o.targets().matches(underfoot), blocks);
+        WalkBatch batch = _walkBatches.get(player.getUniqueId());
+        if (batch != null && batch.surface() != underfoot)
+        {
+            flushWalk(player);
+            batch = null;
+        }
+
+        int total = (batch == null ? 0 : batch.blocks()) + blocks;
+        if (total >= WALK_BATCH)
+        {
+            _walkBatches.remove(player.getUniqueId());
+            addProgress(player, OBJECTIVE_TYPE.WALK, o -> o.targets().matches(underfoot), total);
+        }
+        else
+        {
+            _walkBatches.put(player.getUniqueId(), new WalkBatch(underfoot, total));
+        }
+    }
+
+    /** Saves the blocks walked but not saved yet. */
+    private void flushWalk(Player player)
+    {
+        WalkBatch batch = _walkBatches.remove(player.getUniqueId());
+        if (batch == null) return;
+        addProgress(player, OBJECTIVE_TYPE.WALK, o -> o.targets().matches(batch.surface()), batch.blocks());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event)
     {
+        flushWalk(event.getPlayer());
         _walked.remove(event.getPlayer().getUniqueId());
         _blocksSinceCheck.remove(event.getPlayer().getUniqueId());
     }
