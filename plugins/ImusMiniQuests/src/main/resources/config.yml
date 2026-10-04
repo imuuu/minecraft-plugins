@@ -13,6 +13,44 @@ progress:
   # (stops place-and-break farming). Crops are always allowed, but only when fully grown.
   ignore-player-placed-blocks: true
 
+# Every new quest panel rolls a rarity, shown on the last line of its tooltip. A rarer panel
+# asks for more but gives more:
+# amount-multiplier     the task size: 1.5 turns "Chop 100 logs" into "Chop 150 logs"
+# bonus-luck            added to the luck of whoever opens it (see quest-points)
+# extra-random-rewards  added to its random rewards from rewards.yml
+# Panels from before rarities count as the most common one.
+rarities:
+  common:
+    display: "&fCommon"
+    weight: 600
+    amount-multiplier: 1.0
+    bonus-luck: 0
+    extra-random-rewards: 0
+  uncommon:
+    display: "&aUncommon"
+    weight: 250
+    amount-multiplier: 1.25
+    bonus-luck: 0.05
+    extra-random-rewards: 0
+  rare:
+    display: "&9Rare"
+    weight: 110
+    amount-multiplier: 1.5
+    bonus-luck: 0.15
+    extra-random-rewards: 1
+  epic:
+    display: "&5Epic"
+    weight: 33
+    amount-multiplier: 2.0
+    bonus-luck: 0.25
+    extra-random-rewards: 1
+  legendary:
+    display: "&6&lLegendary"
+    weight: 7
+    amount-multiplier: 2.5
+    bonus-luck: 0.4
+    extra-random-rewards: 2
+
 item:
   # Name of every quest panel, %name% is the quest's own name from quests.yml
   name-format: "&6MiniQuest &8- %name%"
@@ -25,15 +63,24 @@ item:
 drops:
   enabled: true
 
+  # Every chance below is multiplied by the world the chest, mob or block is in, so the
+  # dangerous dimensions pay better. With chest-chance 0.25: overworld 25%, Nether 50%,
+  # End 100%. A chest chance above 1 can give more than one panel: 1.6 = one panel and a 60%
+  # chance of a second (at most 3).
+  world-multiplier:
+    overworld: 1
+    nether: 2
+    end: 4
+
   # Loot chests: a quest panel can be in a chest the first time it is opened
   # (dungeons, villages, shipwrecks... and BetterStructures chests when that plugin is on)
-  chest-chance: 0.15
+  chest-chance: 0.25
   # Which vanilla loot tables can contain one. Wildcards work: minecraft:chests/* is every
   # chest, minecraft:chests/village/* only village chests. Empty = all chest loot.
   chest-loot-tables:
     - "minecraft:chests/*"
   # Chance for a BetterStructures chest. 0 = never
-  betterstructures-chest-chance: 0.2
+  betterstructures-chest-chance: 0.25
 
   # Chance (0.0 - 1.0) that killing a mob drops a random quest panel
   mob-kill-chance: 0.002
@@ -120,6 +167,9 @@ messages:
   unlocked: "&8[MiniQuests] &7%player% found %unlock% &7first, it can now come from quest rewards"
   random-reward-announce: "&6%player% &7opened %quest% &7and got %tier%&7: &f%reward%"
   action-bar: "&6%quest% &7%progress%&8/&7%amount%"
+  # Added to the action bar of timed quests
+  action-bar-time: " &c⌚ %time%"
+  time-ran-out: "&c%quest% &7ran out of time, the count starts over"
   completed: "&a&lQuest complete! &r%quest% &7- right-click it to claim the reward"
   claimed: "&aYou opened %quest%&a!"
   not-complete: "&7%quest%&7: &e%progress%&7/&e%amount%"
@@ -152,3 +202,7 @@ lore:
   bar-length: 20
   bar-filled: "&a|"
   bar-empty: "&8|"
+  # Timed quests, %time% = the time limit
+  time-limit: "&c⌚ Within %time% &8(the count starts over when time runs out)"
+  # The last line of every panel
+  rarity: "&8Rarity: %rarity%"

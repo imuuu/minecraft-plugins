@@ -115,7 +115,8 @@ public class InventoryQuestBrowser extends CustomInventory
      */
     private ItemStack createIcon(Quest quest, int totalWeight)
     {
-        ItemStack icon = QuestItem.create(quest);
+        // The icon shows the quest at its base size; taking one rolls a rarity like a found panel
+        ItemStack icon = QuestItem.create(quest, ImusMiniQuests.getInstance().getRarities().getCommon());
         ItemUtils.AddLore(icon, "&8&m                              ", true);
         ItemUtils.AddLore(icon, "&7Id: &f" + quest.getId(), true);
         if (quest.getDropWeight() > 0)
@@ -136,7 +137,7 @@ public class InventoryQuestBrowser extends CustomInventory
         }
 
         ItemStack panel = QuestItem.create(quest);
-        if (click.isShiftClick()) QuestItem.setProgress(panel, quest, quest.getRequiredAmount());
+        if (click.isShiftClick()) QuestItem.setProgress(panel, quest, QuestItem.getRequiredAmount(panel, quest));
         InvUtil.AddItemToInventoryOrDrop(getPlayer(), panel);
     }
 

@@ -2,6 +2,7 @@ package me.imu.imusminiquests.Managers;
 
 import me.imu.imusminiquests.Hooks.ImusChallengesHook;
 import me.imu.imusminiquests.ImusMiniQuests;
+import me.imu.imusminiquests.Quests.PanelRarity;
 import me.imu.imusminiquests.Quests.Quest;
 import me.imu.imusminiquests.Quests.QuestItem;
 import org.bukkit.Sound;
@@ -52,13 +53,20 @@ public class ManagerQuestItemGuard implements Listener
 
         if (!QuestItem.isComplete(stack, quest))
         {
+            // A timed attempt that ran out starts over
+            if (QuestItem.getTimeLeft(stack, quest) == 0)
+            {
+                QuestItem.setTimerStart(stack, 0);
+                QuestItem.setProgress(stack, quest, 0);
+                player.sendMessage(_plugin.getMessage("time-ran-out").replace("%quest%", quest.getName()));
+            }
             // Picks up name and lore changes from a reload
             QuestItem.refresh(stack, quest);
             player.getInventory().setItem(event.getHand(), stack);
             player.sendMessage(_plugin.getMessage("not-complete")
                     .replace("%quest%", quest.getName())
                     .replace("%progress%", String.valueOf(QuestItem.getProgress(stack)))
-                    .replace("%amount%", String.valueOf(quest.getRequiredAmount())));
+                    .replace("%amount%", String.valueOf(QuestItem.getRequiredAmount(stack, quest))));
             return;
         }
 
@@ -73,11 +81,14 @@ public class ManagerQuestItemGuard implements Listener
     private void claim(Player player, EquipmentSlot hand, Quest quest)
     {
         ItemStack inHand = player.getInventory().getItem(hand);
+        PanelRarity rarity = QuestItem.getRarity(inHand);
         inHand.setAmount(inHand.getAmount() - 1);
         player.getInventory().setItem(hand, inHand.getAmount() > 0 ? inHand : null);
 
         ManagerQuestPoints questPoints = _plugin.getQuestPoints();
-        quest.giveRewards(player, questPoints.getLuck(player));
+        // A rarer panel adds its own luck and random rewards on top of the player's
+        double luck = Math.min(1, questPoints.getLuck(player) + rarity.bonusLuck());
+        quest.giveRewards(player, luck, rarity.extraRandomRewards());
         player.sendMessage(_plugin.getMessage("claimed").replace("%quest%", quest.getName()));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.4f);
 

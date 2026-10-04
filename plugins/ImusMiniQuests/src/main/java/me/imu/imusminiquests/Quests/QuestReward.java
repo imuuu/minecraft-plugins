@@ -180,7 +180,10 @@ public class QuestReward
             YamlConfiguration entry = new YamlConfiguration();
             for (Map.Entry<?, ?> e : entries.get(i).entrySet())
             {
-                entry.set(String.valueOf(e.getKey()), e.getValue());
+                // A nested map (tiers: {IRON: 50, DIAMOND: 50}) has to become a section, or
+                // getConfigurationSection doesn't see it
+                if (e.getValue() instanceof Map<?, ?> map) entry.createSection(String.valueOf(e.getKey()), map);
+                else entry.set(String.valueOf(e.getKey()), e.getValue());
             }
 
             QuestReward reward = fromConfig(entry, log, context + " " + path + "[" + i + "]");

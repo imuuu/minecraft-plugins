@@ -22,6 +22,8 @@ public final class CONSTANTS
     // Persistent data keys on the quest item, in this plugin's namespace
     public static final String KEY_QUEST_ID = "quest_id";
     public static final String KEY_PROGRESS = "progress";
+    public static final String KEY_RARITY = "rarity";
+    public static final String KEY_TIMER_START = "timer_start";
     // On the player: how many quests they have claimed
     public static final String KEY_QUEST_POINTS = "quest_points";
 

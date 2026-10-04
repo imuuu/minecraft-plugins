@@ -24,11 +24,17 @@
 #                     EAT          items eaten or drunk
 #                     TAME         animals tamed (mob types)
 #                     SHEAR        animals sheared (mob types)
+#                     WALK         blocks walked on foot, counted every whole block. Targets are
+#                                  the blocks walked on (SAND, #logs...), empty = anywhere
 # objective.targets   what counts. Empty or missing = anything.
 #                     Blocks/items: OAK_LOG, *_ORE (wildcard), #logs (tag), *
 #                     Mobs:         ZOMBIE, *_SPIDER, #skeletons (tag), @hostile, *
-# objective.amount    how many are needed
-# objective.text      (optional) what the lore says, default is generated from the targets
+# objective.amount    how many are needed (rarer panels need more, see rarities in config.yml)
+# objective.time-limit  (optional) seconds to do the whole amount in. The clock starts with the
+#                     first progress; when it runs out the count starts over. Hard, so give
+#                     these better rewards
+# objective.text      (optional) what the lore says, default is generated from the targets.
+#                     The amount written in it, or %amount%, follows the panel's rarity
 #
 # rewards.rolls       how many times the pool is rolled
 # rewards.pool        weighted entries, one is picked per roll
@@ -1338,3 +1344,212 @@ quests:
           weight: 4
         - enchant-book: random
           weight: 3
+
+  # ---- Walking ----
+
+  wanderer:
+    name: "&aWanderer"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe road goes ever on."
+    drop-weight: 7
+    objective:
+      type: WALK
+      targets: []
+      amount: 2000
+      text: "Walk 2000 blocks"
+    rewards:
+      rolls: 1
+      pool:
+        - tool: BOOTS
+          slots: true
+          weight: 8
+        - item: [ENDER_PEARL, GOLDEN_CARROT]
+          min: 4
+          max: 8
+          weight: 6
+        - enchant-book: fall_guard
+          weight: 2
+
+  desert_trek:
+    name: "&eDesert Trek"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSand in every pocket."
+    drop-weight: 4
+    objective:
+      type: WALK
+      targets: [SAND, RED_SAND, SANDSTONE, RED_SANDSTONE]
+      amount: 1000
+      text: "Walk 1000 blocks on sand"
+    rewards:
+      rolls: 1
+      pool:
+        - item: [GOLD_INGOT, EMERALD]
+          min: 6
+          max: 12
+          weight: 8
+        - tool: LEGGINGS
+          slots: true
+          weight: 5
+        - money: 3-6%
+          weight: 4
+
+  pathfinder:
+    name: "&2Pathfinder"
+    material: GREEN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oEvery biome, one step at a time."
+    drop-weight: 3
+    objective:
+      type: WALK
+      targets: []
+      amount: 10000
+      text: "Walk 10000 blocks"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_BOOTS, IRON_BOOTS]
+          enchants: [FEATHER_FALLING:4, UNBREAKING:3, DEPTH_STRIDER:3, PROTECTION:3]
+          enchant-count: 2-3
+          weight: 6
+        - money: 5-10%
+          weight: 4
+        - slot-core: true
+          weight: 3
+
+  # ---- Timed: hard, but the rewards are better ----
+
+  frenzy:
+    name: "&4Frenzy"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oNo time to breathe."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: ["@hostile"]
+      amount: 10
+      time-limit: 30
+      text: "Kill 10 hostile mobs in 30 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - tool: SWORD
+          slots: true
+          tiers: {IRON: 50, DIAMOND: 50}
+          weight: 6
+        - item: [DIAMOND_SWORD, IRON_SWORD]
+          enchants: [SHARPNESS:5, LOOTING:3, UNBREAKING:3, FIRE_ASPECT:2, SWEEPING_EDGE:3]
+          enchant-count: 2-3
+          weight: 5
+        - slot-core: true
+          weight: 3
+        - money: 5-10%
+          weight: 3
+
+  sprinter:
+    name: "&bSprinter"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFaster than the wind."
+    drop-weight: 4
+    objective:
+      type: WALK
+      targets: []
+      amount: 150
+      time-limit: 30
+      text: "Run 150 blocks in 30 seconds"
+    rewards:
+      rolls: 1
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_BOOTS, IRON_BOOTS]
+          enchants: [FEATHER_FALLING:4, UNBREAKING:3, PROTECTION:3]
+          enchant-count: 2
+          weight: 6
+        - item: [SUGAR, RABBIT_FOOT]
+          min: 8
+          max: 16
+          weight: 4
+        - enchant-book: jump_boost
+          weight: 2
+
+  lumber_rush:
+    name: "&6Lumber Rush"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oTimber! Timber! Timber!"
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: ["#logs"]
+      amount: 24
+      time-limit: 45
+      text: "Chop 24 logs in 45 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_AXE, IRON_AXE]
+          enchants: [EFFICIENCY:5, UNBREAKING:3, SHARPNESS:3]
+          enchant-count: 2
+          weight: 6
+        - enchant-book: timber
+          weight: 3
+        - money: 4-8%
+          weight: 3
+
+  speed_miner:
+    name: "&7Speed Miner"
+    material: GRAY_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe pickaxe never stops."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [STONE, DEEPSLATE, ANDESITE, DIORITE, GRANITE, TUFF]
+      amount: 64
+      time-limit: 60
+      text: "Mine 64 stone in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_PICKAXE, IRON_PICKAXE]
+          enchants: [EFFICIENCY:5, UNBREAKING:3, FORTUNE:3]
+          enchant-count: 2
+          weight: 6
+        - enchant-book: haste
+          weight: 3
+        - slot-core: true
+          weight: 2
+
+  bone_collector:
+    name: "&fBone Collector"
+    material: WHITE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oRattle rattle."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [SKELETON, STRAY, BOGGED, WITHER_SKELETON]
+      amount: 8
+      time-limit: 60
+      text: "Kill 8 skeletons in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [BOW, CROSSBOW]
+          enchants: [POWER:5, PUNCH:2, UNBREAKING:3, FLAME, QUICK_CHARGE:3, PIERCING:4]
+          enchant-count: 2-3
+          weight: 6
+        - item: ARROW
+          min: 32
+          max: 64
+          weight: 5
+        - enchant-book: sniper
+          weight: 2

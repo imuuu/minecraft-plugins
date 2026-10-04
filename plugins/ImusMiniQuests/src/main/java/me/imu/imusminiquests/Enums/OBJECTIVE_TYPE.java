@@ -27,7 +27,9 @@ public enum OBJECTIVE_TYPE
     /** Targets are entity types tamed (wolves, cats, horses, parrots...). */
     TAME("Tame", true),
     /** Targets are entity types sheared (sheep, mooshrooms, snow golems...). */
-    SHEAR("Shear", true);
+    SHEAR("Shear", true),
+    /** Targets are the blocks walked on; every whole block walked on foot counts once. */
+    WALK("Walk", false);
 
     private final String _verb;
     private final boolean _targetsEntities;

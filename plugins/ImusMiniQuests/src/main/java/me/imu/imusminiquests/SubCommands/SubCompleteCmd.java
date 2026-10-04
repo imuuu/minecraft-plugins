@@ -27,7 +27,7 @@ public class SubCompleteCmd implements CommandInterface
             return true;
         }
 
-        QuestItem.setProgress(stack, quest, quest.getRequiredAmount());
+        QuestItem.setProgress(stack, quest, QuestItem.getRequiredAmount(stack, quest));
         player.getInventory().setItemInMainHand(stack);
         player.sendMessage(ChatColor.GREEN + "Completed " + quest.getName());
         return true;

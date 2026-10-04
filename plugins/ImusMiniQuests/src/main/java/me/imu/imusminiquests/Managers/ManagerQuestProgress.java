@@ -11,6 +11,7 @@ import me.imu.imusminiquests.Quests.QuestObjective;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.Tag;
@@ -36,10 +37,15 @@ import org.bukkit.event.inventory.FurnaceExtractEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
@@ -85,30 +91,49 @@ public class ManagerQuestProgress implements Listener
             QuestObjective objective = quest.getObjective();
             if (objective.type() != type || !matches.test(objective)) continue;
 
+            int required = QuestItem.getRequiredAmount(stack, quest);
             int progress = QuestItem.getProgress(stack);
-            if (progress >= quest.getRequiredAmount()) continue;
+            if (progress >= required) continue;
 
-            int newProgress = Math.min(progress + amount, quest.getRequiredAmount());
+            // Timed quests: the first progress starts the clock, and when it has run out the
+            // count starts over from this progress
+            if (objective.timeLimitSeconds() > 0)
+            {
+                long timeLeft = QuestItem.getTimeLeft(stack, quest);
+                if (timeLeft == 0 && progress > 0)
+                    player.sendMessage(_plugin.getMessage("time-ran-out").replace("%quest%", quest.getName()));
+                if (timeLeft <= 0 || progress == 0)
+                {
+                    progress = 0;
+                    QuestItem.setTimerStart(stack, System.currentTimeMillis());
+                }
+            }
+
+            int newProgress = Math.min(progress + amount, required);
             QuestItem.setProgress(stack, quest, newProgress);
+            if (newProgress >= required) QuestItem.setTimerStart(stack, 0);
             inv.setItem(slot, stack);
             updated++;
 
-            if (newProgress >= quest.getRequiredAmount()) onComplete(player, quest, stack);
-            else showProgress(player, quest, newProgress);
+            if (newProgress >= required) onComplete(player, quest, stack);
+            else showProgress(player, quest, stack, newProgress, required);
 
             if (!all) break;
         }
         return updated;
     }
 
-    private void showProgress(Player player, Quest quest, int progress)
+    private void showProgress(Player player, Quest quest, ItemStack stack, int progress, int required)
     {
         if (!_plugin.getConfig().getBoolean("progress.action-bar", true)) return;
 
         String text = _plugin.getMessage("action-bar")
                 .replace("%quest%", quest.getName())
                 .replace("%progress%", String.valueOf(progress))
-                .replace("%amount%", String.valueOf(quest.getRequiredAmount()));
+                .replace("%amount%", String.valueOf(required));
+        long timeLeft = QuestItem.getTimeLeft(stack, quest);
+        if (timeLeft > 0)
+            text += _plugin.getMessage("action-bar-time").replace("%time%", QuestItem.formatSeconds((timeLeft + 999) / 1000));
         player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
@@ -262,6 +287,46 @@ public class ManagerQuestProgress implements Listener
     {
         Material type = event.getTrade().getResult().getType();
         addProgress(event.getPlayer(), OBJECTIVE_TYPE.TRADE, o -> o.targets().matches(type), 1);
+    }
+
+    // Walked distance not yet counted, per player: progress moves in whole blocks
+    private final Map<UUID, Double> _walked = new HashMap<>();
+
+    /**
+     * WALK quests: every whole block walked (or sprinted, swum...) on foot counts once. Flying,
+     * gliding, riding and teleports don't count. The target is the block underfoot, so a quest
+     * can ask for walking on sand.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMove(PlayerMoveEvent event)
+    {
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (from.getWorld() != to.getWorld()) return;
+
+        double dx = to.getX() - from.getX();
+        double dz = to.getZ() - from.getZ();
+        double distanceSquared = dx * dx + dz * dz;
+        if (distanceSquared == 0) return;
+
+        Player player = event.getPlayer();
+        if (player.isFlying() || player.isGliding() || player.isInsideVehicle()) return;
+        // A jump this big in one move is a teleport or lag, not walking
+        if (distanceSquared > 4) return;
+
+        double walked = _walked.merge(player.getUniqueId(), Math.sqrt(distanceSquared), Double::sum);
+        if (walked < 1) return;
+
+        int blocks = (int) walked;
+        _walked.put(player.getUniqueId(), walked - blocks);
+        Material underfoot = to.clone().subtract(0, 0.1, 0).getBlock().getType();
+        addProgress(player, OBJECTIVE_TYPE.WALK, o -> o.targets().matches(underfoot), blocks);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event)
+    {
+        _walked.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

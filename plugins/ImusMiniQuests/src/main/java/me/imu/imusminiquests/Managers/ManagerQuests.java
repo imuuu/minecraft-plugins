@@ -122,7 +122,8 @@ public class ManagerQuests
             return null;
         }
 
-        QuestObjective objective = new QuestObjective(type, targets, amount, objectiveSection.getString("text"));
+        QuestObjective objective = new QuestObjective(type, targets, amount, objectiveSection.getString("text"),
+                Math.max(0, objectiveSection.getInt("time-limit", 0)));
 
         int rolls = section.getInt("rewards.rolls", 1);
         List<QuestReward> pool = QuestReward.listFromConfig(section, "rewards.pool", log, context);

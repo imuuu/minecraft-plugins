@@ -77,10 +77,10 @@ public class Quest
      * Rolls the reward pool and hands out the result and the guaranteed rewards. Luck (0-1, from
      * the player's quest points) makes rare entries, high amounts and better tool tiers likelier.
      */
-    public void giveRewards(Player player, double luck)
+    public void giveRewards(Player player, double luck, int extraRandomRolls)
     {
         ImusMiniQuests plugin = ImusMiniQuests.getInstance();
-        for (RolledReward rolled : rollRewards(luck))
+        for (RolledReward rolled : rollRewards(luck, extraRandomRolls))
         {
             String given = rolled.reward().give(player, luck);
             RewardTier tier = rolled.tier();
@@ -116,6 +116,12 @@ public class Quest
      */
     public List<RolledReward> rollRewards(double luck)
     {
+        return rollRewards(luck, 0);
+    }
+
+    /** As rollRewards(luck), with extra random rewards, e.g. from a rare panel. */
+    public List<RolledReward> rollRewards(double luck, int extraRandomRolls)
+    {
         List<RolledReward> rewards = new ArrayList<>();
         for (QuestReward reward : _guaranteedRewards)
         {
@@ -133,7 +139,7 @@ public class Quest
         }
 
         ManagerRewardPools pools = ImusMiniQuests.getInstance().getRewardPools();
-        for (int i = 0; i < getRandomRolls(); i++)
+        for (int i = 0; i < getRandomRolls() + extraRandomRolls; i++)
         {
             RolledReward random = pools.roll(luck);
             if (random != null) rewards.add(random);

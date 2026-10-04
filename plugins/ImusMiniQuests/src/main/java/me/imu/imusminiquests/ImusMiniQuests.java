@@ -34,15 +34,19 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerQuestPoints _managerQuestPoints;
     private ManagerRewardPools _managerRewardPools;
     private ManagerUnlocks _managerUnlocks;
+    private ManagerRarities _managerRarities;
 
     @Override
     public void onEnable()
     {
         _instance = this;
         saveDefaultConfig();
+        addMissingSettings();
         QuestItem.init(this);
         _managerEconomy = new ManagerEconomy(this);
         _managerQuestPoints = new ManagerQuestPoints(this);
+        _managerRarities = new ManagerRarities(this);
+        _managerRarities.load();
         _managerUnlocks = new ManagerUnlocks(this);
         _managerUnlocks.load();
         _managerRewardPools = new ManagerRewardPools(this);
@@ -86,12 +90,27 @@ public class ImusMiniQuests extends JavaPlugin
     public void reloadSettings()
     {
         reloadConfig();
+        addMissingSettings();
+        _managerRarities.load();
         _managerUnlocks.load();
         _managerRewardPools.load();
         _managerQuests.load();
         _managerQuestDrops.reload();
         _managerEconomy.start();
         updateTabCompleterRules();
+    }
+
+    /**
+     * Writes settings added in an update (rarities, unlocks...) into an existing config.yml.
+     * Without this, Bukkit hands an empty section for a section the file doesn't have, instead
+     * of the one in the jar's config.yml, so whole features would be silently off.
+     */
+    private void addMissingSettings()
+    {
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+        // Read it back, so the added sections are real sections and not empty placeholders
+        reloadConfig();
     }
 
     /**
@@ -116,6 +135,8 @@ public class ImusMiniQuests extends JavaPlugin
 
     public ManagerUnlocks getUnlocks() {return _managerUnlocks;}
 
+    public ManagerRarities getRarities() {return _managerRarities;}
+
     private ConfigMenu createConfigMenu()
     {
         ConfigMenu menu = new ConfigMenu(this, "ImusMiniQuests", CONSTANTS.PERM_CONFIG, this::reloadSettings);
@@ -135,11 +156,21 @@ public class ImusMiniQuests extends JavaPlugin
         menu.addBoolean("drops.enabled", "Quest panels can be found", Material.CHEST)
                 .description("Off = only /imq give hands them out")
                 .note("now");
-        menu.addDouble("drops.chest-chance", "Loot chest chance", Material.CHEST_MINECART, 0, 1)
-                .description("Chance a vanilla loot chest has a quest panel, 0.15 = 15%")
+        menu.addDouble("drops.chest-chance", "Loot chest chance", Material.CHEST_MINECART, 0, 3)
+                .description("Chance a vanilla loot chest has a quest panel, 0.25 = 25%")
+                .description("Above 1 can give more than one panel")
                 .note("chests opened from now on");
-        menu.addDouble("drops.betterstructures-chest-chance", "BetterStructures chest chance", Material.BARREL, 0, 1)
+        menu.addDouble("drops.betterstructures-chest-chance", "BetterStructures chest chance", Material.BARREL, 0, 3)
                 .note("chests filled from now on");
+        menu.addDouble("drops.world-multiplier.overworld", "Overworld drop multiplier", Material.GRASS_BLOCK, 0, 10)
+                .description("Every drop chance in the overworld is multiplied by this")
+                .note("now");
+        menu.addDouble("drops.world-multiplier.nether", "Nether drop multiplier", Material.NETHERRACK, 0, 10)
+                .description("2 = panels twice as likely in the Nether")
+                .note("now");
+        menu.addDouble("drops.world-multiplier.end", "End drop multiplier", Material.END_STONE, 0, 10)
+                .description("4 = panels four times as likely in the End")
+                .note("now");
         menu.addDouble("drops.mob-kill-chance", "Mob kill drop chance", Material.ZOMBIE_HEAD, 0, 1)
                 .description("0.01 = 1%")
                 .note("now");
@@ -187,7 +218,7 @@ public class ImusMiniQuests extends JavaPlugin
 
         String cmd1_sub1 = "give";
         String full_sub1 = cmd1 + " " + cmd1_sub1;
-        _cmdHelper.setCmd(full_sub1, "Give a quest panel", "/imq give <player> <quest> [amount]");
+        _cmdHelper.setCmd(full_sub1, "Give a quest panel", "/imq give <player> <quest> [amount] [rarity]");
         handler.registerSubCmd(cmd1, cmd1_sub1, new SubGiveCmd(_cmdHelper.getCmdData(full_sub1)));
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_GIVE);
 
@@ -243,6 +274,7 @@ public class ImusMiniQuests extends JavaPlugin
         {
             _tab_cmd1.SetRule(label, 3, questIds);
             _tab_cmd1.SetRule(label, 4, amounts);
+            _tab_cmd1.SetRule(label, 5, List.copyOf(_managerRarities.getNames()));
         }
     }
 }
