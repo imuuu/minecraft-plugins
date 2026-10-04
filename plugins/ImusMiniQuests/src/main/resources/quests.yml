@@ -1553,3 +1553,359 @@ quests:
           weight: 5
         - enchant-book: sniper
           weight: 2
+
+  # ---- More timed quests ----
+
+  zombie_wave:
+    name: "&2Zombie Wave"
+    material: GREEN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThey just keep coming."
+    drop-weight: 4
+    objective:
+      type: KILL_ENTITY
+      targets: [ZOMBIE, HUSK, DROWNED, ZOMBIE_VILLAGER]
+      amount: 12
+      time-limit: 60
+      text: "Kill 12 zombies in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [IRON_SWORD, DIAMOND_SWORD]
+          enchants: [SMITE:5, LOOTING:2, UNBREAKING:3, KNOCKBACK:2]
+          enchant-count: 2
+          weight: 6
+        - tool: CHESTPLATE
+          slots: true
+          tiers: {IRON: 60, DIAMOND: 40}
+          weight: 5
+        - item: GOLDEN_APPLE
+          min: 2
+          max: 4
+          weight: 4
+
+  creeper_hunt:
+    name: "&aCreeper Hunt"
+    material: LIME_STAINED_GLASS_PANE
+    lore:
+      - "&7&oQuick, before they hiss."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [CREEPER]
+      amount: 5
+      time-limit: 90
+      text: "Kill 5 creepers in 90 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_CHESTPLATE, IRON_CHESTPLATE]
+          enchants: [BLAST_PROTECTION:4, UNBREAKING:3, PROTECTION:3]
+          enchant-count: 2
+          weight: 6
+        - item: TNT
+          min: 6
+          max: 12
+          weight: 4
+        - item: [MUSIC_DISC_CAT, MUSIC_DISC_BLOCKS, MUSIC_DISC_CHIRP, MUSIC_DISC_MALL]
+          weight: 2
+
+  spider_swarm:
+    name: "&8Spider Swarm"
+    material: BLACK_STAINED_GLASS_PANE
+    lore:
+      - "&7&oToo many eyes in the dark."
+    drop-weight: 3
+    objective:
+      type: KILL_ENTITY
+      targets: [SPIDER, CAVE_SPIDER]
+      amount: 6
+      time-limit: 45
+      text: "Kill 6 spiders in 45 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_SWORD, IRON_SWORD]
+          enchants: [BANE_OF_ARTHROPODS:5, LOOTING:2, UNBREAKING:3]
+          enchant-count: 2
+          weight: 6
+        - item: COBWEB
+          min: 6
+          max: 12
+          weight: 4
+        - enchant-book: venom
+          weight: 3
+
+  nether_blitz:
+    name: "&cNether Blitz"
+    material: RED_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFire on every side."
+    drop-weight: 2
+    objective:
+      type: KILL_ENTITY
+      targets: [BLAZE, WITHER_SKELETON, MAGMA_CUBE, PIGLIN_BRUTE, HOGLIN, GHAST]
+      amount: 8
+      time-limit: 60
+      text: "Kill 8 Nether monsters in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 4
+      pool:
+        - tool: GEAR
+          slots: true
+          tiers: {DIAMOND: 100}
+          weight: 6
+        - item: [DIAMOND_CHESTPLATE, DIAMOND_LEGGINGS]
+          enchants: [FIRE_PROTECTION:4, PROTECTION:4, UNBREAKING:3]
+          enchant-count: 2
+          weight: 5
+        - item: NETHERITE_SCRAP
+          min: 1
+          max: 2
+          weight: 3
+        - money: 8-15%
+          weight: 3
+
+  ore_rush:
+    name: "&bOre Rush"
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFollow the vein, fast."
+    drop-weight: 3
+    objective:
+      type: BREAK_BLOCK
+      targets: ["*_ORE"]
+      amount: 12
+      time-limit: 90
+      text: "Mine 12 ores in 90 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_PICKAXE, IRON_PICKAXE]
+          enchants: [FORTUNE:3, EFFICIENCY:5, UNBREAKING:3]
+          enchant-count: 2-3
+          weight: 6
+        - enchant-book: vein_miner
+          weight: 3
+        - item: DIAMOND
+          min: 2
+          max: 4
+          weight: 4
+
+  dig_sprint:
+    name: "&6Dig Sprint"
+    material: BROWN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oShovel first, questions later."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [DIRT, GRASS_BLOCK, COARSE_DIRT, SAND, RED_SAND, GRAVEL, CLAY, MUD, SOUL_SAND, SOUL_SOIL]
+      amount: 64
+      time-limit: 30
+      text: "Dig 64 dirt, sand or gravel in 30 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_SHOVEL, IRON_SHOVEL]
+          enchants: [EFFICIENCY:5, UNBREAKING:3, SILK_TOUCH]
+          enchant-count: 2
+          weight: 6
+        - enchant-book: tunnel
+          weight: 3
+        - money: 3-6%
+          weight: 3
+
+  harvest_rush:
+    name: "&eHarvest Rush"
+    material: YELLOW_STAINED_GLASS_PANE
+    lore:
+      - "&7&oBring it in before the rain."
+    drop-weight: 4
+    objective:
+      type: BREAK_BLOCK
+      targets: [WHEAT, CARROTS, POTATOES, BEETROOTS]
+      amount: 48
+      time-limit: 45
+      text: "Harvest 48 fully grown crops in 45 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_HOE, IRON_HOE]
+          enchants: [EFFICIENCY:5, FORTUNE:3, UNBREAKING:3]
+          enchant-count: 2
+          weight: 6
+        - enchant-book: replanter
+          weight: 3
+        - item: GOLDEN_CARROT
+          min: 16
+          max: 32
+          weight: 4
+
+  log_jam:
+    name: "&6Log Jam"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThe sawmill is waiting."
+    drop-weight: 3
+    objective:
+      type: BREAK_BLOCK
+      targets: [CRIMSON_STEM, WARPED_STEM]
+      amount: 20
+      time-limit: 45
+      text: "Chop 20 crimson or warped stems in 45 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_AXE, IRON_AXE]
+          enchants: [EFFICIENCY:5, UNBREAKING:3, SHARPNESS:4]
+          enchant-count: 2
+          weight: 6
+        - enchant-book: timber
+          weight: 3
+        - item: SHROOMLIGHT
+          min: 8
+          max: 16
+          weight: 4
+
+  fishing_frenzy:
+    name: "&3Fishing Frenzy"
+    material: CYAN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oThey are really biting today."
+    drop-weight: 4
+    objective:
+      type: FISH
+      targets: []
+      amount: 6
+      time-limit: 120
+      text: "Catch 6 things in 2 minutes"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: FISHING_ROD
+          enchants: [LURE:3, LUCK_OF_THE_SEA:3, UNBREAKING:3]
+          enchant-count: 2-3
+          weight: 6
+        - enchant-book: auto_reel
+          weight: 3
+        - item: NAUTILUS_SHELL
+          min: 1
+          max: 3
+          weight: 3
+
+  shearing_spree:
+    name: "&fShearing Spree"
+    material: WHITE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSnip snip snip."
+    drop-weight: 3
+    objective:
+      type: SHEAR
+      targets: [SHEEP]
+      amount: 10
+      time-limit: 60
+      text: "Shear 10 sheep in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: SHEARS
+          enchants: [EFFICIENCY:5, UNBREAKING:3]
+          weight: 5
+        - item: [WHITE_BED, LOOM, PAINTING]
+          min: 1
+          max: 3
+          weight: 3
+        - money: 3-6%
+          weight: 4
+
+  hungry:
+    name: "&6Hungry!"
+    material: ORANGE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oSecond lunch, third lunch..."
+    drop-weight: 3
+    objective:
+      type: EAT
+      targets: []
+      amount: 8
+      time-limit: 60
+      text: "Eat 8 times in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: GOLDEN_CARROT
+          min: 16
+          max: 32
+          weight: 6
+        - item: GOLDEN_APPLE
+          min: 2
+          max: 4
+          weight: 4
+        - enchant-book: saturation
+          weight: 3
+
+  swimmer:
+    name: "&9Swimmer"
+    material: BLUE_STAINED_GLASS_PANE
+    lore:
+      - "&7&oFins would help."
+    drop-weight: 3
+    objective:
+      type: WALK
+      targets: [WATER]
+      amount: 100
+      time-limit: 60
+      text: "Swim 100 blocks in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: [DIAMOND_BOOTS, IRON_BOOTS]
+          enchants: [DEPTH_STRIDER:3, UNBREAKING:3, PROTECTION:3]
+          enchant-count: 2
+          weight: 6
+        - item: [DIAMOND_HELMET, TURTLE_HELMET]
+          enchants: [RESPIRATION:3, AQUA_AFFINITY, UNBREAKING:3]
+          enchant-count: 2
+          weight: 4
+        - enchant-book: aquatic
+          weight: 3
+
+  quick_trader:
+    name: "&2Quick Trader"
+    material: GREEN_STAINED_GLASS_PANE
+    lore:
+      - "&7&oDeal, deal, deal."
+    drop-weight: 3
+    objective:
+      type: TRADE
+      targets: []
+      amount: 6
+      time-limit: 60
+      text: "Trade 6 times with villagers in 60 seconds"
+    rewards:
+      rolls: 2
+      random-rolls: 3
+      pool:
+        - item: EMERALD
+          min: 16
+          max: 32
+          weight: 6
+        - item: BOOK
+          enchant-levels: 30
+          display: "Enchanted Book &8(level 30)"
+          weight: 4
+        - money: 4-8%
+          weight: 4
