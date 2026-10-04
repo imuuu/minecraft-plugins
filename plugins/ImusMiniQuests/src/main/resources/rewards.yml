@@ -32,6 +32,32 @@ tiers:
     display: "&fCommon"
     weight: 600
     rewards:
+      - item: [OAK_LOG, SPRUCE_LOG, BIRCH_LOG, DARK_OAK_LOG, CHERRY_LOG]
+        min: 16
+        max: 32
+        weight: 5
+      - item: [GLASS, BRICKS, STONE_BRICKS, SMOOTH_STONE, POLISHED_ANDESITE]
+        min: 16
+        max: 32
+        weight: 4
+      - item: [FLINT, GUNPOWDER]
+        min: 4
+        max: 12
+        weight: 4
+      - item: BONE_MEAL
+        min: 16
+        max: 32
+        weight: 3
+      - item: [PUMPKIN_PIE, COOKIE, HONEY_BOTTLE]
+        min: 3
+        max: 8
+        weight: 3
+      - item: [BUCKET, SHEARS, FLINT_AND_STEEL, COMPASS, CLOCK]
+        weight: 3
+      - item: [WHITE_WOOL, LIGHT_GRAY_WOOL, BROWN_WOOL, BLACK_WOOL]
+        min: 8
+        max: 16
+        weight: 2
       - item: [IRON_INGOT, GOLD_INGOT, COPPER_INGOT]
         min: 4
         max: 12
@@ -82,6 +108,38 @@ tiers:
     display: "&aUncommon"
     weight: 250
     rewards:
+      - item: OBSIDIAN
+        min: 4
+        max: 8
+        weight: 4
+      - item: BOOKSHELF
+        min: 2
+        max: 5
+        weight: 3
+      - item: EXPERIENCE_BOTTLE
+        min: 12
+        max: 24
+        weight: 4
+      - item: [COPPER_BLOCK, IRON_BLOCK, GOLD_BLOCK]
+        weight: 3
+      - item: [ITEM_FRAME, GLOW_ITEM_FRAME, GLOW_INK_SAC]
+        min: 2
+        max: 6
+        weight: 3
+      - item: [TURTLE_SCUTE, ARMADILLO_SCUTE]
+        min: 1
+        max: 3
+        weight: 3
+      - item: SPECTRAL_ARROW
+        min: 8
+        max: 16
+        weight: 3
+      - item: [HONEYCOMB, TNT]
+        min: 2
+        max: 6
+        weight: 3
+      - item: [ANVIL, CAKE, JUKEBOX]
+        weight: 2
       - item: BOOK
         enchants: [MENDING, UNBREAKING:3, EFFICIENCY:5, FORTUNE:3, SILK_TOUCH, SHARPNESS:5, LOOTING:3, PROTECTION:4, FEATHER_FALLING:4, POWER:5]
         enchant-count: 1
@@ -137,6 +195,39 @@ tiers:
     display: "&9Rare"
     weight: 110
     rewards:
+      - item: [ENCHANTING_TABLE, BREWING_STAND, ANVIL]
+        weight: 3
+      - item: [ECHO_SHARD, DISC_FRAGMENT_5]
+        min: 1
+        max: 3
+        weight: 2
+      - item: [SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE, DUNE_ARMOR_TRIM_SMITHING_TEMPLATE, COAST_ARMOR_TRIM_SMITHING_TEMPLATE, WILD_ARMOR_TRIM_SMITHING_TEMPLATE, WARD_ARMOR_TRIM_SMITHING_TEMPLATE, EYE_ARMOR_TRIM_SMITHING_TEMPLATE, VEX_ARMOR_TRIM_SMITHING_TEMPLATE, TIDE_ARMOR_TRIM_SMITHING_TEMPLATE, SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE, RIB_ARMOR_TRIM_SMITHING_TEMPLATE, WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE, SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE, RAISER_ARMOR_TRIM_SMITHING_TEMPLATE, HOST_ARMOR_TRIM_SMITHING_TEMPLATE, FLOW_ARMOR_TRIM_SMITHING_TEMPLATE, BOLT_ARMOR_TRIM_SMITHING_TEMPLATE]
+        display: "Armor Trim Template &8(random)"
+        weight: 3
+      - item: GOLDEN_CARROT
+        min: 32
+        max: 64
+        weight: 3
+      - item: NAME_TAG
+        min: 3
+        max: 5
+        weight: 2
+      - item: BOW
+        enchants: [POWER:5, PUNCH:2, UNBREAKING:3, FLAME, INFINITY]
+        enchant-count: 2-3
+        weight: 3
+      - item: CROSSBOW
+        enchants: [QUICK_CHARGE:3, MULTISHOT, PIERCING:4, UNBREAKING:3]
+        enchant-count: 2
+        weight: 2
+      - item: FISHING_ROD
+        enchants: [LURE:3, LUCK_OF_THE_SEA:3, UNBREAKING:3]
+        enchant-count: 2-3
+        weight: 2
+      - item: [IRON_BOOTS, DIAMOND_BOOTS]
+        enchants: [FEATHER_FALLING:4, DEPTH_STRIDER:3, SOUL_SPEED:3, UNBREAKING:3]
+        enchant-count: 2
+        weight: 2
       - item: [DIAMOND_PICKAXE, IRON_PICKAXE, DIAMOND_SHOVEL]
         enchants: [FORTUNE:3, EFFICIENCY:4, UNBREAKING:3]
         weight: 4
@@ -184,6 +275,29 @@ tiers:
     weight: 33
     announce: true
     rewards:
+      - item: SHULKER_BOX
+        weight: 3
+      - item: BOOK
+        enchants: [MENDING, UNBREAKING:3, EFFICIENCY:5, FORTUNE:3, SHARPNESS:5, PROTECTION:4, LOOTING:3, SWIFT_SNEAK:3, SOUL_SPEED:3]
+        enchant-count: 2
+        display: "Enchanted Book &b(2 strong enchants)"
+        weight: 4
+      - item: TRIDENT
+        enchants: [LOYALTY:3, IMPALING:5, RIPTIDE:3, CHANNELING, UNBREAKING:3]
+        enchant-count: 2
+        weight: 2
+      - item: MACE
+        enchants: [DENSITY:5, BREACH:4, WIND_BURST:3, UNBREAKING:3]
+        enchant-count: 2
+        weight: 2
+      - item: DIAMOND_BLOCK
+        min: 2
+        max: 3
+        weight: 3
+      - item: [END_CRYSTAL, SNIFFER_EGG, DRAGON_BREATH]
+        min: 1
+        max: 2
+        weight: 2
       - tool: RANDOM
         tiers: {DIAMOND: 100}
         enchants: [FORTUNE:3, EFFICIENCY:5, UNBREAKING:4, MENDING, SILK_TOUCH, SHARPNESS:5, LOOTING:3]
@@ -228,6 +342,32 @@ tiers:
     weight: 7
     announce: true
     rewards:
+      - item: NETHERITE_UPGRADE_SMITHING_TEMPLATE
+        min: 1
+        max: 2
+        weight: 3
+      - item: TOTEM_OF_UNDYING
+        min: 2
+        max: 3
+        weight: 3
+      - item: SHULKER_BOX
+        min: 2
+        max: 3
+        weight: 2
+      - item: MACE
+        enchants: [DENSITY:5, BREACH:4, WIND_BURST:3, UNBREAKING:3, MENDING]
+        enchant-count: 3
+        weight: 2
+      - item: TRIDENT
+        enchants: [LOYALTY:3, IMPALING:5, CHANNELING, UNBREAKING:3, MENDING]
+        enchant-count: 3-4
+        weight: 2
+      - item: DIAMOND_BLOCK
+        min: 4
+        max: 8
+        weight: 2
+      - item: [DRAGON_HEAD, WITHER_SKELETON_SKULL]
+        weight: 1
       - tool: [PICKAXE, SWORD, AXE, SHOVEL]
         tiers: {DIAMOND: 70, NETHERITE: 30}
         enchants: [FORTUNE:3, EFFICIENCY:6, UNBREAKING:4, MENDING, SHARPNESS:6, LOOTING:3, SWEEPING_EDGE:3]
