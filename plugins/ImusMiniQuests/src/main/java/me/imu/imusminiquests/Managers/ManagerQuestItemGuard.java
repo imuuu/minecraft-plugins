@@ -84,6 +84,7 @@ public class ManagerQuestItemGuard implements Listener
         PanelRarity rarity = QuestItem.getRarity(inHand);
         inHand.setAmount(inHand.getAmount() - 1);
         player.getInventory().setItem(hand, inHand.getAmount() > 0 ? inHand : null);
+        _plugin.getPanelCarriers().markStale(player);
 
         ManagerQuestPoints questPoints = _plugin.getQuestPoints();
         // A rarer panel adds its own luck and random rewards on top of the player's

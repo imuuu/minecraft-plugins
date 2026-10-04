@@ -60,13 +60,16 @@ public class ManagerQuestProgress implements Listener
     private final ManagerQuests _quests;
     private final ManagerPlacedBlocks _placedBlocks;
     private final ManagerQuestDrops _drops;
+    private final ManagerPanelCarriers _carriers;
 
-    public ManagerQuestProgress(ImusMiniQuests plugin, ManagerQuests quests, ManagerPlacedBlocks placedBlocks, ManagerQuestDrops drops)
+    public ManagerQuestProgress(ImusMiniQuests plugin, ManagerQuests quests, ManagerPlacedBlocks placedBlocks, ManagerQuestDrops drops,
+                                ManagerPanelCarriers carriers)
     {
         _plugin = plugin;
         _quests = quests;
         _placedBlocks = placedBlocks;
         _drops = drops;
+        _carriers = carriers;
     }
 
     /**
@@ -78,6 +81,9 @@ public class ManagerQuestProgress implements Listener
     public int addProgress(Player player, OBJECTIVE_TYPE type, Predicate<QuestObjective> matches, int amount)
     {
         if (player.getGameMode() == GameMode.CREATIVE) return 0;
+        // Players without a panel for this kind of objective are skipped without a look at their
+        // inventory
+        if (!_carriers.carries(player, type)) return 0;
 
         boolean all = "ALL".equalsIgnoreCase(_plugin.getConfig().getString("progress.mode", "FIRST"));
         PlayerInventory inv = player.getInventory();
@@ -116,7 +122,11 @@ public class ManagerQuestProgress implements Listener
             inv.setItem(slot, stack);
             updated++;
 
-            if (newProgress >= required) onComplete(player, quest, stack);
+            if (newProgress >= required)
+            {
+                onComplete(player, quest, stack);
+                _carriers.markStale(player);
+            }
             else showProgress(player, quest, stack, newProgress, required);
 
             if (!all) break;
@@ -292,6 +302,8 @@ public class ManagerQuestProgress implements Listener
 
     // Walked distance not yet counted, per player: progress moves in whole blocks
     private final Map<UUID, Double> _walked = new HashMap<>();
+    // Blocks walked since a player without a walk panel was last checked
+    private final Map<UUID, Integer> _blocksSinceCheck = new HashMap<>();
 
     /**
      * WALK quests: every whole block walked (or sprinted, swum...) on foot counts once, while a
@@ -325,6 +337,20 @@ public class ManagerQuestProgress implements Listener
 
         int blocks = (int) walked;
         _walked.put(player.getUniqueId(), walked - blocks);
+
+        if (!_carriers.carries(player, OBJECTIVE_TYPE.WALK))
+        {
+            // Not carrying a walk panel: trust that for 5 blocks, then look again in case one
+            // arrived in a way that has no event
+            int sinceCheck = _blocksSinceCheck.merge(player.getUniqueId(), blocks, Integer::sum);
+            if (sinceCheck >= 5)
+            {
+                _blocksSinceCheck.remove(player.getUniqueId());
+                _carriers.markStale(player);
+            }
+            return;
+        }
+
         Material underfoot = to.clone().subtract(0, 0.1, 0).getBlock().getType();
         addProgress(player, OBJECTIVE_TYPE.WALK, o -> o.targets().matches(underfoot), blocks);
     }
@@ -333,6 +359,7 @@ public class ManagerQuestProgress implements Listener
     public void onQuit(PlayerQuitEvent event)
     {
         _walked.remove(event.getPlayer().getUniqueId());
+        _blocksSinceCheck.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

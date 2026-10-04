@@ -84,6 +84,7 @@ public class SubGiveCmd implements CommandInterface
         {
             InvUtil.AddItemToInventoryOrDrop(target, rarity == null ? QuestItem.create(quest) : QuestItem.create(quest, rarity));
         }
+        ImusMiniQuests.getInstance().getPanelCarriers().markStale(target);
         sender.sendMessage(Metods.msgC("&9Gave &e" + amount + "&9 x " + quest.getName() + "&9 to &e" + target.getName()));
         return true;
     }

@@ -29,6 +29,7 @@ public class SubCompleteCmd implements CommandInterface
 
         QuestItem.setProgress(stack, quest, QuestItem.getRequiredAmount(stack, quest));
         player.getInventory().setItemInMainHand(stack);
+        ImusMiniQuests.getInstance().getPanelCarriers().markStale(player);
         player.sendMessage(ChatColor.GREEN + "Completed " + quest.getName());
         return true;
     }

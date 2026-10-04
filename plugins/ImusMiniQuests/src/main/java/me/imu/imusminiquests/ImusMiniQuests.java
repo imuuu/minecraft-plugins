@@ -35,6 +35,7 @@ public class ImusMiniQuests extends JavaPlugin
     private ManagerRewardPools _managerRewardPools;
     private ManagerUnlocks _managerUnlocks;
     private ManagerRarities _managerRarities;
+    private ManagerPanelCarriers _managerPanelCarriers;
 
     @Override
     public void onEnable()
@@ -56,12 +57,15 @@ public class ImusMiniQuests extends JavaPlugin
         _managerQuests.load();
         _managerPlacedBlocks = new ManagerPlacedBlocks(this);
         _managerQuestDrops = new ManagerQuestDrops(this, _managerQuests);
-        _managerQuestProgress = new ManagerQuestProgress(this, _managerQuests, _managerPlacedBlocks, _managerQuestDrops);
+        _managerPanelCarriers = new ManagerPanelCarriers(_managerQuests);
+        _managerQuestProgress = new ManagerQuestProgress(this, _managerQuests, _managerPlacedBlocks, _managerQuestDrops,
+                _managerPanelCarriers);
 
         getServer().getPluginManager().registerEvents(_managerQuestProgress, this);
         getServer().getPluginManager().registerEvents(new ManagerQuestItemGuard(this, _managerQuests), this);
         getServer().getPluginManager().registerEvents(_managerQuestDrops, this);
         getServer().getPluginManager().registerEvents(_managerUnlocks, this);
+        getServer().getPluginManager().registerEvents(_managerPanelCarriers, this);
         if (getServer().getPluginManager().isPluginEnabled("BetterStructures"))
             getServer().getPluginManager().registerEvents(new ManagerBetterStructuresLoot(_managerQuestDrops), this);
 
@@ -95,6 +99,7 @@ public class ImusMiniQuests extends JavaPlugin
         _managerUnlocks.load();
         _managerRewardPools.load();
         _managerQuests.load();
+        _managerPanelCarriers.markAllStale();
         _managerQuestDrops.reload();
         _managerEconomy.start();
         updateTabCompleterRules();
@@ -136,6 +141,8 @@ public class ImusMiniQuests extends JavaPlugin
     public ManagerUnlocks getUnlocks() {return _managerUnlocks;}
 
     public ManagerRarities getRarities() {return _managerRarities;}
+
+    public ManagerPanelCarriers getPanelCarriers() {return _managerPanelCarriers;}
 
     private ConfigMenu createConfigMenu()
     {
