@@ -11,6 +11,7 @@ import me.imu.imusminiquests.Quests.QuestObjective;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Input;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -110,7 +111,7 @@ public class ManagerQuestProgress implements Listener
             }
 
             int newProgress = Math.min(progress + amount, required);
-            QuestItem.setProgress(stack, quest, newProgress);
+            QuestItem.setProgress(stack, quest, newProgress, QuestItem.needsRedraw(progress, newProgress, required));
             if (newProgress >= required) QuestItem.setTimerStart(stack, 0);
             inv.setItem(slot, stack);
             updated++;
@@ -293,7 +294,8 @@ public class ManagerQuestProgress implements Listener
     private final Map<UUID, Double> _walked = new HashMap<>();
 
     /**
-     * WALK quests: every whole block walked (or sprinted, swum...) on foot counts once. Flying,
+     * WALK quests: every whole block walked (or sprinted, swum...) on foot counts once, while a
+     * movement key is held. Flying,
      * gliding, riding and teleports don't count. The target is the block underfoot, so a quest
      * can ask for walking on sand.
      */
@@ -313,6 +315,10 @@ public class ManagerQuestProgress implements Listener
         if (player.isFlying() || player.isGliding() || player.isInsideVehicle()) return;
         // A jump this big in one move is a teleport or lag, not walking
         if (distanceSquared > 4) return;
+        // Only while the player is pressing a movement key: being pushed by water, pistons or
+        // mobs while AFK isn't walking
+        Input input = player.getCurrentInput();
+        if (!input.isForward() && !input.isBackward() && !input.isLeft() && !input.isRight()) return;
 
         double walked = _walked.merge(player.getUniqueId(), Math.sqrt(distanceSquared), Double::sum);
         if (walked < 1) return;

@@ -20,6 +20,9 @@ import java.util.Locale;
  * Reads and writes quest items. A quest item is a normal ItemStack with the quest id, its
  * progress, its rarity and, for timed quests, when the current attempt started, all in its
  * persistent data. It never stacks, so every item keeps its own progress.
+ * <p>
+ * Reads go through ItemStack#getPersistentDataContainer, a read-only view that doesn't copy the
+ * item's meta: they run for every inventory slot on every block walked, mined or mob killed.
  */
 public final class QuestItem
 {
@@ -70,13 +73,13 @@ public final class QuestItem
     public static String getQuestId(ItemStack stack)
     {
         if (stack == null || stack.isEmpty() || !stack.hasItemMeta()) return null;
-        return stack.getItemMeta().getPersistentDataContainer().get(_keyQuestId, PersistentDataType.STRING);
+        return stack.getPersistentDataContainer().get(_keyQuestId, PersistentDataType.STRING);
     }
 
     public static int getProgress(ItemStack stack)
     {
         if (stack == null || !stack.hasItemMeta()) return 0;
-        Integer progress = stack.getItemMeta().getPersistentDataContainer().get(_keyProgress, PersistentDataType.INTEGER);
+        Integer progress = stack.getPersistentDataContainer().get(_keyProgress, PersistentDataType.INTEGER);
         return progress == null ? 0 : progress;
     }
 
@@ -84,7 +87,7 @@ public final class QuestItem
     public static PanelRarity getRarity(ItemStack stack)
     {
         String name = stack == null || !stack.hasItemMeta() ? null
-                : stack.getItemMeta().getPersistentDataContainer().get(_keyRarity, PersistentDataType.STRING);
+                : stack.getPersistentDataContainer().get(_keyRarity, PersistentDataType.STRING);
         return ImusMiniQuests.getInstance().getRarities().get(name);
     }
 
@@ -102,7 +105,7 @@ public final class QuestItem
     /** When the current attempt of a timed quest started, 0 when none is running. */
     public static long getTimerStart(ItemStack stack)
     {
-        Long start = stack.getItemMeta().getPersistentDataContainer().get(_keyTimerStart, PersistentDataType.LONG);
+        Long start = stack.getPersistentDataContainer().get(_keyTimerStart, PersistentDataType.LONG);
         return start == null ? 0 : start;
     }
 
@@ -131,11 +134,30 @@ public final class QuestItem
      */
     public static void setProgress(ItemStack stack, Quest quest, int progress)
     {
-        ItemMeta meta = stack.getItemMeta();
-        meta.getPersistentDataContainer().set(_keyProgress, PersistentDataType.INTEGER,
-                Math.max(0, Math.min(progress, getRequiredAmount(stack, quest))));
-        stack.setItemMeta(meta);
-        refresh(stack, quest);
+        setProgress(stack, quest, progress, true);
+    }
+
+    /**
+     * Stores the progress, capped to the panel's amount. Rebuilding the lore is the expensive
+     * part, so frequent small steps (a walk quest moves every block) can skip it; see
+     * {@link #needsRedraw}.
+     */
+    public static void setProgress(ItemStack stack, Quest quest, int progress, boolean redrawLore)
+    {
+        stack.editPersistentDataContainer(pdc -> pdc.set(_keyProgress, PersistentDataType.INTEGER,
+                Math.max(0, Math.min(progress, getRequiredAmount(stack, quest)))));
+        if (redrawLore) refresh(stack, quest);
+    }
+
+    /**
+     * True when going from one progress to the other changes the lore enough to redraw it: the
+     * quest is done, or the progress crossed a 1% step. Below 100 every step counts.
+     */
+    public static boolean needsRedraw(int oldProgress, int newProgress, int required)
+    {
+        if (newProgress >= required || oldProgress == 0) return true;
+        int step = Math.max(1, required / 100);
+        return oldProgress / step != newProgress / step;
     }
 
     /**

@@ -251,12 +251,18 @@ public class ManagerUnlocks implements Listener
         if (unlock.materials().contains(stack.getType())) return true;
         if (unlock.enchants().isEmpty()) return false;
 
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) return false;
+        // Enchants on the item are read without copying its meta; only enchanted books need it
         for (Enchantment enchant : unlock.enchants())
         {
-            if (meta.hasEnchant(enchant)) return true;
-            if (meta instanceof EnchantmentStorageMeta storage && storage.hasStoredEnchant(enchant)) return true;
+            if (stack.containsEnchantment(enchant)) return true;
+        }
+        if (stack.getType() != Material.ENCHANTED_BOOK) return false;
+
+        ItemMeta meta = stack.getItemMeta();
+        if (!(meta instanceof EnchantmentStorageMeta storage)) return false;
+        for (Enchantment enchant : unlock.enchants())
+        {
+            if (storage.hasStoredEnchant(enchant)) return true;
         }
         return false;
     }
