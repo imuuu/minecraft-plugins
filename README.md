@@ -18,7 +18,10 @@ run/               local test server (git-ignored, see below)
 The modules that are built are the ones that were running on the old 1.20.1
 server: `ImusAPI`, `DontLoseItems`, `ImusChallenges`, `ImusEnchants`,
 `imusGS`, `imusSpawners`, `imusTNT`, `imusWaystones`, plus `imusMcCards` and
-`ImusMiniQuests`.
+`ImusMiniQuests`. `DontLoseItems` has since been split into `ImusDontLoseItems`
+(death handling), `ImusDifficult` (survival tweaks), `ImusHellGear` (custom items)
+and `ImusUnstableFearSystem` (FEAR difficulty, nether and Unstable End; needs
+`ImusHellGear`).
 
 ## Prerequisites
 
@@ -67,7 +70,7 @@ Other plugins, all loaded as `depend`/`softdepend` in `plugin.yml`:
 | Plugin | Needed by | Tested with |
 |---|---|---|
 | Vault + an economy (EssentialsX) | imusAPI, imusGS | Vault 1.7.3, EssentialsX 2.22.1-dev |
-| BetterStructures (needs WorldEdit) | DontLoseItems, ImusEnchants | 2.7.4, WorldEdit 7.4.6-beta-02 |
+| BetterStructures (needs WorldEdit) | ImusUnstableFearSystem, ImusEnchants | 2.7.4, WorldEdit 7.4.6-beta-02 |
 
 ProtocolLib is no longer needed: its uses were replaced with Paper API.
 
@@ -148,7 +151,7 @@ doesn't replace a local build with the same commit from GitHub.
 - VaultAPI 1.7 declares a dependency on `org.bukkit:bukkit:1.13.1`, which
   would shadow paper-api on the compile classpath. The parent POM excludes it.
 - javac runs forked: in-process javac 25 crashes while formatting a
-  deprecation warning on DontLoseItems.
+  deprecation warning on the old DontLoseItems code.
 
 ## Archive
 

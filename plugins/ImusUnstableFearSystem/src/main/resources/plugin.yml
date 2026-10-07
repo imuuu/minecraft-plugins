@@ -1,0 +1,15 @@
+name: ImusUnstableFearSystem
+version: '${project.version}'
+main: me.imu.imusunstablefearsystem.ImusUnstableFearSystem
+api-version: '26.2'
+authors: [ imu ]
+description: FEAR or NO_FEAR difficulty, the nether fear system, the Unstable End events and their loot
+depend:
+  - imusAPI
+  - ImusHellGear
+softdepend:
+  - BetterStructures
+permissions:
+  imusunstablefearsystem.config:
+    description: Change the settings with /ia config imusunstablefearsystem
+    default: op

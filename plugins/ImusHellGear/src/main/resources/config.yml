@@ -1,0 +1,5 @@
+# ImusHellGear - change these in game with /ia config imushellgear
+
+# 8 iron ingots around an iron armor piece craft a Reinforced piece: 0.5 less damage per piece
+# from every hit, but it wears faster. The recipes are added at startup.
+reinforced-iron-armor: true

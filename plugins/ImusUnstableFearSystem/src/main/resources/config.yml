@@ -1,0 +1,27 @@
+# ImusUnstableFearSystem - change these in game with /ia config imusunstablefearsystem
+# Players pick FEAR or NO_FEAR at their first nether portal (for 4 days); most of the nether
+# changes below only hit FEAR players.
+
+nether:
+  # 5% of natural nether spawns become fast zombies in diamond armor
+  speed-zombies: true
+  # A totem of undying in the off-hand is moved into the inventory
+  no-totem-in-offhand: true
+  # Nether mobs holding a shield send arrows back at the shooter
+  mob-shield-reflects-arrows: true
+  wither-skeleton-speed: true
+  hoglin-speed: true
+  # Fire and burning (not lava) deal double damage
+  double-fire-damage: true
+  # Blocks around a ghast fireball hit turn to terracotta and vanish
+  ghast-fireball: true
+  blaze-fireball-spread: true
+  # Dying magma cubes leave a lava source
+  magma-cube-lava: true
+  only-small-magma-cube-lava: true
+  # Drinking a water bottle puts the player out and gives Fire Resistance, 2 uses per bottle
+  water-bottle-buff: true
+
+end:
+  # % of End ship item frames that keep their elytra, the rest get a diamond block
+  elytra-keep-chance: 25

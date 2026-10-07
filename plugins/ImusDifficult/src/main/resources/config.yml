@@ -1,0 +1,46 @@
+# ImusDifficult - change these in game with /ia config imusdifficult
+
+portals:
+  # Nobody but ops gets through the portal before these, dd/MM/yyyy/HH:mm
+  nether-open-date: 10/02/2023/18:00
+  end-open-date: 24/02/2023/18:00
+
+damage-over-time:
+  # Durability every armor piece loses per poison, wither or fire hit (at most 5 times a second).
+  # Full Hell leggings + chestplate (ImusHellGear) protect from the fire part.
+  armor-durability-loss: 1
+
+skeleton-arrows:
+  # Food lost when a skeleton arrow hits a survival player who isn't blocking
+  food-loss: 1
+  # % per hit, minus 3 for every Projectile Protection level on the armor
+  food-loss-chance: 65
+
+# Shulker bullets deal damage based on Protection, Projectile Protection and armor toughness
+shulker-bullet-extra-damage: true
+
+mending:
+  # 1.0 = the vanilla repair amount
+  repair-multiplier: 1.0
+
+iron-golem-dies-on-wither: true
+
+enchanted-carrot:
+  # Chance per fully grown carrot block to drop one Enchanted Carrot instead of the normal drops
+  drop-chance: 0.1
+  # XP points (not levels) from eating one
+  xp: 10
+
+totem-jokes:
+  # % per hit taken with a totem of undying in the off-hand
+  chance: 20
+
+treasure-maps:
+  # Overworld loot chests: 10% of treasure maps become a Heart of the Sea, the rest are removed
+  remove: true
+
+anti-afk:
+  # Survival players who don't move get warned and then kicked
+  enabled: true
+  warning-minutes: 40
+  kick-minutes: 45

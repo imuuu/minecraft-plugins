@@ -14,7 +14,10 @@
 
     <modules>
         <module>libs/ImusAPI</module>
-        <module>plugins/DontLoseItems</module>
+        <module>plugins/ImusDontLoseItems</module>
+        <module>plugins/ImusDifficult</module>
+        <module>plugins/ImusHellGear</module>
+        <module>plugins/ImusUnstableFearSystem</module>
         <module>plugins/ImusChallenges</module>
         <module>plugins/ImusEnchants</module>
         <module>plugins/ImusMiniQuests</module>

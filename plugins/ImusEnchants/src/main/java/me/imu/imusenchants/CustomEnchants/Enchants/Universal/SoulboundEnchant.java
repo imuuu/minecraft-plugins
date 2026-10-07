@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 // The item stays with the player on death, once: the enchant is used up when it saves the item.
-// DontLoseItems already keeps the hotbar and armor (it empties them from the drops before this
+// ImusDontLoseItems already keeps the hotbar and armor (it empties them from the drops before this
 // runs), so in practice Soulbound saves items from the rest of the inventory and those aren't
 // charged for nothing.
 // Between death and respawn the saved items are kept in the player's own data, so a restart

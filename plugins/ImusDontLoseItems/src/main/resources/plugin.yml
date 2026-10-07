@@ -1,0 +1,12 @@
+name: ImusDontLoseItems
+version: '${project.version}'
+main: me.imu.imusdontloseitems.ImusDontLoseItems
+api-version: '26.2'
+authors: [ imu ]
+description: Keeps the hotbar and armor on death for a durability cost, punishes logging out in combat
+depend:
+  - imusAPI
+permissions:
+  imusdontloseitems.config:
+    description: Change the settings with /ia config imusdontloseitems
+    default: op

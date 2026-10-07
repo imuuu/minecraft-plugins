@@ -1,0 +1,14 @@
+name: ImusHellGear
+version: '${project.version}'
+main: me.imu.imushellgear.ImusHellGear
+api-version: '26.2'
+authors: [ imu ]
+description: Hell and Void armor and tools, Hell arrows, legendary upgrades, Void stones, Void Totem, Reinforced Iron Armor
+depend:
+  - imusAPI
+softdepend:
+  - ImusEnchants
+permissions:
+  imushellgear.config:
+    description: Change the settings with /ia config imushellgear
+    default: op

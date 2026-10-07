@@ -406,7 +406,7 @@ public class CustomEnchantEvents implements Listener
 
 	// ===== Soulbound =====
 
-	// Runs after DontLoseItems (NORMAL), which already keeps the hotbar and armor
+	// Runs after ImusDontLoseItems (NORMAL), which already keeps the hotbar and armor
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void OnPlayerDeath(PlayerDeathEvent event)
 	{
@@ -435,7 +435,7 @@ public class CustomEnchantEvents implements Listener
 		if (!(soulbound instanceof SoulboundEnchant))
 			return;
 
-		// A tick later so DontLoseItems has put the hotbar and armor back first
+		// A tick later so ImusDontLoseItems has put the hotbar and armor back first
 		Player player = event.getPlayer();
 		Bukkit.getScheduler().runTask(_plugin, () -> ((SoulboundEnchant) soulbound).GiveBack(player));
 	}

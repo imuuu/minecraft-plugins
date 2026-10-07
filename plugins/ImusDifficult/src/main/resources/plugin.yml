@@ -1,0 +1,12 @@
+name: ImusDifficult
+version: '${project.version}'
+main: me.imu.imusdifficult.ImusDifficult
+api-version: '26.2'
+authors: [ imu ]
+description: Survival tweaks - armor wear from poison and fire, harder shulkers, portal opening dates, AFK kick
+depend:
+  - imusAPI
+permissions:
+  imusdifficult.config:
+    description: Change the settings with /ia config imusdifficult
+    default: op

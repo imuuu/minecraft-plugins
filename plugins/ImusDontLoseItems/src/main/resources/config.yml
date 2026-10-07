@@ -1,0 +1,28 @@
+# ImusDontLoseItems - change these in game with /ia config imusdontloseitems
+
+death:
+  # What stays with the player on death, the rest drops
+  keep-hotbar: true
+  # Armor and the off-hand
+  keep-armor: true
+  # Pickaxes, axes, hoes, shovels, rods and elytras anywhere in the inventory
+  keep-tools: false
+  # Swords, bows, crossbows, tridents and shields anywhere in the inventory
+  keep-weapons: false
+  # Share of max durability the kept items lose on respawn
+  pve-durability-penalty: 0.25
+  pvp-durability-penalty: 0.6
+  # No XP orbs drop; this share of the levels comes back on respawn
+  keep-xp: true
+  xp-levels-kept: 0.5
+
+combat:
+  # Seconds a player stays in combat after fighting a monster (or being shot)
+  tag-seconds: 10
+  # Share of max durability every item loses when the player logs out in combat
+  logout-durability-penalty: 0.1
+  # Players shot by another player can't glide while in combat
+  disable-elytra-in-pvp: true
+
+# Worlds where deaths work like vanilla
+ignore-worlds: []

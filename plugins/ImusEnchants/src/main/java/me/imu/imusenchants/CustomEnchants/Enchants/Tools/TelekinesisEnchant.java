@@ -72,7 +72,7 @@ public class TelekinesisEnchant extends CustomEnchant
 		List<ItemStack> drops = event.getDrops();
 		for (int i = drops.size() - 1; i >= 0; i--)
 		{
-			// DontLoseItems empties the stacks it keeps
+			// skip empty stacks (other plugins may empty the ones they keep)
 			if (drops.get(i) == null || drops.get(i).getAmount() <= 0)
 				continue;
 
