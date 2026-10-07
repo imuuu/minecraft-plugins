@@ -1,14 +1,14 @@
 package imu.DontLoseItems.CustomItems;
 
 import java.awt.Color;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,18 +22,17 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import imu.DontLoseItems.Events.VoidTotemEvents;
 import imu.DontLoseItems.main.DontLoseItems;
-import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Metods;
-import imu.iAPI.Utilities.ImusUtilities;
 import net.md_5.bungee.api.ChatColor;
 
 public class VoidTotemController implements Listener 
 {
     private static VoidTotemController instance;
 
-    private final String defaultWorld = "World";
+    private static final int SEARCH_RADIUS = 50;
+    private static final int SEARCH_STEP = 2;
 
-    public VoidTotemController() 
+    public VoidTotemController()
     {
         instance = this;
         Bukkit.getPluginManager().registerEvents(this, DontLoseItems.Instance);
@@ -41,60 +40,66 @@ public class VoidTotemController implements Listener
 
     public void findSafeBlock(Player player)
     {
-        Location mid = player.getLocation();
-        World end = mid.getWorld();
-        assert end != null;
-
         new BukkitRunnable()
         {
-
             @Override
             public void run()
             {
-                mid.setY(30.0);
-                LinkedList<Location> list = ImusUtilities.CreateSphere(mid, 50, ImusAPI.AirHashSet, null);
+                Location safe = findNearestGround(player.getLocation(), SEARCH_RADIUS, SEARCH_STEP);
 
-                new BukkitRunnable()
+                if(safe == null)
                 {
+                    safe = player.getRespawnLocation() != null ? player.getRespawnLocation() : Bukkit.getWorlds().get(0).getSpawnLocation();
+                }
 
-                    @Override
-                    public void run()
-                    {
-                        if(list.size() == 0)
-                        {
-                            Location locc = player.getBedSpawnLocation() != null ? player.getBedSpawnLocation() : Objects.requireNonNull(Bukkit.getServer().getWorld(defaultWorld)).getSpawnLocation();
-                            player.teleport(locc);
-                            //remove player from active players
-                            VoidTotemEvents.instance().setSaved(player);
-                            return;
-                        }
+                player.teleport(safe);
 
-                        //System.out.println("found block"+ list.get(0).toVector()+" type: "+list.get(0).getBlock());
-
-                        player.teleport(findTop(list.get(0)));
-
-                        //remove player from active players
-                        VoidTotemEvents.instance().setSaved(player);
-
-                    }
-                }.runTask(DontLoseItems.Instance);
+                //remove player from active players
+                VoidTotemEvents.instance().setSaved(player);
             }
-        }.runTaskAsynchronously(DontLoseItems.Instance);
-
+        }.runTask(DontLoseItems.Instance);
     }
 
-    private Location findTop(Location bottom)
+    // Walks square rings outward from the player, closest ring first. Each column is one
+    // heightmap lookup and unloaded chunks are skipped, so this never scans or loads blocks
+    // and is cheap enough for the main thread (at most ~2600 lookups with radius 50, step 2).
+    private Location findNearestGround(Location center, int radius, int step)
     {
-        Location safe = bottom.clone();
-        bottom.setY(255.0);
+        World world = center.getWorld();
+        int cx = center.getBlockX();
+        int cz = center.getBlockZ();
 
-        while(!bottom.getBlock().getType().isSolid())
+        Location ground = getGround(world, cx, cz, center);
+        if(ground != null) return ground;
+
+        for(int r = step; r <= radius; r += step)
         {
-            bottom.subtract(0,1,0);
-
-            if( bottom.getY() < 0) return safe;
+            for(int i = -r; i <= r; i += step)
+            {
+                if((ground = getGround(world, cx + i, cz - r, center)) != null) return ground;
+                if((ground = getGround(world, cx + i, cz + r, center)) != null) return ground;
+            }
+            for(int i = -r + step; i <= r - step; i += step)
+            {
+                if((ground = getGround(world, cx - r, cz + i, center)) != null) return ground;
+                if((ground = getGround(world, cx + r, cz + i, center)) != null) return ground;
+            }
         }
-        return bottom;
+        return null;
+    }
+
+    // Standing spot on top of the column's highest solid block, or null for empty/unloaded columns
+    private Location getGround(World world, int x, int z, Location facing)
+    {
+        if(!world.isChunkLoaded(x >> 4, z >> 4)) return null;
+
+        Block top = world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+        if(top.getY() <= world.getMinHeight() || !top.getType().isSolid()) return null;
+
+        Location loc = top.getLocation().add(0.5, 1, 0.5);
+        loc.setYaw(facing.getYaw());
+        loc.setPitch(facing.getPitch());
+        return loc;
     }
     
     @EventHandler

@@ -117,7 +117,8 @@ public class NetherEvents implements Listener
 	private final double _fearDecreaseDelay = 0.8;
 	
 	private final double _torchCheckDelay = 10;
-	private final long _asyncLoopDelay = 2L;
+	// fear timers are 0.8s and up, half a second steps are plenty
+	private final long _fearLoopDelay = 10L;
 	
 	//speed zombie settings
 	private final double _fearIncreaseBySpeedZombie = 15;
@@ -130,7 +131,7 @@ public class NetherEvents implements Listener
 	private HashMap<UUID, PlayerFear> _playerFear;	
 	
 	@SuppressWarnings("unused")
-	private BukkitTask _asyncTask;
+	private BukkitTask _fearTask;
 	
 	
 	private final Material[] _ghastBallMaterials = new Material[]
@@ -169,11 +170,11 @@ public class NetherEvents implements Listener
 		GetSettings();
 		
 		InitEntityTypes();
-		RunnableAsync();
+		RunnableFear();
 	}
 	public void OnDisabled()
 	{
-		TorchCheckAsync(true);
+		TorchCheck(true);
 	}
 	private void InitEntityTypes()
 	{
@@ -195,41 +196,45 @@ public class NetherEvents implements Listener
 		return Manager_Difficult.Instance.getPlayerSettings(uuid).NetherDifficulty;
 	}
 	
-	void RunnableAsync()
+	// Main thread on purpose: it reads light levels and inventories and writes boss bars and
+	// _playerFear/_placedTorches, which the event handlers use too. The work per run is tiny.
+	void RunnableFear()
 	{
-		
-		_asyncTask = new BukkitRunnable() 
-		{			
-			
+
+		_fearTask = new BukkitRunnable()
+		{
+
 			@Override
-			public void run() 
+			public void run()
 			{
 				for(Player player : Bukkit.getServer().getOnlinePlayers())
 				{
 					if(!IsNether(player)) continue;
-					
-					if(player.getGameMode() != GameMode.SURVIVAL) 
+
+					if(player.getGameMode() != GameMode.SURVIVAL)
 					{
 						GetFear(player).SetFear(0);
 						continue;
 					}
-					
+
 					if(getPlayerDifficulty(player) == DIFFICULT.NO_FEAR)
 					{
 						continue;
 					}
-					
+
 					Block block = player.getLocation().getBlock();
-					
+
 					if(block != null && block.getLightLevel() >= _fearDecreaseLightLevel)
 					{
-						if(_cds.isCooldownReady("fearDecrease")) 
+						// per player, a shared cooldown let only one lit player calm down at a time
+						String decreaseKey = "fearDecrease" + player.getUniqueId();
+						if(_cds.isCooldownReady(decreaseKey))
 						{
-							_cds.setCooldownInSeconds("fearDecrease", _fearDecreaseDelay);
-							
+							_cds.setCooldownInSeconds(decreaseKey, _fearDecreaseDelay);
+
 							if(GetFear(player).GetFearLevel() > 0) AddFearToPlayer(player, -_fearDecrease);
-							
-						}	
+
+						}
 					}
 					
 					if(_cds.isCooldownReady("fearIncrease"))
@@ -243,20 +248,8 @@ public class NetherEvents implements Listener
 					}
 					
 					if(!_cds.isCooldownReady("fearDamage")) continue;
-					
-					
-					PlayerFear fear = GetFear(player);
-					
-					new BukkitRunnable() 
-					{
-			            @Override
-			            public void run() 
-			            {
-			            	fear.TriggerFear(player);
-						   
-			            }
-			        }.runTask(DontLoseItems.Instance); 
-					
+
+					GetFear(player).TriggerFear(player);
 				}
 				
 				if(_cds.isCooldownReady("fearIncrease"))
@@ -274,12 +267,12 @@ public class NetherEvents implements Listener
 				{
 					_cds.setCooldownInSeconds("torchCheck", _torchCheckDelay);
 					
-					TorchCheckAsync(false);
+					TorchCheck(false);
 				}
 
-				
+
 			}
-		}.runTaskTimerAsynchronously(DontLoseItems.Instance, 0, _asyncLoopDelay);	
+		}.runTaskTimer(DontLoseItems.Instance, 0, _fearLoopDelay);
 	}
 	
 	private void CheckTotem(Player player)
@@ -292,29 +285,21 @@ public class NetherEvents implements Listener
 		
 		
 		if(stack == null || stack.getType() != Material.TOTEM_OF_UNDYING ) return;
-		
-		new BukkitRunnable() {
-			
-			@Override
-			public void run()
-			{
-				ItemStack newStack = stack.clone();
-				stack.setAmount(0);
-				
-				Metods._ins.InventoryAddItemOrDrop(newStack, player);
-				
-				player.sendMessage("");
-				player.sendMessage(ChatColor.BLUE+ "Totem of Undying scares nethers darkness!");
-				player.sendMessage("");
-				player.sendMessage(ChatColor.BLUE+ "So it was feeling a little down, "
-						+ "so it went to see a spiritual advisor. "
-						+ "It's hoping to find some inner peace and strength!");
-			}
-		}.runTask(DontLoseItems.Instance);
-		
+
+		ItemStack newStack = stack.clone();
+		stack.setAmount(0);
+
+		Metods._ins.InventoryAddItemOrDrop(newStack, player);
+
+		player.sendMessage("");
+		player.sendMessage(ChatColor.BLUE+ "Totem of Undying scares nethers darkness!");
+		player.sendMessage("");
+		player.sendMessage(ChatColor.BLUE+ "So it was feeling a little down, "
+				+ "so it went to see a spiritual advisor. "
+				+ "It's hoping to find some inner peace and strength!");
 	}
-	
-	private void TorchCheckAsync(boolean force)
+
+	private void TorchCheck(boolean force)
 	{
 		LinkedList<Location> torches = new LinkedList<>();
 		
@@ -332,32 +317,13 @@ public class NetherEvents implements Listener
 		{
 			_placedTorches.remove(loc);
 		}
-		
-		if(force)
+
+		for(Location loc : torches)
 		{
-			for(Location loc : torches)
-			{
-				if(loc.getBlock().getType() != Material.TORCH) continue;
-				
-				loc.getBlock().breakNaturally();
-			}
-			torches.clear();
-			return;
+			if(loc.getBlock().getType() != Material.TORCH) continue;
+
+			loc.getBlock().breakNaturally();
 		}
-		new BukkitRunnable() 
-		{
-			@Override
-			public void run()
-			{
-				for(Location loc : torches)
-				{
-					if(loc.getBlock().getType() != Material.TORCH) continue;
-					
-					loc.getBlock().breakNaturally();
-				}
-				torches.clear();
-			}
-		}.runTask(DontLoseItems.Instance);
 	}
 	
 	private PlayerFear GetFear(Player player)

@@ -52,6 +52,8 @@ public class VoidTotemEvents implements Listener
                 }
 
                 if(ValidateTotem(player.getInventory())) {
+                    // the hit that triggers the totem could otherwise still kill a low-health player
+                    e.setCancelled(true);
                     player.playEffect(EntityEffect.PROTECTED_FROM_DEATH);
                     player.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1200, 0));
                     players.add(player);
