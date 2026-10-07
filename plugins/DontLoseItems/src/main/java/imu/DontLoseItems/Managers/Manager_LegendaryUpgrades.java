@@ -69,7 +69,7 @@ public class Manager_LegendaryUpgrades
 		
 		lores.add(" ");
 		lores.add("&3Combine &6with an equivalent &elegendary &6item");
-		lores.add("&6in &3a Smithing Table &6to &5complete &6this &bitem.");
+		lores.add("&6in &3an Anvil &6to &5complete &6this &bitem.");
 		lores.add(" ");
 		lores.add("&4&k# "+"&4This item alone doesn't have any legendary effects!");
 		

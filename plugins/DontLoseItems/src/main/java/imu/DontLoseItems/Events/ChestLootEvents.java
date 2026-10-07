@@ -15,6 +15,7 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -27,7 +28,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
-import com.magmaguy.betterstructures.api.ChestFillEvent;
 
 import imu.DontLoseItems.Enums.DIFFICULT;
 import imu.DontLoseItems.Enums.ITEM_RARITY;
@@ -547,21 +547,14 @@ public class ChestLootEvents implements Listener
 	}
 	
 	
-	//if better structure is enabled on the server this will be triggered
-	@EventHandler
-	public void OnBetterStructureLoot(ChestFillEvent e)
+	// called by BetterStructuresLootEvents when BetterStructures fills a chest
+	public void OnBetterStructureLoot(Container container)
 	{
-//		if (!(IsNether(e.getContainer().getWorld())))
-//			return;
-		
-		World world = e.getContainer().getWorld();
+		World world = container.getWorld();
 		if ((DontLoseItems.IsEnd(world)))
 			return;
 
-		if (e.isCancelled())
-			return;
-				
-		Location chestLocation = e.getContainer().getLocation();
+		Location chestLocation = container.getLocation();
 	    double closeByDistance = 500; 
 	    StringBuilder closeByPlayerNames = new StringBuilder();
 	    boolean isFearPlayerNearby = false;
@@ -585,9 +578,8 @@ public class ChestLootEvents implements Listener
 
 	    String closeByPlayersStr = String.join(", ", closeByPlayerNames);
 
-		Inventory inv = e.getContainer().getInventory();
-		inv = e.getContainer().getSnapshotInventory();
-		
+		Inventory inv = container.getSnapshotInventory();
+
 		int lootRollAmount = _chestRollMaxAmount;
 		
 		if(isFearPlayerNearby && IsNether(world))

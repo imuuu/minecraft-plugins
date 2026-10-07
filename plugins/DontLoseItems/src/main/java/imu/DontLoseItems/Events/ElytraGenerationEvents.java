@@ -112,7 +112,7 @@ public class ElytraGenerationEvents implements Listener
 				"""
 				could just maybe be able to contain the might of an Elytra.
 				In the midst of my research I was able to do it, the incredible creation of a Void Totem.
-				By combining a Totem of Undying and an Elytra in a smithing table, I was able
+				By combining a Totem of Undying and an Elytra in an anvil, I was able
 				to bind their powers together.""",
 
 				"""

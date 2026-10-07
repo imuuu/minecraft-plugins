@@ -132,8 +132,10 @@ public final class Hell_ReflectShieldController implements Listener
 
 		if (rarity == ITEM_RARITY.Mythic)
 			lores.add("&9attacker and &5doubles");
-		if (rarity == ITEM_RARITY.Legendary || rarity == ITEM_RARITY.Void)
+		if (rarity == ITEM_RARITY.Legendary)
 			lores.add("&9attacker and &5triples");
+		if (rarity == ITEM_RARITY.Void)
+			lores.add("&9attacker and &5quadruples");
 		if (rarity != ITEM_RARITY.Epic)
 			lores.add("&9it damage");
 
@@ -286,7 +288,7 @@ public final class Hell_ReflectShieldController implements Listener
 
 	private void RemoveArrow(ArrowReflect refArrow)
 	{
-		if (refArrow.Arrow.isOnGround() && refArrow.Rarity == ITEM_RARITY.Legendary)
+		if (refArrow.Arrow.isOnGround() && (refArrow.Rarity == ITEM_RARITY.Legendary || refArrow.Rarity == ITEM_RARITY.Void))
 		{
 			CreateFireArea(refArrow.Arrow.getLocation());
 		}
@@ -351,7 +353,8 @@ public final class Hell_ReflectShieldController implements Listener
 			if (ar.Rarity == ITEM_RARITY.Epic)
 				continue;
 
-			if (ar.Rarity != ITEM_RARITY.Legendary && ThreadLocalRandom.current().nextInt(100) < _mythicFireChance)
+			// Legendary and Void: fire every tick ("massive trail"), Mythic skips some
+			if (ar.Rarity == ITEM_RARITY.Mythic && ThreadLocalRandom.current().nextInt(100) < _mythicFireChance)
 			{
 				continue;
 			}

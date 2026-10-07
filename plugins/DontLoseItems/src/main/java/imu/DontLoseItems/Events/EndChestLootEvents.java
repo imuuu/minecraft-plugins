@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -21,7 +22,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
-import com.magmaguy.betterstructures.api.ChestFillEvent;
 
 import imu.DontLoseItems.CustomEnd.UnstableEnd;
 import imu.DontLoseItems.CustomItems.VoidStones.Reforge_Void_Stone;
@@ -434,20 +434,15 @@ public class EndChestLootEvents implements Listener
 	}
 	
 	
-	//if better structure is enabled on the server this will be triggered
-	@EventHandler
-	public void OnBetterStructureLoot(ChestFillEvent e)
+	// called by BetterStructuresLootEvents when BetterStructures fills a chest
+	public void OnBetterStructureLoot(Container container)
 	{
-		if (!(DontLoseItems.IsEnd(e.getContainer().getWorld())))
+		if (!(DontLoseItems.IsEnd(container.getWorld())))
 			return;
 
-		if (e.isCancelled())
-			return;
-		
 		//System.out.println("For betterstructures has generated end loot ");
 		Bukkit.getLogger().info("For betterstructures has generated end loot ");
-		Inventory inv = e.getContainer().getInventory();
-		inv = e.getContainer().getSnapshotInventory();
+		Inventory inv = container.getSnapshotInventory();
 		List<ItemStack> stacks = GenerateEndLoot(1, 2, _chestRollMaxAmount);
 		
 		for (ItemStack stack : stacks)

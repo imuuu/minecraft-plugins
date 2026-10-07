@@ -15,7 +15,7 @@ public enum DIFFICULT {
 			lores = new String[]
 					{
 							" ",
-							"&6LOOT MULTIPLIER &a12x!!!",
+							"&6LOOT MULTIPLIER &a~3x!!!",
 							" ",
 							"&5- Fear &aGeneration",
 							"&5- Shield reflection",

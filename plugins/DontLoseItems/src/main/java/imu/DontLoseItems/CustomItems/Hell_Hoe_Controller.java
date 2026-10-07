@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -56,28 +57,18 @@ public final class Hell_Hoe_Controller
 	
 	private void InitSeedMaterials()
 	{
-		_seedsMaterials = new HashSet<>();
-		
-		for (Material material : Material.values()) {
+		// seed item -> crop block it plants (all Ageable)
+		cropDataMaterials.put(Material.WHEAT_SEEDS, Material.WHEAT);
+		cropDataMaterials.put(Material.BEETROOT_SEEDS, Material.BEETROOTS);
+		cropDataMaterials.put(Material.MELON_SEEDS, Material.MELON_STEM);
+		cropDataMaterials.put(Material.PUMPKIN_SEEDS, Material.PUMPKIN_STEM);
+		cropDataMaterials.put(Material.TORCHFLOWER_SEEDS, Material.TORCHFLOWER_CROP);
+		cropDataMaterials.put(Material.CARROT, Material.CARROTS);
+		cropDataMaterials.put(Material.POTATO, Material.POTATOES);
+		cropDataMaterials.put(Material.NETHER_WART, Material.NETHER_WART);
 
-		    if (material.name().endsWith("_SEEDS") || material.name().endsWith("SEEDS")) {
-		        _seedsMaterials.add(material);
-		    }
-		}
-		
-		_seedsMaterials.add(Material.NETHER_WART);
-		_seedsMaterials.add(Material.CARROT);
-		_seedsMaterials.add(Material.BEETROOT_SEEDS);
-		_seedsMaterials.add(Material.POTATO);
-		
-		cropDataMaterials.put(Material.MELON_SEEDS, Material.MELON_STEM.createBlockData().getClass().equals(Ageable.class) ? Material.MELON_STEM : Material.ATTACHED_MELON_STEM);
-	    cropDataMaterials.put(Material.WHEAT_SEEDS, Material.WHEAT.createBlockData().getClass().equals(Ageable.class) ? Material.WHEAT : Material.WHEAT);
-	    cropDataMaterials.put(Material.BEETROOT_SEEDS, Material.BEETROOTS.createBlockData().getClass().equals(Ageable.class) ? Material.BEETROOTS : Material.BEETROOTS);
-	    cropDataMaterials.put(Material.NETHER_WART, Material.NETHER_WART.createBlockData().getClass().equals(Ageable.class) ? Material.NETHER_WART : Material.NETHER_WART);
-	    cropDataMaterials.put(Material.PUMPKIN_SEEDS, Material.PUMPKIN_STEM.createBlockData().getClass().equals(Ageable.class) ? Material.PUMPKIN_STEM : Material.ATTACHED_PUMPKIN_STEM);
-	    cropDataMaterials.put(Material.CARROT, Material.CARROTS.createBlockData().getClass().equals(Ageable.class) ? Material.CARROTS : Material.CARROTS);
-	    cropDataMaterials.put(Material.POTATO, Material.POTATOES.createBlockData().getClass().equals(Ageable.class) ? Material.POTATOES : Material.POTATOES);
-	    //cropDataMaterials.put(Material.BEETROOT, Material.BEETROOTS.createBlockData().getClass().equals(Ageable.class) ? Material.BEETROOTS : Material.BEETROOTS);
+		// only seeds we know how to plant (pitcher pods etc. would have no crop above)
+		_seedsMaterials = new HashSet<>(cropDataMaterials.keySet());
 	}
 	
 	public RarityItem GetRarityItem(ITEM_RARITY rarity)
@@ -219,15 +210,16 @@ public final class Hell_Hoe_Controller
 	    {
 	        for (int z = middleBlock.getBlockZ() - radius; z <= middleBlock.getBlockZ() + radius; z++) 
 	        {
-	        	if(stack == null || stack.getType().isAir() || stack.getAmount() <= 0) 
+	        	if(stack == null || stack.getType().isAir() || stack.getAmount() <= 0)
 	        	{
 	        		ItemStack newStack = GetNewSeeds(player, stackMat);
-	        		
+
 	        		if(newStack == null) return amount;
-	        		
-	        		stack.setAmount(newStack.getAmount());
+
+	        		// move the refill into the off-hand and keep going on this same block
+	        		player.getInventory().setItemInOffHand(newStack.clone());
 	        		newStack.setAmount(0);
-	        		continue;
+	        		stack = player.getInventory().getItemInOffHand();
 	        	}
 	            // Create a new Location for the current block and set it to stone
 	            Location blockLocation = new Location(world, x, middleBlock.getBlockY(), z);
@@ -235,17 +227,17 @@ public final class Hell_Hoe_Controller
 	            Material mat = block.getType();
 	            if(!mat.isAir()) continue;
 	                        
-	            if(stack.getType() == Material.NETHER_WART && block.getRelative(BlockFace.DOWN).getType() != Material.SOUL_SAND)
+	            if(stackMat == Material.NETHER_WART && block.getRelative(BlockFace.DOWN).getType() != Material.SOUL_SAND)
 	            {
 	            	continue;
 	            }
-           
-	            if(stack.getType() != Material.NETHER_WART && block.getRelative(BlockFace.DOWN).getType() != Material.FARMLAND)
+
+	            if(stackMat != Material.NETHER_WART && block.getRelative(BlockFace.DOWN).getType() != Material.FARMLAND)
 	            {
 	            	continue;
 	            }
-	            
-	            PlantCrop(block,stack.getType());
+
+	            PlantCrop(block,stackMat);
 	            amount++;
 	            
 	            int newAmount = stack.getAmount()-usage;
@@ -260,9 +252,11 @@ public final class Hell_Hoe_Controller
 	
 	private void PlantCrop(Block block, Material mat) {
 
-	    Ageable cropData = (Ageable) cropDataMaterials.get(mat).createBlockData();
+	    Material crop = cropDataMaterials.get(mat);
+	    if(crop == null) return;
 
-	    cropData.setAge(0);
+	    BlockData cropData = crop.createBlockData();
+	    if(cropData instanceof Ageable) ((Ageable) cropData).setAge(0);
 
 	    block.setBlockData(cropData);
 	}

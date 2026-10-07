@@ -439,7 +439,7 @@ public class Manager_HellArmor implements Listener
 			{ 
 				" ",
 				"&9Explodes Ores in Blast area of &2"+rarityItem.Values[0],
-				"&9Explode Ores Rolls with Fortune IV",
+				"&9Explode Ores Rolls with Fortune II",
 				"&9Ores comes to your inv",
 				" ",
 				"&9Infinity enchant doesn't work for this",
@@ -450,10 +450,11 @@ public class Manager_HellArmor implements Listener
 				
 				};
 		
-		if(rarity == ITEM_RARITY.Common) lores[2] 		= "&9Explode Oress";
+		// fortune level = rarity index, see the arrow hit handler
+		if(rarity == ITEM_RARITY.Common) lores[2] 		= "&9Explode Ores";
 		if(rarity == ITEM_RARITY.Uncommon) lores[2] 	= "&9Explode Ores Rolls with Fortune I";
-		if(rarity == ITEM_RARITY.Epic) lores[2] 		= "&9Explode Ores Rolls with Fortune II";
-		if(rarity == ITEM_RARITY.Mythic) lores[2] 		= "&9Explode Ores Rolls with Fortune III";
+		if(rarity == ITEM_RARITY.Epic) lores[2] 		= "&9Explode Ores Rolls with Fortune III";
+		if(rarity == ITEM_RARITY.Mythic) lores[2] 		= "&9Explode Ores Rolls with Fortune IV";
 		if(rarity == ITEM_RARITY.Legendary) lores[2]	= "&9Explode Ores Rolls with Fortune V";
 		
 		Metods._ins.SetLores(stack, lores, false);
@@ -989,7 +990,7 @@ public class Manager_HellArmor implements Listener
 					{
 						if(rary == null) rary = ITEM_RARITY.Uncommon;
 						
-						int FortuneLevel = rarity.GetIndex();
+						int FortuneLevel = rary.GetIndex();
 						
 						for(Location loc : locs)
 						{

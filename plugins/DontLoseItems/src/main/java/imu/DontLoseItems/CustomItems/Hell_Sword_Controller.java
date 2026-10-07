@@ -82,7 +82,7 @@ public final class Hell_Sword_Controller
 		
 		ArrayList<String> lores = new ArrayList<>();
 		lores.add(" ");
-		lores.add("&9Able to throw the double swords");
+		lores.add("&9Able to throw the triple swords");
 		lores.add(" ");
 		lores.add(colorCode+"Throw distance of &4"+(int)rarityItem.GetThrowDistance());
 		lores.add(" ");
@@ -91,7 +91,7 @@ public final class Hell_Sword_Controller
 		if(rarityItem.HasDotDamageEntityMultiplier())
 		{
 			lores.add(colorCode+"Every stacked mob &eincreases");
-			lores.add("&cfire "+colorCode+"dot damage by 2 hears");
+			lores.add("&cfire "+colorCode+"dot damage by 1 heart");
 			lores.add(colorCode+"when swords are stuck to block");
 			lores.add(" ");
 		}
@@ -268,6 +268,9 @@ public final class Hell_Sword_Controller
 						if(ar.HB_sword.HasDotDamageEntityMultiplier()) 
 						{
 							double damage = 2 * ar._entities.size();
+							// skip the current i-frames for this hit only; changing the maximum
+							// stuck on the entity for good after it was released
+							entity.setNoDamageTicks(0);
 							entity.damage(damage);
 						}
 					}
@@ -279,9 +282,6 @@ public final class Hell_Sword_Controller
 						entity.setFireTicks(20);
 					}
 				}
-				
-				
-				entity.setMaximumNoDamageTicks(0);
 
 				if(entity.isDead()) { ent.remove(); }
 

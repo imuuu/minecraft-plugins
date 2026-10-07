@@ -11,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import imu.DontLoseItems.CustomEnd.EndEvents;
+import imu.DontLoseItems.Events.BetterStructuresLootEvents;
 import imu.DontLoseItems.Events.ChestLootEvents;
 import imu.DontLoseItems.Events.DotEvents;
 import imu.DontLoseItems.Events.ElytraGenerationEvents;
@@ -56,6 +57,8 @@ public class DontLoseItems extends JavaPlugin
 		getServer().getPluginManager().registerEvents(new Manager_HellTools(), this);
 		getServer().getPluginManager().registerEvents(new ChestLootEvents(), this);
 		getServer().getPluginManager().registerEvents(new EndChestLootEvents(), this);
+		if (getServer().getPluginManager().getPlugin("BetterStructures") != null)
+			getServer().getPluginManager().registerEvents(new BetterStructuresLootEvents(), this);
 		getServer().getPluginManager().registerEvents(new ElytraGenerationEvents(), this);
 		getServer().getPluginManager().registerEvents(new VoidTotemEvents(), this);
 		getServer().getPluginManager().registerEvents(new AntiAfk(), this);

@@ -14,6 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.data.Ageable;
@@ -46,6 +47,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -61,9 +63,9 @@ import imu.iAPI.Utilities.ItemUtils;
 public class MainEvents implements Listener
 {
 
-	HashMap<UUID, ItemStack[]> saved_items = new HashMap<UUID, ItemStack[]>();
-	HashMap<UUID, Boolean> died_pvp = new HashMap<UUID, Boolean>();
-	HashMap<UUID, Integer> _saved_xp = new HashMap<>();
+	// player PDC, pending until respawn
+	private final String PD_DEATH_PENALTY = "dli_death_penalty";
+	private final String PD_DEATH_XP_LEVEL = "dli_death_xp_level";
 
 	final String[] tools = { "PICKAXE", "AXE", "HOE", "SHOVEL", "ROD", "ELYTRA" };
 	final String[] weapons = { "SWORD", "BOW", "TRIDENT", "SHIELD", "CROSSBOW" };
@@ -545,63 +547,64 @@ public class MainEvents implements Listener
 			return;
 		}
 
+		// keepInventory already keeps everything, nothing to save or punish
+		if (e.getKeepInventory())
+			return;
+
 		removeCooldownAndCombat(player);
 
 		ItemStack[] content = inv.getContents();
-		ItemStack[] save_items = new ItemStack[content.length];
-
-		if (player.getKiller() instanceof Player && player.getUniqueId() != player.getKiller().getUniqueId())
-		{
-			died_pvp.put(player.getUniqueId(), true);
-		} else
-		{
-			died_pvp.put(player.getUniqueId(), false);
-		}
+		boolean anyKept = false;
 
 		for (int l = 0; l < content.length; ++l)
 		{
 			ItemStack stack = content[l];
-			if (stack != null)
-			{
-				if (Metods._ins.HasEnchant(stack, Enchantment.VANISHING_CURSE))
-				{
-					continue;
-				}
+			if (stack == null || stack.getType() == Material.AIR)
+				continue;
 
-				ItemStack copy = new ItemStack(stack);
+			// vanilla destroys these
+			if (Metods._ins.HasEnchant(stack, Enchantment.VANISHING_CURSE))
+				continue;
 
-				if (saveHotBar && l > -1 && l < 9)
-				{
-					save_items[l] = copy;
-					stack.setAmount(0);
-				} else if (saveTools || saveWeapons)
-				{
-					if (saveTools & stringEndsWith(copy.getType().toString(), tools)) // Its a tool!
-					{
-						save_items[l] = copy;
-						stack.setAmount(0);
-					}
+			boolean keep = false;
 
-					if (saveWeapons & stringEndsWith(copy.getType().toString(), weapons)) // its a weapon
-					{
-						save_items[l] = copy;
-						stack.setAmount(0);
-					}
-				}
+			if (saveHotBar && l < 9)
+				keep = true;
 
-				if (saveArmor && l > content.length - 6)
-				{
-					save_items[l] = copy;
-					stack.setAmount(0);
-				}
-			}
+			if (saveTools && stringEndsWith(stack.getType().toString(), tools))
+				keep = true;
 
+			if (saveWeapons && stringEndsWith(stack.getType().toString(), weapons))
+				keep = true;
+
+			// 36-39 armor, 40 offhand
+			if (saveArmor && l > content.length - 6)
+				keep = true;
+
+			if (!keep)
+				continue;
+
+			// Paper leaves kept items in their slots on the player, so they are saved with the
+			// player data and survive a restart before respawn; they still have to come out of the drops
+			e.getItemsToKeep().add(stack);
+			e.getDrops().remove(stack);
+			anyKept = true;
 		}
-		System.out.println("level: " + player.getLevel() + " multi: " + _death_xp_multiplier);
-		if (_saveXp)
-			_saved_xp.put(player.getUniqueId(), player.getLevel());
 
-		saved_items.put(player.getUniqueId(), save_items);
+		// Stored on the player (not in memory) so a restart between death and respawn doesn't lose them
+		if (anyKept)
+		{
+			boolean pvp = player.getKiller() != null && !player.getKiller().equals(player);
+			Metods._ins.setPersistenData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE,
+					pvp ? durability_penalty_pvp : durability_penalty_pve);
+		}
+
+		if (_saveXp)
+		{
+			// part of the levels comes back on respawn, so no orbs on top of that
+			e.setDroppedExp(0);
+			Metods._ins.setPersistenData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER, player.getLevel());
+		}
 	}
 
 	@EventHandler
@@ -609,62 +612,46 @@ public class MainEvents implements Listener
 	{
 		Player player = e.getPlayer();
 
-		PlayerInventory inv = player.getInventory();
-
-		ItemStack[] s_items = saved_items.get(player.getUniqueId());
-		int prosent = 0;
-
-		if (s_items == null)
-		{
+		Double penalty = Metods._ins.getPersistenData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE);
+		if (penalty == null)
 			return;
-		}
 
-		for (int i = 0; i < inv.getContents().length; ++i)
+		player.getPersistentDataContainer().remove(new NamespacedKey(ImusAPI._instance, PD_DEATH_PENALTY));
+
+		// the inventory only holds what onDeath kept
+		for (ItemStack item : player.getInventory().getContents())
 		{
-			ItemStack item = s_items[i];
-			if (item != null)
-			{
+			if (item == null || item.getType().getMaxDurability() <= 0)
+				continue;
 
-				if (died_pvp.get(player.getUniqueId()))
-				{
-					_itemM.giveDamage(item, (int) (item.getType().getMaxDurability() * durability_penalty_pvp), false);
-					prosent = (int) (durability_penalty_pvp * 100);
-				} else
-				{
-					_itemM.giveDamage(item, (int) (item.getType().getMaxDurability() * durability_penalty_pve), false);
-					prosent = (int) (durability_penalty_pve * 100);
-				}
-
-				inv.setItem(i, item);
-			}
+			_itemM.giveDamage(item, (int) (item.getType().getMaxDurability() * penalty), false);
 		}
 
+		int prosent = (int) (penalty * 100);
 		if (prosent > 0)
 		{
 			player.sendMessage(ChatColor.GRAY + "All your items has lost durability: " + ChatColor.RED + prosent + "%");
 		}
-		saved_items.remove(player.getUniqueId());
-
 	}
 
 	@EventHandler
 	public void onRespawnXpSet(PlayerRespawnEvent e)
 	{
-		if (!_saveXp)
+		Player player = e.getPlayer();
+		Integer xpLevel = Metods._ins.getPersistenData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER);
+		if (xpLevel == null)
 			return;
 
-		Player player = e.getPlayer();
-		Integer xpLevel = _saved_xp.get(player.getUniqueId());
-		if (xpLevel != null && xpLevel > 0)
-		{
-			final int newLevel = (int) (xpLevel * _death_xp_multiplier);
-			Bukkit.getScheduler().scheduleSyncDelayedTask(_plugin, () ->
-			{
-				XpUtil.SetPlayerLevel(player, newLevel < 1 ? 0 : newLevel);
-				_saved_xp.remove(player.getUniqueId());
-			});
+		player.getPersistentDataContainer().remove(new NamespacedKey(ImusAPI._instance, PD_DEATH_XP_LEVEL));
 
-		}
+		if (!_saveXp || xpLevel <= 0)
+			return;
+
+		final int newLevel = (int) (xpLevel * _death_xp_multiplier);
+		Bukkit.getScheduler().scheduleSyncDelayedTask(_plugin, () ->
+		{
+			XpUtil.SetPlayerLevel(player, newLevel < 1 ? 0 : newLevel);
+		});
 	}
 
 	// reason that treasure map lags the server at 1.20.2!
