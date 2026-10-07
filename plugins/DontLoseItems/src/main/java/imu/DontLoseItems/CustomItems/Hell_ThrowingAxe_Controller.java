@@ -342,7 +342,7 @@ public final class Hell_ThrowingAxe_Controller
 		
 		if(!(prot.getShooter() instanceof Player)) return;
 		
-		ITEM_RARITY rarity = ITEM_RARITY.values()[rarityIndex];
+		ITEM_RARITY rarity = ITEM_RARITY.GetRarity(rarityIndex);
 		Hell_Double_Axe axe = (Hell_Double_Axe)GetRarityItem(rarity);
 		
 		Player player = (Player) prot.getShooter();

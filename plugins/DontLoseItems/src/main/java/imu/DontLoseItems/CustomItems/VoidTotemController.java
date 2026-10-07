@@ -127,6 +127,7 @@ public class VoidTotemController implements Listener
         ItemStack result = inv.getItem(2);
 
         if(first == null || second == null || result == null) return;
+        if(!IsVoidTotem(result)) return;
 
         Metods._ins.InventoryAddItemOrDrop(event.getCurrentItem(), (Player)event.getWhoClicked());
         event.setCurrentItem(null);
@@ -134,7 +135,12 @@ public class VoidTotemController implements Listener
         inv.setItem(1, null);
     }
 
-    public static ItemStack GetVoidtotemItem() 
+    public static boolean IsVoidTotem(ItemStack item)
+    {
+        return "void".equals(Metods._ins.getPersistenData(item, "totemtype", PersistentDataType.STRING));
+    }
+
+    public static ItemStack GetVoidtotemItem()
     {
         ItemStack item = new ItemStack(Material.TOTEM_OF_UNDYING);
         ItemMeta meta = item.getItemMeta();

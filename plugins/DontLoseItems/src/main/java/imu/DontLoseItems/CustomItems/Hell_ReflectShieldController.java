@@ -27,6 +27,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.projectiles.BlockProjectileSource;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
 import imu.DontLoseItems.CustomItems.RarityItems.Hell_ReflectShield;
@@ -200,20 +202,25 @@ public final class Hell_ReflectShieldController implements Listener
 	
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_TIER, PersistentDataType.INTEGER);
-		if(i == null ) return false;
-		
-		if(i == tier.GetIndex()) return true;
-		
-		return false;
+		// HELL_TIER is stored as the rarity name (STRING), see CreateItem
+		String str = Metods._ins.getPersistenData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
+		if(str == null ) return false;
+
+		return str.equals(tier.toString());
 	}
-	
+
 	public Hell_ReflectShield GetShield(ItemStack stack)
 	{
 		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER);
 		if(i == null ) return null;
-		
-		return _hellReflectShields[i];
+
+		// stored value is the rarity index (Epic = 3 ..), not an array index
+		ITEM_RARITY rarity = ITEM_RARITY.GetRarity(i);
+		for (Hell_ReflectShield shield : _hellReflectShields)
+		{
+			if (shield.Rarity == rarity) return shield;
+		}
+		return null;
 	}
 	public void OnBlockingArrow(EntityDamageByEntityEvent e)
 	{
@@ -239,11 +246,13 @@ public final class Hell_ReflectShieldController implements Listener
 			return;
 		
 		Hell_ReflectShield refShield = GetShield(shield);
+		if (refShield == null)
+			return;
 		Arrow arrow = (Arrow) e.getDamager();
 		// SendArrowBackV2(entity, (Entity)arrow.getShooter(), arrow, 10, 2, true);
 		//ITEM_RARITY rarity = Manager_HellArmor.Instance.GetRarity(shield);
 		
-		OnHellShieldReflect(entity, (Entity) arrow.getShooter(), arrow, refShield.Rarity);
+		OnHellShieldReflect(entity, arrow.getShooter(), arrow, refShield.Rarity);
 
 		int durMulti = refShield.GetUseDurabilityLost();//6 - rarity.GetIndex();
 		Metods._ins.giveDamage(shield, Manager_HellArmor.Instance.ReflectShieldDurabilityLost * durMulti, true);
@@ -253,7 +262,7 @@ public final class Hell_ReflectShieldController implements Listener
 
 	}
 
-	public void OnHellShieldReflect(LivingEntity reflecterEntity, Entity target, Arrow arrow, ITEM_RARITY rarity)
+	public void OnHellShieldReflect(LivingEntity reflecterEntity, ProjectileSource target, Arrow arrow, ITEM_RARITY rarity)
 	{
 		Hell_ReflectShieldController.Instance.OnArrowInit(reflecterEntity, target, arrow, rarity);
 	}
@@ -374,29 +383,50 @@ public final class Hell_ReflectShieldController implements Listener
 
 	}
 
-	public void OnArrowInit(LivingEntity reflecterEntity, Entity target, Arrow arrow, ITEM_RARITY rarity)
+	public void OnArrowInit(LivingEntity reflecterEntity, ProjectileSource target, Arrow arrow, ITEM_RARITY rarity)
 	{
 
 		int damageMulti = rarity.GetIndex() - 2;
 
 		arrow.setDamage(arrow.getDamage() * damageMulti);
-		arrow.setShooter((LivingEntity) target);
+		if (target instanceof LivingEntity)
+			arrow.setShooter(target);
 		// arrow.setGlowing(true);
 		arrow.setTicksLived((int) (20 * ArrowLifeTimeSecons));
 
 		// arrow.setColor(Color.GREEN);
 		arrow.setPierceLevel(10);
 
-		Vector reflecter = reflecterEntity.getLocation().toVector();
-		Vector direction = reflecter.subtract(target.getLocation().toVector());
-		direction = direction.normalize();
+		// Points AWAY from the source on purpose: the damage event gets cancelled, and vanilla
+		// answers a failed arrow hit with ProjectileDeflection.REVERSE, which flips this
+		// velocity back toward the source.
+		Vector direction = GetAwayFromSource(reflecterEntity, target, arrow);
 
-		arrow.setVelocity(direction.clone().multiply(ArrowStartSpeed));
+		arrow.setVelocity(direction.multiply(ArrowStartSpeed));
 		arrow.setGravity(ArrowGravity);
 
 		_cds.setCooldownInSeconds(arrow.getUniqueId().toString(), ArrowLifeTimeSecons);
 		AddArrow(arrow, rarity);
 
+	}
+
+	// Shooter can be an entity, a dispenser or nothing at all; with no location to aim at,
+	// the arrow just keeps its incoming direction (which the reversal turns around).
+	private Vector GetAwayFromSource(LivingEntity reflecterEntity, ProjectileSource source, Arrow arrow)
+	{
+		Vector reflecter = reflecterEntity.getLocation().toVector();
+		Vector sourcePos = null;
+
+		if (source instanceof Entity && ((Entity) source).getWorld().equals(reflecterEntity.getWorld()))
+			sourcePos = ((Entity) source).getLocation().toVector();
+		else if (source instanceof BlockProjectileSource)
+			sourcePos = ((BlockProjectileSource) source).getBlock().getLocation().add(0.5, 0.5, 0.5).toVector();
+
+		Vector direction = sourcePos != null ? reflecter.subtract(sourcePos) : arrow.getVelocity();
+		if (direction.lengthSquared() < 1.0E-6)
+			direction = reflecterEntity.getLocation().getDirection().multiply(-1);
+
+		return direction.normalize();
 	}
 
 	private void IgniteBlock(Block fireBlock)

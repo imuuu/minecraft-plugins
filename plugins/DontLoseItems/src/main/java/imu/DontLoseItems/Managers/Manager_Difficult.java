@@ -61,14 +61,8 @@ public class Manager_Difficult implements Listener
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) 
     {
-        UUID playerId = event.getPlayer().getUniqueId();
-        
-        // Remove the player's portal frame data
-        if (_playerPortalAres.containsKey(playerId)) {
-            _playerPortalAres.remove(playerId);
-        }
-
-        restorePortal(playerId);
+        // Put the portal back before forgetting it; restorePortal clears the stored data
+        restorePortal(event.getPlayer().getUniqueId());
     }
 	@EventHandler
 	public void CancelPortals(PlayerPortalEvent e)

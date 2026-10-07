@@ -185,13 +185,13 @@ public class Manager_VoidStones	implements Listener
 			e.setResult(result);
 			return;
 		}
-		
-		if((Metods._ins.isTool(stack1) || Metods._ins.isArmor(stack1)) && GetVoidStoneType(voidStone) == VOID_STONE_TYPE.UNSTABLE)
+
+		if(!CanUseVoidStone(stack1, voidStone)) return;
+
+		if(GetVoidStoneType(voidStone) == VOID_STONE_TYPE.UNSTABLE)
 		{
 			int enchantCount = stack1.getEnchantments().size();
-			
-			if(enchantCount < 3) return;
-			
+
 			result = new ItemStack(stack1.getType());
 			//result.setAmount(1);
 			String[] lores = new String[stack1.getEnchantments().size()];
@@ -205,10 +205,8 @@ public class Manager_VoidStones	implements Listener
 			return;
 		}
 		
-		if((Metods._ins.isTool(stack1) || Metods._ins.isArmor(stack1)) && GetVoidStoneType(voidStone) == VOID_STONE_TYPE.REFORCE)
+		if(GetVoidStoneType(voidStone) == VOID_STONE_TYPE.REFORCE)
 		{
-			if(!(Manager_HellTools.Instance.IsHellTool(stack1) || Manager_HellArmor.Instance.IsHellArmor(stack1))) return;
-			
 			result = new ItemStack(Material.BEDROCK);
 			Metods.setDisplayName(result, "&e&kT &5Unstable Result &e&kT");
 
@@ -216,13 +214,10 @@ public class Manager_VoidStones	implements Listener
 			return;
 		}
 		
-		if((Metods._ins.isTool(stack1) || Metods._ins.isArmor(stack1)) && GetVoidStoneType(voidStone) == VOID_STONE_TYPE.UNANOINTMENT)
+		if(GetVoidStoneType(voidStone) == VOID_STONE_TYPE.UNANOINTMENT)
 		{
-			
 			int enchantCount = stack1.getEnchantments().size();
-			
-			if(enchantCount == 0) return;
-	
+
 			result = new ItemStack(stack1.getType());
 			//result.setAmount(1);
 			String[] lores = new String[stack1.getEnchantments().size()];
@@ -240,7 +235,29 @@ public class Manager_VoidStones	implements Listener
 		
 
 	}
-		
+
+	// Same rules for the preview and the click, so a click can't skip what the preview refused
+	private boolean CanUseVoidStone(ItemStack stack, ItemStack voidStone)
+	{
+		if(!IsVoidStone(voidStone)) return false;
+
+		if(IsUnenchantable(stack) || IsUnenchantable(voidStone)) return false;
+
+		if(!(Metods._ins.isTool(stack) || Metods._ins.isArmor(stack))) return false;
+
+		switch(GetVoidStoneType(voidStone))
+		{
+		case UNSTABLE:
+			return stack.getEnchantments().size() >= 3;
+		case REFORCE:
+			return Manager_HellTools.Instance.IsHellTool(stack) || Manager_HellArmor.Instance.IsHellArmor(stack);
+		case UNANOINTMENT:
+			return stack.getEnchantments().size() > 0;
+		default:
+			return false;
+		}
+	}
+
 	@EventHandler
 	public void AnvilClick(InventoryClickEvent e)
 	{
@@ -258,8 +275,11 @@ public class Manager_VoidStones	implements Listener
 		ItemStack stack1 = inv.getItem(0);
 		ItemStack voidStone = inv.getItem(1);
 
-		if(!(Metods._ins.isTool(stack1) || Metods._ins.isArmor(stack1))) return;
-		
+		// no preview in the result slot => nothing to take
+		if(e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) return;
+
+		if(!CanUseVoidStone(stack1, voidStone)) return;
+
 		
 		if(GetVoidStoneType(voidStone) == VOID_STONE_TYPE.UNSTABLE)
 		{
