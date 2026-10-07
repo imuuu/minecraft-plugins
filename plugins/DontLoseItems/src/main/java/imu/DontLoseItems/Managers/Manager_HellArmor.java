@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -56,7 +57,6 @@ import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.Metods;
-import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.NamespacedKey;
 
 public class Manager_HellArmor implements Listener
@@ -970,37 +970,75 @@ public class Manager_HellArmor implements Listener
 		return (x - cx) * (x - cx) + (y - cy) * (y - cy) + (z - cz) * (z - cz) <= r * r;
 	}
 	
+	// Snapshots of the loaded chunks are taken here on the main thread, the sphere is searched
+	// for ores from those snapshots off the main thread, and the ores are broken back on the
+	// main thread. Unloaded chunks are skipped, never loaded.
 	public void ExplodeHellArrow(Player player, ITEM_RARITY rarity,Block block, int radius)
 	{
-		//if(rarity == null) rarity = ITEM_RARITY.Uncommon;
-		
-		
+		World world = block.getWorld();
+		int cx = block.getX();
+		int cy = block.getY();
+		int cz = block.getZ();
+		int minY = Math.max(world.getMinHeight(), cy - radius);
+		int maxY = Math.min(world.getMaxHeight() - 1, cy + radius);
+
+		HashMap<Long, ChunkSnapshot> snapshots = new HashMap<>();
+		for(int chunkX = (cx - radius) >> 4; chunkX <= (cx + radius) >> 4; chunkX++)
+		{
+			for(int chunkZ = (cz - radius) >> 4; chunkZ <= (cz + radius) >> 4; chunkZ++)
+			{
+				if(!world.isChunkLoaded(chunkX, chunkZ)) continue;
+
+				snapshots.put(ChunkKey(chunkX, chunkZ), world.getChunkAt(chunkX, chunkZ).getChunkSnapshot(false, false, false));
+			}
+		}
+
 		new BukkitRunnable() {
-			
+
 			@Override
 			public void run()
 			{
-				LinkedList<Location> locs = ImusUtilities.CreateSphere(block.getLocation(), radius,null, ImusAPI.Ores);
-				
+				int radiusSquared = radius * radius;
+				LinkedList<int[]> found = new LinkedList<>();
+
+				for(int x = cx - radius; x <= cx + radius; x++)
+				{
+					for(int z = cz - radius; z <= cz + radius; z++)
+					{
+						ChunkSnapshot snap = snapshots.get(ChunkKey(x >> 4, z >> 4));
+						if(snap == null) continue;
+
+						for(int y = minY; y <= maxY; y++)
+						{
+							int dx = x - cx, dy = y - cy, dz = z - cz;
+							if(dx * dx + dy * dy + dz * dz > radiusSquared) continue;
+
+							if(!ImusAPI.Ores.contains(snap.getBlockType(x & 15, y, z & 15))) continue;
+
+							found.add(new int[] {x, y, z});
+						}
+					}
+				}
+
 				new BukkitRunnable() {
-					
+
 					ITEM_RARITY rary = rarity;
 					@Override
 					public void run()
 					{
 						if(rary == null) rary = ITEM_RARITY.Uncommon;
-						
+
 						int FortuneLevel = rary.GetIndex();
-						
-						for(Location loc : locs)
+
+						for(int[] pos : found)
 						{
-							Block b = loc.getBlock();
-							
+							Block b = world.getBlockAt(pos[0], pos[1], pos[2]);
+
+							// the snapshot is a tick or two old, someone may have mined it already
+							if(!ImusAPI.Ores.contains(b.getType())) continue;
+
 							if(b.getType() == Material.OBSIDIAN) continue;
-//							
-//							if(!_ores.contains(b.getType())) continue;
-							//if(IsPlayerDebris(b)) continue;
-							
+
 							BlockBreakEvent bBreakEvent = new BlockBreakEvent(b, player);
 							Bukkit.getServer().getPluginManager().callEvent(bBreakEvent);
 							
@@ -1027,10 +1065,11 @@ public class Manager_HellArmor implements Listener
 				}.runTask(DontLoseItems.Instance);
 			}
 		}.runTaskAsynchronously(DontLoseItems.Instance);
-		
-		
-		
-		
+	}
+
+	private static long ChunkKey(int chunkX, int chunkZ)
+	{
+		return ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
 	}
 	
 	
