@@ -1,0 +1,10 @@
+{
+  "pack": {
+    "description": "Ores at 50 % of vanilla (new chunks only)",
+    "min_format": [
+      107,
+      1
+    ],
+    "max_format": 107
+  }
+}

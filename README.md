@@ -12,6 +12,7 @@ pom.xml            parent POM: shared versions, repositories, plugin config
 libs/ImusAPI       shared library, published as me.imu:ImusAPI
 plugins/*          one Maven module per plugin
 archive/           older plugins and experiments, kept as source, not built
+datapacks/         world data packs (see "Data packs")
 run/               local test server (git-ignored, see below)
 ```
 
@@ -102,6 +103,19 @@ copies the jars into `plugins/`, overwriting the old ones. Only this repo's
 plugins are in the zip; Vault, EssentialsX, BetterStructures and WorldEdit are
 left alone. If GitHub can't be reached, the server starts with the plugins it
 has.
+
+## Data packs
+
+`datapacks/ImusOres` halves ore generation: every scattered ore in the
+overworld and the nether (coal through ancient debris) and the large
+iron/copper ore veins. Install it by copying the folder to
+`<world>/datapacks/` and restarting the server (`/reload` does not reload
+worldgen). It only affects chunks generated after that.
+
+The pack is generated from the vanilla JSON in the Paper server jar by
+`datapacks/make_ore_pack.py`; change `FACTOR` there for another ratio, and
+rerun it after a Minecraft update, since the pack overrides the whole
+overworld `noise_settings`.
 
 ## Local test server
 
