@@ -74,7 +74,10 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
     @Override
     public void onAwake()
     {
-        _customer = _service.customer(getPlayer(), new PlayerInventoryAdapter(getPlayer()));
+        // A custom price is paid from the whole inventory, hotbar included, like before
+        PlayerInventoryAdapter inventory = new PlayerInventoryAdapter(getPlayer());
+        inventory.setIncludeHotbarAndArmor(true);
+        _customer = _service.customer(getPlayer(), inventory);
     }
 
     @Override
