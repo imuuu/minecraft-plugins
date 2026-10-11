@@ -1,9 +1,9 @@
 name: imusGS
 author: imu
-version: 1.0
-main: imu.GS.Main.Main
+version: 2.0
+main: imu.GS.ImusGS
 api-version: '26.2'
-description: NPC general stores that buy and sell items
+description: General stores that buy and sell items
 depend: [imusAPI]
 softdepend: [Vault]
 commands:
@@ -11,10 +11,10 @@ commands:
      description: imusGS shop commands
      usage: /<command>
    g:
-     description: Check what the shops pay for your items
+     description: Check what your items are worth
      usage: /<command> getprice <hand|hotbar|inventory>
    gsopenfor:
-     description: Open a shop for a player. For NPC scripts (Denizen) and the console.
+     description: Open a shop for a player. For command NPCs and the console.
      usage: /<command> <player> <shop name>
      permission: gs.openfor
 permissions:
@@ -30,7 +30,6 @@ permissions:
        gs.modify.uniques: true
        gs.modify.shop: true
        gs.modify.enchants: true
-       gs.assign: true
        gs.set.material.price: true
        gs.set.material.overflow: true
        gs.unset.material.overflow: true
@@ -65,9 +64,6 @@ permissions:
    gs.modify.enchants:
      description: /gs modify enchantments
      default: op
-   gs.assign:
-     description: /gs assign, create the Denizen NPC script for a shop
-     default: op
    gs.set.material.price:
      description: /gs set material price
      default: op
@@ -89,9 +85,9 @@ permissions:
    gs.config:
      description: /gs config, the in-game settings menu
      default: op
-   gs.create.npc:
-     description: /gs create npc, spawn an NPC that opens a shop, and link an NPC to a shop in its settings
-     default: op
    gs.tabcompleter:
      description: Tab completion of /gs
+     default: op
+   gs.create.npc:
+     description: /gs create npc, spawn an NPC that opens a shop, and link an NPC to a shop in its settings
      default: op

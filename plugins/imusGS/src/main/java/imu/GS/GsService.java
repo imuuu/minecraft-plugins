@@ -1,0 +1,463 @@
+package imu.GS;
+
+import imu.GS.bukkit.ItemKeys;
+import imu.GS.bukkit.PlayerContext;
+import imu.GS.bukkit.PlayerInventoryAdapter;
+import imu.GS.bukkit.VaultWallet;
+import imu.GS.data.GsDatabase;
+import imu.GS.data.ListingCodec;
+import imu.GS.engine.ItemKey;
+import imu.GS.engine.customer.Customer;
+import imu.GS.engine.pricing.PriceCalculator;
+import imu.GS.engine.shop.Listing;
+import imu.GS.engine.shop.Shop;
+import imu.GS.engine.shop.ShopListener;
+import imu.GS.engine.shop.ShopSettings;
+import imu.GS.engine.trade.TradeService;
+import imu.GS.menu.ShopMenu;
+import imu.GS.prices.EnchantPrices;
+import imu.GS.prices.MaterialPrices;
+import imu.GS.prices.ServerPriceRules;
+import imu.GS.prices.UniqueItems;
+import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.MySQL;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+
+/**
+ * The running shops: loads them, ticks them, saves them, and holds the prices and the trade engine.
+ * Main thread only, apart from the startup load.
+ */
+public class GsService implements Listener
+{
+    private final ImusGS _plugin;
+    private final GsDatabase _db;
+    private final MaterialPrices _materials = new MaterialPrices();
+    private final EnchantPrices _enchants = new EnchantPrices();
+    private final UniqueItems _uniques = new UniqueItems();
+    private final ServerPriceRules _rules;
+    private final PriceCalculator _prices;
+    private final VaultWallet _wallet = new VaultWallet();
+    private final TradeService _trades;
+
+    private final Map<UUID, Shop> _shops = new LinkedHashMap<>();
+    private final Set<UUID> _dirty = new HashSet<>();
+    private final Map<UUID, ShopMenu> _openMenus = new HashMap<>();
+    private final ShopListener _dirtyMarker = new ShopListener()
+    {
+        @Override
+        public void listingChanged(Shop shop, Listing listing)
+        {
+            _dirty.add(shop.getId());
+        }
+
+        @Override
+        public void layoutChanged(Shop shop)
+        {
+            _dirty.add(shop.getId());
+        }
+
+        @Override
+        public void settingsChanged(Shop shop)
+        {
+            _dirty.add(shop.getId());
+        }
+    };
+
+    private boolean _loaded;
+    private BukkitTask _tickTask;
+    private BukkitTask _saveTask;
+
+    public GsService(ImusGS plugin, MySQL sql)
+    {
+        _plugin = plugin;
+        _db = new GsDatabase(sql, plugin.getLogger());
+        _rules = new ServerPriceRules(_materials, _enchants, _uniques,
+                () -> plugin.getConfig().getDouble("pricing.durability-penalty"));
+        _prices = new PriceCalculator(_rules);
+        _trades = new TradeService(_prices, _wallet);
+        _trades.addListener((shop, customer, trade) -> _db.logTrade(trade, shop.getName()));
+    }
+
+    // Lifecycle ======================================================================================================
+
+    /**
+     * Reads everything from the database in the background; shops appear when it is done.
+     */
+    public void start()
+    {
+        Bukkit.getScheduler().runTaskAsynchronously(_plugin, () ->
+        {
+            try
+            {
+                _db.createTables();
+                List<GsDatabase.ShopRow> shops = _db.loadShops();
+                List<GsDatabase.MaterialRow> materials = _db.loadMaterials();
+                EnchantPrices enchants = new EnchantPrices();
+                _db.loadEnchants(enchants);
+                List<GsDatabase.UniqueRow> uniques = _db.loadUniques();
+                Bukkit.getScheduler().runTask(_plugin, () -> apply(shops, materials, enchants, uniques));
+            } catch (SQLException e)
+            {
+                _plugin.getLogger().log(Level.SEVERE, "Couldn't load the shops from the database; shops are off until a restart", e);
+            }
+        });
+    }
+
+    private void apply(List<GsDatabase.ShopRow> shopRows, List<GsDatabase.MaterialRow> materialRows, EnchantPrices enchants, List<GsDatabase.UniqueRow> uniqueRows)
+    {
+        for (GsDatabase.MaterialRow row : materialRows)
+        {
+            Material material = Material.matchMaterial(row.material());
+            if (material == null)
+                continue;
+            _materials.setPrice(material, row.price());
+            _materials.setSmartMultiplier(material, row.smartMultiplier());
+            _materials.setOverflow(material, row.overflow());
+            _materials.setTags(material, row.tags());
+        }
+
+        _enchants.getValues().putAll(enchants.getValues());
+        _enchants.setEnchantCountPercent(enchants.getEnchantCountPercent());
+        for (imu.GS.prices.GearTier tier : imu.GS.prices.GearTier.values())
+            _enchants.setGearMultiplier(tier, enchants.getGearMultiplier(tier));
+
+        for (GsDatabase.UniqueRow row : uniqueRows)
+        {
+            ItemKey key = new ItemKey(row.item());
+            if (ItemKeys.isValid(key))
+                _uniques.put(new UniqueItems.Unique(key, ItemKeys.template(key), row.price()));
+            else
+                _plugin.getLogger().warning("Skipped a unique item that isn't a valid item any more: " + key);
+        }
+
+        for (GsDatabase.ShopRow row : shopRows)
+        {
+            Shop shop = new Shop(row.id(), row.name(), row.displayName(), ListingCodec.settingsFromJson(row.settings()));
+            for (GsDatabase.ListingRow listingRow : row.listings())
+            {
+                try
+                {
+                    ListingCodec.ListingData data = ListingCodec.fromJson(listingRow.data());
+                    Listing listing = new Listing(listingRow.id(), new ItemKey(listingRow.item()), listingRow.amount(), data.price());
+                    shop.placeListing(listing, listingRow.page(), listingRow.slot());
+                    shop.setStock(listing, data.stock());
+                    shop.setRestrictions(listing, data.restrictions());
+                    shop.setTags(listing, data.tags());
+                    shop.setAmount(listing, listingRow.amount());
+                } catch (RuntimeException e)
+                {
+                    _plugin.getLogger().log(Level.WARNING, "Skipped a broken listing " + listingRow.id() + " of shop " + row.name(), e);
+                }
+            }
+            addShop(shop);
+        }
+        _dirty.clear();
+        _loaded = true;
+        _plugin.getLogger().info("Loaded " + _shops.size() + " shops");
+        _plugin.updateTabCompletion();
+        restartTimers();
+    }
+
+    public void restartTimers()
+    {
+        if (_tickTask != null)
+            _tickTask.cancel();
+        if (_saveTask != null)
+            _saveTask.cancel();
+
+        FileConfiguration config = _plugin.getConfig();
+        long tickTicks = Math.max(1, config.getInt("shop.check-interval-seconds")) * 20L;
+        _tickTask = Bukkit.getScheduler().runTaskTimer(_plugin, () ->
+        {
+            long now = System.currentTimeMillis();
+            for (Shop shop : _shops.values())
+                shop.tick(now);
+        }, tickTicks, tickTicks);
+
+        long saveTicks = Math.max(1, config.getInt("shop.save-delay-seconds")) * 20L;
+        _saveTask = Bukkit.getScheduler().runTaskTimer(_plugin, this::saveDirty, saveTicks, saveTicks);
+    }
+
+    /**
+     * Closes every shop menu and saves every changed shop before returning. Call it in onDisable.
+     */
+    public void stop()
+    {
+        if (_tickTask != null)
+            _tickTask.cancel();
+        if (_saveTask != null)
+            _saveTask.cancel();
+        for (ShopMenu menu : new ArrayList<>(_openMenus.values()))
+            menu.getPlayer().closeInventory();
+        saveDirty();
+        _db.close();
+    }
+
+    public boolean isLoaded()
+    {
+        return _loaded;
+    }
+
+    // Shops ==========================================================================================================
+
+    public Collection<Shop> getShops()
+    {
+        return Collections.unmodifiableCollection(_shops.values());
+    }
+
+    public Shop getShop(UUID id)
+    {
+        return _shops.get(id);
+    }
+
+    /**
+     * The shop with exactly this name, ignoring case and colour codes.
+     */
+    public Shop getShop(String name)
+    {
+        String search = plainName(name);
+        for (Shop shop : _shops.values())
+        {
+            if (shop.getName().equalsIgnoreCase(search))
+                return shop;
+        }
+        return null;
+    }
+
+    public List<String> getShopNames()
+    {
+        List<String> names = new ArrayList<>();
+        for (Shop shop : _shops.values())
+            names.add(shop.getName());
+        return names;
+    }
+
+    /**
+     * Name without colour codes, used to find shops.
+     */
+    public static String plainName(String displayName)
+    {
+        return ChatColor.stripColor(Metods.msgC(displayName)).trim();
+    }
+
+    /**
+     * A new empty shop with the settings new shops start with in config.yml.
+     */
+    public Shop createShop(String displayName)
+    {
+        FileConfiguration config = _plugin.getConfig();
+        ShopSettings settings = new ShopSettings(
+                config.getDouble("new-shop.sell-multiplier"),
+                config.getDouble("new-shop.buy-multiplier"),
+                config.getDouble("new-shop.expire-percent"),
+                config.getInt("new-shop.expire-cooldown-minutes"),
+                false, false, true);
+        Shop shop = new Shop(UUID.randomUUID(), plainName(displayName), displayName, settings);
+        addShop(shop);
+        saveNow(shop);
+        _plugin.updateTabCompletion();
+        return shop;
+    }
+
+    private void addShop(Shop shop)
+    {
+        _shops.put(shop.getId(), shop);
+        shop.addListener(_dirtyMarker);
+    }
+
+    public void renameShop(Shop shop, String displayName)
+    {
+        shop.rename(plainName(displayName), displayName);
+        _plugin.updateTabCompletion();
+    }
+
+    public void deleteShop(Shop shop)
+    {
+        closeMenus(shop);
+        _shops.remove(shop.getId());
+        _dirty.remove(shop.getId());
+        shop.removeListener(_dirtyMarker);
+        _db.deleteShop(shop.getId());
+        _plugin.updateTabCompletion();
+    }
+
+    // Saving =========================================================================================================
+
+    public void saveNow(Shop shop)
+    {
+        _dirty.remove(shop.getId());
+        _db.saveShop(GsDatabase.ShopRow.of(shop));
+    }
+
+    private void saveDirty()
+    {
+        for (UUID id : new ArrayList<>(_dirty))
+        {
+            Shop shop = _shops.get(id);
+            if (shop != null)
+                saveNow(shop);
+        }
+        _dirty.clear();
+    }
+
+    public void saveMaterials(Collection<Material> materials)
+    {
+        List<GsDatabase.MaterialRow> rows = new ArrayList<>();
+        for (Material material : materials)
+            rows.add(GsDatabase.materialRow(material, _materials.get(material)));
+        _db.saveMaterials(rows);
+        refreshMenus();
+    }
+
+    public GsDatabase getDatabase()
+    {
+        return _db;
+    }
+
+    // Customers ======================================================================================================
+
+    public Customer customer(Player player, PlayerInventoryAdapter inventory)
+    {
+        return new Customer(player.getUniqueId(), player.getName(), inventory, new PlayerContext(player));
+    }
+
+    /**
+     * Opens the shop menu, unless the shop is locked; admins get in anyway.
+     */
+    public void openShop(Player player, Shop shop)
+    {
+        if (!_loaded)
+        {
+            player.sendMessage(Metods.msgC("&9The shops are still opening, try again in a moment."));
+            return;
+        }
+        if (shop.getSettings().locked() || isBeingEdited(shop))
+        {
+            player.sendMessage(Metods.msgC("&9The Shop is temporarily closed! Come back later!"));
+            if (!player.isOp())
+                return;
+        }
+        new ShopMenu(this, shop).open(player);
+    }
+
+    public void menuOpened(ShopMenu menu)
+    {
+        _openMenus.put(menu.getPlayer().getUniqueId(), menu);
+    }
+
+    public void menuClosed(ShopMenu menu)
+    {
+        _openMenus.remove(menu.getPlayer().getUniqueId(), menu);
+    }
+
+    /**
+     * Closes every customer's menu of the shop, e.g. before an admin changes it.
+     */
+    public void closeMenus(Shop shop)
+    {
+        for (ShopMenu menu : new ArrayList<>(_openMenus.values()))
+        {
+            if (menu.getShop() == shop)
+                menu.getPlayer().closeInventory();
+        }
+    }
+
+    /**
+     * Redraws every open shop menu, e.g. after prices changed.
+     */
+    public void refreshMenus()
+    {
+        for (ShopMenu menu : new ArrayList<>(_openMenus.values()))
+            menu.refresh();
+    }
+
+    // Admins editing a shop keep customers out, like a locked shop
+    private final Map<UUID, Integer> _editors = new HashMap<>();
+
+    public void startEditing(Shop shop)
+    {
+        _editors.merge(shop.getId(), 1, Integer::sum);
+        closeMenus(shop);
+    }
+
+    public void stopEditing(Shop shop)
+    {
+        _editors.computeIfPresent(shop.getId(), (id, count) -> count <= 1 ? null : count - 1);
+    }
+
+    public boolean isBeingEdited(Shop shop)
+    {
+        return _editors.containsKey(shop.getId());
+    }
+
+    @EventHandler
+    public void onPickup(EntityPickupItemEvent e)
+    {
+        // Items that didn't fit were dropped at the customer's feet; they pick them up after closing the shop
+        if (e.getEntity() instanceof Player player && _openMenus.containsKey(player.getUniqueId()))
+            e.setCancelled(true);
+    }
+
+    // Getters ========================================================================================================
+
+    public ImusGS getPlugin()
+    {
+        return _plugin;
+    }
+
+    public MaterialPrices getMaterials()
+    {
+        return _materials;
+    }
+
+    public EnchantPrices getEnchants()
+    {
+        return _enchants;
+    }
+
+    public UniqueItems getUniques()
+    {
+        return _uniques;
+    }
+
+    public ServerPriceRules getRules()
+    {
+        return _rules;
+    }
+
+    public PriceCalculator getPrices()
+    {
+        return _prices;
+    }
+
+    public TradeService getTrades()
+    {
+        return _trades;
+    }
+
+    public VaultWallet getWallet()
+    {
+        return _wallet;
+    }
+}
