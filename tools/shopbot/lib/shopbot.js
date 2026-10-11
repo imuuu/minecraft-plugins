@@ -122,6 +122,34 @@ class ShopBot {
     await sleep(400)
   }
 
+  /**
+   * Clicks a slot that opens another menu, and returns that menu.
+   */
+  async clickForNewWindow (slot, click = 'left', timeoutMs = 5000) {
+    const opened = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`Clicking slot ${slot} opened no menu`)), timeoutMs)
+      this.bot.once('windowOpen', window => { clearTimeout(timer); resolve(window) })
+    })
+    await this.click(slot, click)
+    const window = await opened
+    await sleep(300)
+    return window
+  }
+
+  /**
+   * Slots of the open menu that show the bot's own inventory and hold the item.
+   */
+  ownSlotsWith (itemName) {
+    const window = this.bot.currentWindow
+    if (!window) return []
+    const result = []
+    for (let slot = window.inventoryStart; slot < window.inventoryEnd; slot++) {
+      const item = window.slots[slot]
+      if (item && item.name === itemName) result.push(slot)
+    }
+    return result
+  }
+
   closeWindow () {
     if (this.bot.currentWindow) this.bot.closeWindow(this.bot.currentWindow)
   }

@@ -30,6 +30,7 @@ balances before and after each click, so they can be run again on the same serve
 | `race.test.js` | Two bots click the last unit at the same time: one gets it, only that one pays |
 | `shulker.test.js` | A shulker box sells its contents, the empty box stays |
 | `stockable.test.js` | `/gs add` lists a stack that never runs out |
+| `custom-price.test.js` | An admin sets a price of 20 diamonds + 10 iron through the admin menus; a player buys with it, and is refused without the items |
 | `restart.test.js` | Shops, stock and prices are the same after the server restarts |
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of
