@@ -24,7 +24,9 @@ import imu.GS.Managers.ShopManagerSQL;
 import imu.GS.Managers.TagManager;
 import imu.GS.Other.CmdHelper;
 import imu.GS.Other.DenizenScriptCreator;
+import imu.GS.Npc.ShopNpcManager;
 import imu.GS.SubCmds.OpenForCMD;
+import imu.GS.SubCmds.SubCreateNpcCMD;
 import imu.GS.SubCmds.SubAddStockableCMD;
 import imu.GS.SubCmds.SubConfigCMD;
 import imu.GS.SubCmds.SubAssingToNpcCMD;
@@ -62,6 +64,7 @@ public class Main extends JavaPlugin
 	private MySQL _SQL;
 	private ImusTabCompleter _tab_cmd1;
 	private ConfigMenu _configMenu;
+	private ShopNpcManager _npcManager;
 
 	private HashMap<UUID, CustomInvLayout> _opendInvs = new HashMap<>();
 	public final String _pluginNamePrefix = "&4[&b"+getName()+"&4]&r";
@@ -95,6 +98,9 @@ public class Main extends JavaPlugin
 
 		_configMenu = CreateConfigMenu();
 		_configMenu.register();
+
+		_npcManager = new ShopNpcManager(this);
+		getServer().getPluginManager().registerEvents(_npcManager, this);
 //_shopManager.loadShopsAsync();
 		 
 	
@@ -222,6 +228,12 @@ public class Main extends JavaPlugin
 	    handler.registerSubCmd(cmd1, cmd1_sub15, new SubSetUnsetMaterialSmartPriceCMD(this, _cmdHelper.getCmdData(full_sub15), false));
 	    handler.setPermissionOnLastCmd("gs.unset.material.smart_price");
 	    
+	    String cmd1_sub17="create npc";
+	    String full_sub17=cmd1+" "+cmd1_sub17;
+	    _cmdHelper.setCmd(full_sub17, "Create a shop NPC", full_sub17 + " [ShopName]");
+	    handler.registerSubCmd(cmd1, cmd1_sub17, new SubCreateNpcCMD(this, _npcManager, _cmdHelper.getCmdData(full_sub17)));
+	    handler.setPermissionOnLastCmd("gs.create.npc");
+
 	    String cmd1_sub16="config";
 	    handler.registerSubCmd(cmd1, cmd1_sub16, new SubConfigCMD(_configMenu));
 	    handler.setPermissionOnLastCmd("gs.config");
@@ -231,7 +243,7 @@ public class Main extends JavaPlugin
 	    cmd1AndArguments.put(cmd1, new String[] {"create","open","tag", "modify","assign","set","unset","add","config"});
 	    cmd1AndArguments.put("open", new String[] {"shop"});
 	    //cmd1AndArguments.put("delete", new String[] {"shop"});
-	    cmd1AndArguments.put("create", new String[] {"shop","unique"});
+	    cmd1AndArguments.put("create", new String[] {"shop","unique","npc"});
 	    cmd1AndArguments.put("tag", new String[] {"materials","shopitems"}); //new String[] {"add","remove","remove_all_tags","set_price","increase_price"}
 	    cmd1AndArguments.put("add", one_hotbar_inv);
 	    
@@ -328,6 +340,7 @@ public class Main extends JavaPlugin
 		_tab_cmd1.SetRule("/"+"gs assign", 3, Arrays.asList(shopNames));
 		_tab_cmd1.SetRule("/"+"gs setprice", 4, Arrays.asList(shopNames));
 		_tab_cmd1.SetRule("/gs add", 3, Arrays.asList(shopNames));
+		_tab_cmd1.SetRule("/gs create npc", 3, Arrays.asList(shopNames));
 		_tab_cmd1.setArgumenrs("shop", shopNames);
 	}
 	
