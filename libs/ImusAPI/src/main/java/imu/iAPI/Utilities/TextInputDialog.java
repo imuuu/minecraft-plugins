@@ -8,6 +8,7 @@ import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import io.papermc.paper.registry.data.dialog.action.DialogActionCallback;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.input.TextDialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
@@ -49,11 +50,20 @@ public final class TextInputDialog
     public static void show(Player player, String title, List<String> lines, String initial, int maxLength,
                             Function<String, String> onSave, Runnable onClose)
     {
-        show(player, title, lines, initial, maxLength, onSave, onClose, null);
+        show(player, title, lines, initial, maxLength, 0, onSave, onClose, null);
+    }
+
+    /**
+     * A text box of several lines; the text given to onSave has one line per row, separated by \n.
+     */
+    public static void showMultiline(Player player, String title, List<String> lines, String initial, int maxLength,
+                                     int rows, Function<String, String> onSave, Runnable onClose)
+    {
+        show(player, title, lines, initial, maxLength, rows, onSave, onClose, null);
     }
 
     private static void show(Player player, String title, List<String> lines, String initial, int maxLength,
-                             Function<String, String> onSave, Runnable onClose, String error)
+                             int rows, Function<String, String> onSave, Runnable onClose, String error)
     {
         LegacyComponentSerializer legacy = LegacyComponentSerializer.legacyAmpersand();
 
@@ -63,11 +73,13 @@ public final class TextInputDialog
         if (error != null)
             body.add(DialogBody.plainMessage(Component.text(error, NamedTextColor.RED)));
 
-        DialogInput input = DialogInput.text(INPUT_KEY, Component.text(""))
+        TextDialogInput.Builder inputBuilder = DialogInput.text(INPUT_KEY, Component.text(""))
                 .initial(initial == null ? "" : initial)
                 .maxLength(maxLength)
-                .width(300)
-                .build();
+                .width(300);
+        if (rows > 0)
+            inputBuilder.multiline(TextDialogInput.MultilineOptions.create(rows, rows * 12));
+        DialogInput input = inputBuilder.build();
 
         ActionButton save = ActionButton.builder(Component.text("Save", NamedTextColor.GREEN))
                 .action(DialogAction.customClick(onMainThread((view, audience) ->
@@ -76,7 +88,7 @@ public final class TextInputDialog
                     String problem = onSave.apply(text == null ? "" : text);
                     if (problem != null)
                     {
-                        show(player, title, lines, text, maxLength, onSave, onClose, problem);
+                        show(player, title, lines, text, maxLength, rows, onSave, onClose, problem);
                         return;
                     }
                     if (onClose != null)

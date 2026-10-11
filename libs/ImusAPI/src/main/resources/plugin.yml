@@ -9,3 +9,13 @@ commands:
    ia:
      description: ia
      usage: /<command>
+permissions:
+   ia.npc.create:
+     description: /ia npc create, an NPC that runs commands
+     default: op
+   ia.npc.edit:
+     description: Sneak + click any NPC to open its settings
+     default: op
+   ia.npc.commands:
+     description: Set the commands an NPC runs. They run as the server, so only give this to admins
+     default: op

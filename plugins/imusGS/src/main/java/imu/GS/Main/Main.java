@@ -24,7 +24,10 @@ import imu.GS.Managers.ShopManagerSQL;
 import imu.GS.Managers.TagManager;
 import imu.GS.Other.CmdHelper;
 import imu.GS.Other.DenizenScriptCreator;
-import imu.GS.Npc.ShopNpcManager;
+import imu.GS.Npc.LegacyShopNpcs;
+import imu.GS.Npc.ShopNpcAction;
+import imu.iAPI.Main.ImusAPI;
+import imu.iAPI.Npc.NpcManager;
 import imu.GS.SubCmds.OpenForCMD;
 import imu.GS.SubCmds.SubCreateNpcCMD;
 import imu.GS.SubCmds.SubAddStockableCMD;
@@ -64,7 +67,6 @@ public class Main extends JavaPlugin
 	private MySQL _SQL;
 	private ImusTabCompleter _tab_cmd1;
 	private ConfigMenu _configMenu;
-	private ShopNpcManager _npcManager;
 
 	private HashMap<UUID, CustomInvLayout> _opendInvs = new HashMap<>();
 	public final String _pluginNamePrefix = "&4[&b"+getName()+"&4]&r";
@@ -99,8 +101,12 @@ public class Main extends JavaPlugin
 		_configMenu = CreateConfigMenu();
 		_configMenu.register();
 
-		_npcManager = new ShopNpcManager(this);
-		getServer().getPluginManager().registerEvents(_npcManager, this);
+		// Shop NPCs are ImusAPI NPCs with this action
+		NpcManager npcs = ImusAPI._instance.GetNpcManager();
+		npcs.registerAction(new ShopNpcAction(this));
+		LegacyShopNpcs legacyNpcs = new LegacyShopNpcs(this, npcs);
+		getServer().getPluginManager().registerEvents(legacyNpcs, this);
+		legacyNpcs.ConvertLoaded();
 //_shopManager.loadShopsAsync();
 		 
 	
@@ -114,6 +120,7 @@ public class Main extends JavaPlugin
 	 public void onDisable()
 	{
 		if(_configMenu != null) _configMenu.unregister();
+		if(ImusAPI._instance != null && ImusAPI._instance.GetNpcManager() != null) ImusAPI._instance.GetNpcManager().unregisterAction(ShopNpcAction.ID);
 
 		// Closing fires InventoryCloseEvent, which unregisters from _opendInvs; iterate a copy
 		for(CustomInvLayout inv : new ArrayList<>(_opendInvs.values())) { inv.GetPlayer().closeInventory();}
@@ -231,7 +238,7 @@ public class Main extends JavaPlugin
 	    String cmd1_sub17="create npc";
 	    String full_sub17=cmd1+" "+cmd1_sub17;
 	    _cmdHelper.setCmd(full_sub17, "Create a shop NPC", full_sub17 + " [ShopName]");
-	    handler.registerSubCmd(cmd1, cmd1_sub17, new SubCreateNpcCMD(this, _npcManager, _cmdHelper.getCmdData(full_sub17)));
+	    handler.registerSubCmd(cmd1, cmd1_sub17, new SubCreateNpcCMD(this, _cmdHelper.getCmdData(full_sub17)));
 	    handler.setPermissionOnLastCmd("gs.create.npc");
 
 	    String cmd1_sub16="config";

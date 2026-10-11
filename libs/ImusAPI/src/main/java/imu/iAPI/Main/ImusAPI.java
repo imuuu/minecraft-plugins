@@ -15,6 +15,9 @@ import imu.iAPI.Managers.Manager_CommandSender;
 import imu.iAPI.Managers.Manager_Database;
 import imu.iAPI.Managers.Manager_Vault;
 import imu.iAPI.Other.*;
+import imu.iAPI.Config.ConfigMenu;
+import imu.iAPI.Npc.NpcManager;
+import imu.iAPI.SubCommands.Sub_Cmd_CreateNpc;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenConfigMenus;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenLootTablesInvs;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenNamedInvs;
@@ -39,6 +42,8 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     private Manager_Vault _vaultManager;
     private Manager_Database _databaseManager;
     private Manager_CommandSender _commandSenderManager;
+    private NpcManager _npcManager;
+    private ConfigMenu _configMenu;
 
     private MySQL _SQL;
 
@@ -82,7 +87,18 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);
 
 
+        saveDefaultConfig();
+        // Settings added in an update go into an existing config.yml
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
+        _npcManager = new NpcManager(this);
+        getServer().getPluginManager().registerEvents(_npcManager, this);
+        _npcManager.loadSettings();
+
         RegisterCommands();
+        _configMenu = createConfigMenu();
+        _configMenu.register();
         AirHashSet = new HashSet<>();
         AirHashSet.add(Material.AIR);
         AirHashSet.add(Material.VOID_AIR);
@@ -98,6 +114,9 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     @Override
     public void onDisable()
     {
+        if (_configMenu != null)
+            _configMenu.unregister();
+
         for (CustomInvLayout inv : _openedInvs.values())
         {
             inv.GetPlayer().closeInventory();
@@ -162,7 +181,12 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         handler.registerSubCmd(cmd1, cmd1_sub3, new Sub_Cmd_OpenConfigMenus(_cmdHelper.getCmdData(full_sub3)));
         handler.setPermissionOnLastCmd("ia.config");
 
-        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config"});
+        String cmd1_sub4 = "npc create";
+        handler.registerSubCmd(cmd1, cmd1_sub4, new Sub_Cmd_CreateNpc(_npcManager));
+        handler.setPermissionOnLastCmd("ia.npc.create");
+
+        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config", "npc"});
+        cmd1AndArguments.put("npc", new String[]{"create"});
 
         // register cmds
         getCommand(cmd1).setExecutor(handler);
@@ -172,6 +196,31 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
 
         getCommand(cmd1).setTabCompleter(_tab_cmd1);
 
+    }
+
+    private ConfigMenu createConfigMenu()
+    {
+        ConfigMenu menu = new ConfigMenu(this, "imusAPI", "ia.config", () ->
+        {
+            reloadConfig();
+            _npcManager.loadSettings();
+        });
+        menu.addBoolean("npc.look-at-players", "NPCs look at players", Material.ENDER_EYE)
+                .description("NPCs turn to the nearest player close by")
+                .note("now");
+        menu.addDouble("npc.look-range", "NPC look range", Material.SPYGLASS, 1, 32)
+                .description("How close a player must be, in blocks")
+                .note("now");
+        return menu;
+    }
+
+    /**
+     * NPCs (villagers or player-looking mannequins) that run an action when clicked. Plugins register
+     * their own actions here.
+     */
+    public NpcManager GetNpcManager()
+    {
+        return _npcManager;
     }
 
     public ImusTabCompleter GetCMD1_TabCompleter()

@@ -1,0 +1,8 @@
+# imusAPI settings. Every value here can be changed in game with /ia config.
+
+npc:
+  # NPCs (/ia npc create, /gs create npc, /ic create npc...) turn to look at the nearest player close by,
+  # and back when nobody is near. Each NPC can also be switched off in its own settings (sneak + click it).
+  look-at-players: true
+  # How close a player must be, in blocks
+  look-range: 8

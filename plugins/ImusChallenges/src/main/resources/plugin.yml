@@ -8,6 +8,10 @@ depend:
   - imusAPI
 softdepend:
   - GadgedMenu
+permissions:
+  ic.create.npc:
+    description: /ic create npc, an NPC that opens the challenge shop
+    default: op
 commands:
   imuschallenges:
     description: imusChallenges

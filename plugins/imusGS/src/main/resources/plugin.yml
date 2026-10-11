@@ -40,7 +40,7 @@ permissions:
        gs.config: true
        gs.tabcompleter: true
        gs.create.npc: true
-       gs.npc.edit: true
+       ia.npc.edit: true
    gs.create.shop:
      description: /gs create shop
      default: op
@@ -90,10 +90,7 @@ permissions:
      description: /gs config, the in-game settings menu
      default: op
    gs.create.npc:
-     description: /gs create npc, spawn a villager or player-looking NPC that opens a shop
-     default: op
-   gs.npc.edit:
-     description: Sneak + click a shop NPC to open its settings
+     description: /gs create npc, spawn an NPC that opens a shop, and link an NPC to a shop in its settings
      default: op
    gs.tabcompleter:
      description: Tab completion of /gs

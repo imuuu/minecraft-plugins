@@ -6,6 +6,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Main.ImusAPI;
+import me.imu.imuschallenges.Shop.ChallengeShopNpcAction;
 import imu.iAPI.Other.ImusTabCompleter;
 import imu.iAPI.Other.MySQL;
 import me.imu.imuschallenges.Commands.ExampleCmd;
@@ -68,6 +70,7 @@ public class ImusChallenges extends JavaPlugin
         getServer().getPluginManager().registerEvents(new ManagerAchievementChallenges(), this);
         getServer().getPluginManager().registerEvents(new ManagerPointsScoreboard(), this);
         _configMenu.register();
+        ImusAPI._instance.GetNpcManager().registerAction(new ChallengeShopNpcAction());
 
 
     }
@@ -77,6 +80,8 @@ public class ImusChallenges extends JavaPlugin
     {
         if (_configMenu != null)
             _configMenu.unregister();
+        if (ImusAPI._instance != null && ImusAPI._instance.GetNpcManager() != null)
+            ImusAPI._instance.GetNpcManager().unregisterAction(ChallengeShopNpcAction.ID);
         if (_managerChallengeShop != null)
             _managerChallengeShop.shutdown();
         if (_managerPlayerPoints != null)
@@ -260,11 +265,16 @@ public class ImusChallenges extends JavaPlugin
         handler.registerSubCmd(cmd1, cmd1_sub8, new SubConfigCmd(_configMenu));
         handler.setPermissionOnLastCmd(CONSTANTS.PERM_CONFIG);
 
+        String cmd1_sub12 = "create npc";
+        handler.registerSubCmd(cmd1, cmd1_sub12, new SubCreateNpcCmd());
+        handler.setPermissionOnLastCmd("ic.create.npc");
+
         String cmd1_sub6 = "view points";
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubGetPointsCmd());
         handler.setPermissionOnLastCmd("ic.view.points");
 
-        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config" });
+        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config", "create" });
+        cmd1AndArguments.put("create", new String[] { "npc" });
         cmd1AndArguments.put("set", new String[] { "points", "lifetime" });
         cmd1AndArguments.put("reset", new String[] { "points" });
         cmd1AndArguments.put("view", new String[] { "points","materials","advancements"});
