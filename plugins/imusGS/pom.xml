@@ -28,5 +28,10 @@
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
         </dependency>
+        <!-- Tests of the trade engine (imu.GS.engine), which doesn't touch Bukkit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
     </dependencies>
 </project>
