@@ -21,12 +21,29 @@ Start MariaDB and the server (see the main README), then:
 npm test
 ```
 
-The bot joins as `ShopBot`, creates the shop `BotTest` if it doesn't exist and trades with it. The tests
-look at amounts and balances before and after each click, so they can be run again on the same server.
+Each test file uses its own bots and shop, created if it doesn't exist. The tests look at amounts and
+balances before and after each click, so they can be run again on the same server.
+
+| File | What it plays |
+|---|---|
+| `shop.test.js` | Every click type: buy and sell 1, 8, 64, all; lore prices; the hotbar button; not enough money |
+| `race.test.js` | Two bots click the last unit at the same time: one gets it, only that one pays |
+| `shulker.test.js` | A shulker box sells its contents, the empty box stays |
+| `stockable.test.js` | `/gs add` lists a stack that never runs out |
+| `restart.test.js` | Shops, stock and prices are the same after the server restarts |
+
+`restart.test.js` stops the server and starts it again in the background (with the Java of
+`run/Kaynnista-palvelin.bat`, log in `run/logs/shopbot-server.log`), so it is skipped unless asked for.
+Run it after the others, which fill the shops:
+
+```
+set SHOPBOT_RESTART=1 && node --test test/restart.test.js
+```
 
 ## Writing tests
 
 `lib/shopbot.js` has the helpers: `joinServer(name)`, `click(slot, 'left'|'right'|'shiftLeft'|'shiftRight'|'middle')`,
 `shopSlotsWith(item)`, `customerSlotsWith(item)`, `count(item)`, `waitForWindow()`, `waitForMessage(regex)`.
-`lib/rcon.js` runs console commands. Shop menu slots: 0-26 the shop, 27-35 buttons (33 = hotbar on/off),
+`lib/fixture.js` resets a test player, reads balances, sets prices and opens shops. `lib/rcon.js` runs console
+commands; use `minecraft:give` for items with components, Essentials' `/give` doesn't understand them. Shop menu slots: 0-26 the shop, 27-35 buttons (33 = hotbar on/off),
 36-53 the player's items.

@@ -11,6 +11,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "mineflayer": "4.39.0"
+    "mineflayer": "4.39.0",
+    "prismarine-nbt": "2.8.0"
   }
 }

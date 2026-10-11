@@ -1,10 +1,10 @@
 'use strict'
-// Plays an imusGS shop like a player on the local test server (run/), which must be running.
-// node --test test/
+// Buying and selling with every click type. The local test server (run/) must be running.
 const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const { Rcon } = require('../lib/rcon')
 const { joinServer, sleep } = require('../lib/shopbot')
+const { resetPlayer, balance, setHandPrice, openShop, HOTBAR_TOGGLE } = require('../lib/fixture')
 
 const SHOP = 'BotTest'
 const BOT = 'ShopBot'
@@ -15,15 +15,11 @@ let bot
 before(async () => {
   rcon = await Rcon.connect()
   bot = await joinServer(BOT)
-  await rcon.command(`op ${BOT}`)
-  await rcon.command(`gamemode survival ${BOT}`)
-  await rcon.command(`clear ${BOT}`)
-  await rcon.command(`eco set ${BOT} 1000`)
+  await resetPlayer(rcon, BOT)
   await rcon.command(`give ${BOT} diamond 64`)
-  await sleep(500)
+  await sleep(300)
   // Diamonds are worth 10; a new shop sells for x5 and buys for x1
-  bot.bot.setQuickBarSlot(0)
-  await bot.command('gs set material price hand 10')
+  await setHandPrice(bot, 10)
   await bot.command(`gs create shop ${SHOP}`)
 })
 
@@ -33,87 +29,90 @@ after(async () => {
   rcon?.close()
 })
 
-async function balance () {
-  // Essentials: "Pelaajan ShopBot saldo: $1,000.50"
-  const text = await rcon.command(`money ${BOT}`)
-  const match = /\$\s*(-?\d[\d,]*(?:\.\d+)?)/.exec(text)
-  assert.ok(match, 'Balance not found in: ' + text)
-  return Number(match[1].replace(/,/g, ''))
-}
+const open = options => openShop(rcon, bot, SHOP, options)
+const money = () => balance(rcon, BOT)
 
-const HOTBAR_TOGGLE = 33
-
-/**
- * Opens the shop for the bot. /give puts the diamonds in the hotbar, which the shop leaves out until the
- * hotbar button is clicked.
- */
-async function openShop ({ includeHotbar = true } = {}) {
-  bot.closeWindow()
-  await sleep(300)
-  await rcon.command(`gsopenfor ${BOT} ${SHOP}`)
-  const window = await bot.waitForWindow()
-  if (includeHotbar)
-    await bot.click(HOTBAR_TOGGLE)
-  return window
-}
+test('the shop opens with its name as the title', async () => {
+  await open()
+  assert.match(bot.windowTitle(), new RegExp(SHOP))
+})
 
 test('the hotbar is left out until its button is clicked', async () => {
-  await openShop({ includeHotbar: false })
+  await open({ includeHotbar: false })
   assert.equal(bot.customerSlotsWith('diamond').length, 0)
   await bot.click(HOTBAR_TOGGLE)
   assert.equal(bot.customerSlotsWith('diamond').length, 1)
 })
 
-test('the shop opens with its name as the title', async () => {
-  await openShop()
-  assert.match(bot.windowTitle(), new RegExp(SHOP))
-})
+test('left click sells one diamond for 10 and the shop lists it', async () => {
+  const before = await money()
+  await open()
+  const shopAmountBefore = bot.shopSlotsWith('diamond').map(slot => bot.amount(slot))[0] ?? 0
 
-test('selling one diamond pays 10 and puts it in the shop', async () => {
-  const before = await balance()
-  await openShop()
-  const [slot] = bot.customerSlotsWith('diamond')
-  assert.ok(slot !== undefined, 'The diamonds should be on the customer side')
-
-  await bot.click(slot, 'left')
+  await bot.click(bot.customerSlotsWith('diamond')[0], 'left')
 
   assert.equal(bot.count('diamond'), 63)
-  assert.equal(await balance(), before + 10)
-  assert.equal(bot.shopSlotsWith('diamond').length, 1, 'The shop should list the diamond')
+  assert.equal(await money(), before + 10)
+  const [shopSlot] = bot.shopSlotsWith('diamond')
+  assert.equal(bot.amount(shopSlot), shopAmountBefore + 1)
 })
 
-test('buying one diamond back costs 50', async () => {
-  const before = await balance()
-  await openShop()
-  const [slot] = bot.shopSlotsWith('diamond')
-  assert.ok(slot !== undefined, 'The shop should have a diamond')
+test('the lore shows the buy prices', async () => {
+  await open()
+  const lore = bot.lore(bot.shopSlotsWith('diamond')[0]).join('\n')
+  assert.match(lore, /BUY\s+:\s+1\s+:\s+50\.0 \$/)
+})
 
-  await bot.click(slot, 'left')
+test('left click buys one diamond for 50', async () => {
+  const before = await money()
+  await open()
+
+  await bot.click(bot.shopSlotsWith('diamond')[0], 'left')
 
   assert.equal(bot.count('diamond'), 64)
-  assert.equal(await balance(), before - 50)
+  assert.equal(await money(), before - 50)
 })
 
-test('selling 8 with a right click', async () => {
-  const before = await balance()
-  await openShop()
-  const [slot] = bot.customerSlotsWith('diamond')
+test('right click sells 8', async () => {
+  const before = await money()
+  await open()
 
-  await bot.click(slot, 'right')
+  await bot.click(bot.customerSlotsWith('diamond')[0], 'right')
 
   assert.equal(bot.count('diamond'), 56)
-  assert.equal(await balance(), before + 80)
+  assert.equal(await money(), before + 80)
+})
+
+test('shift + right click sells everything', async () => {
+  const before = await money()
+  await open()
+
+  await bot.click(bot.customerSlotsWith('diamond')[0], 'shiftRight')
+
+  assert.equal(bot.count('diamond'), 0)
+  assert.equal(await money(), before + 560)
+})
+
+test('shift + left click buys 64', async () => {
+  await rcon.command(`eco set ${BOT} 5000`)
+  await open()
+  const [slot] = bot.shopSlotsWith('diamond')
+  assert.ok(bot.amount(slot) >= 64, 'The shop should have at least 64 diamonds by now')
+
+  await bot.click(slot, 'shiftLeft')
+
+  assert.equal(bot.count('diamond'), 64)
+  assert.equal(await money(), 5000 - 64 * 50)
 })
 
 test('buying with too little money is refused and changes nothing', async () => {
   await rcon.command(`eco set ${BOT} 10`)
-  await openShop()
-  const [slot] = bot.shopSlotsWith('diamond')
+  await open()
   bot.clearMessages()
 
-  await bot.click(slot, 'left')
+  await bot.click(bot.shopSlotsWith('diamond')[0], 'left')
 
   await bot.waitForMessage(/Balance isn't enough/)
-  assert.equal(bot.count('diamond'), 56)
-  assert.equal(await balance(), 10)
+  assert.equal(bot.count('diamond'), 64)
+  assert.equal(await money(), 10)
 })

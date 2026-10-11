@@ -1,6 +1,7 @@
 'use strict'
 // A test player on the local server, with helpers for the imusGS shop menu.
 const mineflayer = require('mineflayer')
+const nbt = require('prismarine-nbt')
 const { serverProperties } = require('./rcon')
 
 // Mineflayer speaks 26.1; ViaBackwards on the test server lets it join the 26.2 server
@@ -8,6 +9,16 @@ const PROTOCOL_VERSION = '26.1'
 
 const SHOP_SLOTS = 27
 const CUSTOMER_START = 36
+
+/**
+ * Text of a chat component (already simplified from NBT), colours left out.
+ */
+function plainText (component) {
+  if (component == null) return ''
+  if (typeof component === 'string') return component.replace(/§./g, '')
+  if (Array.isArray(component)) return component.map(plainText).join('')
+  return plainText(component.text ?? '') + plainText(component.extra ?? [])
+}
 
 function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -153,8 +164,19 @@ class ShopBot {
   lore (slot) {
     const item = this.slot(slot)
     if (!item) return []
-    const lore = item.componentMap?.get?.('lore')?.data ?? item.customLore ?? []
-    return lore.map(line => (typeof line === 'string' ? line : JSON.stringify(line)).replace(/§./g, ''))
+    const lore = item.customLore ?? []
+    return lore.map(line => plainText(typeof line === 'string' ? line : nbt.simplify(line)))
+  }
+
+  /**
+   * The amount a shop menu item shows in its lore ("____ Amount: 24 ____"), or null.
+   */
+  amount (slot) {
+    for (const line of this.lore(slot)) {
+      const match = /Amount:\s*(\d+)/.exec(line)
+      if (match) return Number(match[1])
+    }
+    return null
   }
 
   /**
