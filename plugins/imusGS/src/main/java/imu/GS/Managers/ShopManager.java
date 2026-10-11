@@ -251,7 +251,7 @@ public class ShopManager
 //				}
 				
 			}
-		}.runTaskTimerAsynchronously(_main, 20 * _shopCheckTime_s, 20 * _shopCheckTime_s);
+		}.runTaskTimer(_main, 20 * _shopCheckTime_s, 20 * _shopCheckTime_s); // changes stock and customer menus, main thread only
 		
 		
 	}

@@ -25,6 +25,7 @@ import imu.iAPI.Other.Cooldowns;
 import imu.iAPI.Other.CustomInvLayout;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Other.Tuple;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 public class ShopNormal extends Shop
 {
@@ -176,8 +177,13 @@ public class ShopNormal extends Shop
 		if(_main.get_econ().getBalance(player) >= price)
 		{
 			if(!withdraw) return true;
-			
-			_main.get_econ().withdrawPlayer(player, price);
+
+			EconomyResponse response = _main.get_econ().withdrawPlayer(player, price);
+			if(!response.transactionSuccess())
+			{
+				player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9Payment failed: &e"+response.errorMessage));
+				return false;
+			}
 			player.sendMessage(Metods.msgC("&4Buy &9confirmed! Purchase value: &e "+Metods.Round(price)+" &2$&9. &9Balance: &e"+Metods.Round(_main.get_econ().getBalance(player))+"&2$&9."));
 			return true;
 		}
@@ -195,8 +201,13 @@ public class ShopNormal extends Shop
 		}
 		//double price = sib.GetItemPrice().GetCustomerPrice(amount) ;
 
-		_main.get_econ().depositPlayer(player, price );
-		
+		EconomyResponse response = _main.get_econ().depositPlayer(player, price );
+		if(!response.transactionSuccess())
+		{
+			player.sendMessage(Metods.msgC("&3Sell &cCanceled! &9Payment failed: &e"+response.errorMessage));
+			return false;
+		}
+
 		player.sendMessage(Metods.msgC("&3Sell &9confirmed! Sold value: &e "+Metods.Round(price)+" &2$&9. &9Balance: &e"+Metods.Round(_main.get_econ().getBalance(player))+"&2$&9."));
 		return true;
 	}

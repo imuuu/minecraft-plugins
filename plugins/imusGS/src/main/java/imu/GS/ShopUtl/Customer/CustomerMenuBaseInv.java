@@ -4,6 +4,7 @@ package imu.GS.ShopUtl.Customer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,8 +14,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import imu.GS.Invs.BuyCustomPriceINV;
 import imu.GS.Invs.CustomerInv;
@@ -59,11 +58,8 @@ public class CustomerMenuBaseInv extends CustomerInv
 	private PlayerTab _tab = PlayerTab.BLOCKS;
 	private int index_tab = 0;
 	
-	boolean _lock_player_sell = false;
-	private boolean _transaction_inprogress = false;
 	private boolean _includePlayerHotbarAndArmorslots = false;
 	
-	BukkitTask _task_loadPlayerInv;
 	
 	Cooldowns _cd = new Cooldowns();
 	
@@ -182,7 +178,6 @@ public class CustomerMenuBaseInv extends CustomerInv
 		UnRegisterItems();
 		_shopBase.RemoveCustomer(_player.getUniqueId(), false);
 			
-		if(_task_loadPlayerInv != null) _task_loadPlayerInv.cancel();
 		
 		_main.get_shopManager().SendLogs(_player, logs);
 	}
@@ -198,14 +193,7 @@ public class CustomerMenuBaseInv extends CustomerInv
 			return;		
 		}
 		
-		if(_transaction_inprogress) 
-		{
-			//System.out.println("trans action in progress");
-			return;
-		}
-		
-		
-		if(_shopBase._temp_lock) 
+		if(_shopBase._temp_lock)
 		{
 			return;
 		}
@@ -295,8 +283,6 @@ public class CustomerMenuBaseInv extends CustomerInv
 		switch (cInfo._button) 
 		{
 		case PLAYER_ITEM:
-			//System.out.println("player item: "+cInfo._click_amount);
-			if(_lock_player_sell) return;
 			PrepareSell(cInfo);
 			return;
 		case SHOP_ITEM:
@@ -334,247 +320,137 @@ public class CustomerMenuBaseInv extends CustomerInv
 	
 	}
 	
+	// Buy and sell run entirely on the main thread within the click: the stock check, the payment
+	// and the item transfer happen in the same tick, so two customers can't both take the last items.
+
 	void PrepareBuy(ClickInfo cInfo)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				_transaction_inprogress = true;
-				if(!Transaction())
-				{
-					_transaction_inprogress = false;
-				}
-				
-			}
-			
-			boolean Transaction()
-			{
-				if(cInfo._shopItemBase == null) return false;
-				
-				//System.out.println("==> buy 11");
-				if(cInfo._shopItemBase.Get_amount() <= 0)
-					return false;
-				
-				if(cInfo._shopItemBase.GetItemPrice() instanceof PriceCustom)
-				{
-					new BukkitRunnable() {
-						
-						@Override
-						public void run() 
-						{
-							new BuyCustomPriceINV(_main, _player, _shopBase, (ShopItemSeller)cInfo._shopItemBase).openThis();
-						}
-					}.runTask(_main);
-					return true;
-				}
-				double price = cInfo._shopItemBase.GetItemPrice().GetCustomerPrice(cInfo._click_amount);
-				if(_shopBase.BuyConfirmation(_player, cInfo._shopItemBase, price,cInfo._click_amount, true))
-				{
-					Buy(cInfo, price);
-					return true;
-				}
-				return false;
-			}
-		}.runTaskAsynchronously(_main);
+		ShopItemBase sib = cInfo._shopItemBase;
+		if(sib == null || sib.Get_amount() <= 0) return;
+
+		if(sib.GetItemPrice() instanceof PriceCustom)
+		{
+			// Opening another inventory inside InventoryClickEvent is unsafe, do it next tick
+			Bukkit.getScheduler().runTask(_main, () -> new BuyCustomPriceINV(_main, _player, _shopBase, (ShopItemSeller)sib).openThis());
+			return;
+		}
+
+		int amount = Math.min(cInfo._click_amount, sib.Get_amount());
+		double price = sib.GetItemPrice().GetCustomerPrice(amount);
+		if(!_shopBase.BuyConfirmation(_player, sib, price, amount, true)) return;
+
+		Buy(sib, amount, price);
 	}
-	
+
 	void PrepareSell(ClickInfo cInfo)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				_transaction_inprogress = true;
-				if(!Transaction())
-				{
-					_transaction_inprogress = false;
-				}
-				
-			}
-			
-			boolean Transaction()
-			{
-				if(cInfo._shopItemBase == null) return false;
-				
-				if(cInfo._shopItemBase.Get_amount() <= 0)
-					return false;
-				
-				if(!((ShopItemCustomer)cInfo._shopItemBase).EnoughItems(cInfo._click_amount)) //!ConfirmPlayerHasEnoughItems(_player, cInfo._shopItemBase, cInfo._click_amount)
-				{
-					System.out.println(_player.getName()+" didnt have enough items!");
-					_player.sendMessage(Metods.msgC("&cSomething went wrong with transaction. Please try again. If this message shows up. Inform it for admin!")); 
-					// if this happens player doesnt have enough items in inventory
-					LoadPlayerInv();
-					return false;
-				}
-				double price =  cInfo._shopItemBase.GetItemPrice().GetCustomerPrice(cInfo._click_amount);
-				if(_shopBase.SellConfirmation(_player, cInfo._shopItemBase, price,cInfo._click_amount))
-				{
-					Sell(cInfo, price);					
-					return true;
-				}
-				else
-				{
-					System.out.println("sell isnt confirmed");
-				}
-				return false;
-			}
-		}.runTaskAsynchronously(_main);
+		if(cInfo._shopItemBase == null || cInfo._shopItemBase.Get_amount() <= 0) return;
+
+		ShopItemCustomer sic = (ShopItemCustomer)cInfo._shopItemBase;
+		int amount = cInfo._click_amount;
+		if(!sic.EnoughItems(amount))
+		{
+			// The inventory changed since the menu was built
+			_player.sendMessage(Metods.msgC("&cYour inventory changed, the shop was refreshed. Please try again."));
+			LoadPlayerInv();
+			return;
+		}
+
+		// Price before the sold items are added to the shop, overflow prices depend on the stock
+		double price = sic.GetItemPrice().GetCustomerPrice(amount);
+		if(!_shopBase.SellConfirmation(_player, sic, price, amount)) return;
+
+		Sell(sic, amount, price);
 	}
-	
-	
-	
-	
-	void Buy(ClickInfo cInfo, double price)
+
+	void Buy(ShopItemBase sib, int amount, double price)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				ShopItemResult[] resultItems = cInfo._shopItemBase.GetTransactionResultItemStack();
+		ShopItemResult[] resultItems = sib.GetTransactionResultItemStack();
 
-				cInfo._shopItemBase.AddAmount(cInfo._click_amount * -1);
-				cInfo._shopItemBase.UpdateItem();
+		sib.AddAmount(amount * -1);
+		sib.UpdateItem();
 
-				ImusAPI._metods.InventoryAddItemOrDrop(resultItems[0]._stack, _player, cInfo._click_amount);
+		ImusAPI._metods.InventoryAddItemOrDrop(resultItems[0]._stack, _player, amount);
 
-//				ShopItemCustomer sic = (ShopItemCustomer) cInfo._shopItemBase.GetTargetShopitem(_player.getUniqueId());				
-//				if(sic != null)
-//				{		
-//					//System.out.println("sic found");
-//					sic.AddAmount(cInfo._click_amount);
-//					sic.UpdateItem();
-//					
-//					//sic.RefreshAmount();
-////					if(cInfo._shopItemBase.Get_amount() <= 0)
-////					{
-////						System.out.println("clear:");
-////						cInfo._shopItemBase.ClearShopitemTarget(_player.getUniqueId());
-////					}
-//
-//				}
-//				else
-//				{					
-//					LoadPlayerInv();
-//				}
-				LoadPlayerInv();
-				ShopItemCustomer sic = new ShopItemCustomer(_main,_shopBase ,null,resultItems[0]._stack, cInfo._click_amount);
+		LoadPlayerInv();
+		ShopItemCustomer sic = new ShopItemCustomer(_main,_shopBase ,null,resultItems[0]._stack, amount);
 
-				sic.SetItemPrice(cInfo._shopItemBase.GetItemPrice().clone());
-				
-				
-				_main.get_shopManager().LogRegisterPurchace(logs, new LogData(sic, price, cInfo._click_amount));
-				
-				_transaction_inprogress = false;
-			}
-		}.runTask(_main);
-			
+		sic.SetItemPrice(sib.GetItemPrice().clone());
+
+		_main.get_shopManager().LogRegisterPurchace(logs, new LogData(sic, price, amount));
 	}
-	
-	void Sell(ClickInfo cInfo, double price)
+
+	void Sell(ShopItemCustomer sic, int amount, double price)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				ShopItemResult[] resultItems = cInfo._shopItemBase.GetTransactionResultItemStack();
-				ShopItemCustomer sic = (ShopItemCustomer)cInfo._shopItemBase;
-				
-				sic.AddAmountToPlayer(cInfo._click_amount * -1);
-				
-				//System.out.println("sic has target: "+ sic.HasTargetShopitem(_player.getUniqueId()));
-				
-				ShopItemSeller sis = (ShopItemSeller)sic.GetTargetShopitem(_player.getUniqueId());
-				
-				//if(sic.Get_amount() <= 0) sic.ClearShopitemTarget(_player.getUniqueId());
-				
-				if(!ImusAPI._metods.isShulkerBox(cInfo._shopItemBase.GetRealItem()) && _tab != PlayerTab.SHULKER_BOXES)
-				{
-					AddItem(sis,resultItems[0]._stack, cInfo._click_amount);
-					cInfo._shopItemBase.UpdateItem();
-					
-					if(_tab == PlayerTab.ARMOR_TOOLS)
-					{
-						RefreshPlayerDisplayPageSlots();
-					}
+		ShopItemResult[] resultItems = sic.GetTransactionResultItemStack();
 
-				}
-				else
-				{
-					for(ShopItemResult result : resultItems)
-					{
-						//System.out.println("adding item to shop");
-						AddItem(sis,result._stack, result._amount);
-					}
-					
-					for(LogData data : ((ShopItemCustomerShulkerBox)sic).GetLogData())
-					{
-						_main.get_shopManager().LogRegisterPurchace(logs,data); 
-					}
-					
-					LoadPlayerInv();
-					
-				}
-						
-				_transaction_inprogress = false;
-			}
-			
-			void AddItem(ShopItemSeller sis, ItemStack stack, int amount)
-			{
-				ShopItemSeller log;
-				log = new ShopItemSeller(_main, _shopBase, stack, amount);
-				if(_tab != PlayerTab.SHULKER_BOXES)
-				{
-					_main.get_shopManager().LogRegisterPurchace(logs,new LogData(log, price, amount)); 
-				}
-				
-				
-				if(sis == null) 
-				{
-					sis = new ShopItemSeller(_main, _shopBase, stack, amount);
-					
-					if(_uniqueManager.IsUnique(stack))
-					{
-						sis.SetItemPrice(new PriceUnique().SetPrice(_main.get_shopManager().GetUniqueManager().GetPriceItem(stack).GetPrice()));
-					}
+		sic.AddAmountToPlayer(amount * -1);
 
-					CheckBucket(sis,stack,amount);
-					
-					
-					log.SetItemPrice(sis.GetItemPrice());
-					
-					_shopBase.AddNewItem(sis,false);
-					//System.out.println("SIC WAS NULL");
-					
-					return;
-				}
-				CheckBucket(sis,stack,amount);
-				//System.out.println("item found, update it");
-				sis.AddAmount(amount);
-				sis.UpdateItem();
-				//_shopBase.UpdateShopItemEvent(sis.GetPage(), sis.GetSlot(), amount);
-								
-			}
-			
-			void CheckBucket(ShopItemBase sib, ItemStack stack, int amount)
+		ShopItemSeller sis = (ShopItemSeller)sic.GetTargetShopitem(_player.getUniqueId());
+
+		if(!ImusAPI._metods.isShulkerBox(sic.GetRealItem()) && _tab != PlayerTab.SHULKER_BOXES)
+		{
+			AddSoldItem(sis,resultItems[0]._stack, amount, price);
+			sic.UpdateItem();
+
+			if(_tab == PlayerTab.ARMOR_TOOLS)
 			{
-				if(sib.GetItemPrice().GetPrice() > 0 && 
-						stack.getType() == Material.WATER_BUCKET || 
-						stack.getType() == Material.LAVA_BUCKET ||
-						stack.getType() == Material.MILK_BUCKET)
-				{
-					Metods._ins.InventoryAddItemOrDrop(new ItemStack(Material.BUCKET), _player, amount);
-				}
+				RefreshPlayerDisplayPageSlots();
 			}
-		}.runTask(_main);
-		
-		
-		
+			return;
+		}
+
+		for(ShopItemResult result : resultItems)
+		{
+			AddSoldItem(sis,result._stack, result._amount, price);
+		}
+
+		for(LogData data : ((ShopItemCustomerShulkerBox)sic).GetLogData())
+		{
+			_main.get_shopManager().LogRegisterPurchace(logs,data);
+		}
+
+		LoadPlayerInv();
+	}
+
+	void AddSoldItem(ShopItemSeller sis, ItemStack stack, int amount, double price)
+	{
+		ShopItemSeller log;
+		log = new ShopItemSeller(_main, _shopBase, stack, amount);
+		if(_tab != PlayerTab.SHULKER_BOXES)
+		{
+			_main.get_shopManager().LogRegisterPurchace(logs,new LogData(log, price, amount));
+		}
+
+		if(sis == null)
+		{
+			sis = new ShopItemSeller(_main, _shopBase, stack, amount);
+
+			if(_uniqueManager.IsUnique(stack))
+			{
+				sis.SetItemPrice(new PriceUnique().SetPrice(_main.get_shopManager().GetUniqueManager().GetPriceItem(stack).GetPrice()));
+			}
+
+			CheckBucket(sis,stack,amount);
+
+			log.SetItemPrice(sis.GetItemPrice());
+
+			_shopBase.AddNewItem(sis,false);
+			return;
+		}
+		CheckBucket(sis,stack,amount);
+		sis.AddAmount(amount);
+		sis.UpdateItem();
+	}
+
+	void CheckBucket(ShopItemBase sib, ItemStack stack, int amount)
+	{
+		Material type = stack.getType();
+		boolean filledBucket = type == Material.WATER_BUCKET || type == Material.LAVA_BUCKET || type == Material.MILK_BUCKET;
+		if(filledBucket && sib.GetItemPrice().GetPrice() > 0)
+		{
+			Metods._ins.InventoryAddItemOrDrop(new ItemStack(Material.BUCKET), _player, amount);
+		}
 	}
 	
 
@@ -739,73 +615,63 @@ public class CustomerMenuBaseInv extends CustomerInv
 	public void LoadPlayerInv()
 	{
 		if(_shopBase.GetCustomersCanOnlyBuy()) return;
-		_lock_player_sell = true;
-		if(_task_loadPlayerInv != null) _task_loadPlayerInv.cancel();
-		
-		_task_loadPlayerInv = new BukkitRunnable() 
-		{		
-			@Override
-			public void run() 
-			{
-				ResetPlayerShopItemList();
-				_shopBase.ClearShopItemsFromTarget(_player.getUniqueId());
-				ItemStack itemStack;
-				for (int invSlot = 0; invSlot <  _player.getInventory().getContents().length ; invSlot++) 
-				{
-					if(!_includePlayerHotbarAndArmorslots && (invSlot < 9  || invSlot > _player.getInventory().getContents().length-6)) continue;
-					
-					itemStack = _player.getInventory().getContents()[invSlot];
-					
-					if(itemStack == null) continue;
-						
-					if(!CheckTabItem(itemStack)) continue;
-					
-					boolean found = false;
 
-					for(int i = 0; i < _shopItemCustomer.size(); ++i) //page
-					{
-						for(int l = 0; l < _shopItemCustomer.get(i).length; ++l) //slot
-						{
-							ShopItemCustomer sic =  _shopItemCustomer.get(i)[l];
-							if(sic == null)
-							{					
-
-								PutCustomerItem(itemStack, i, l);
-
-								found = true;
-								break;
-							}
-							
-							if(_tab != PlayerTab.SHULKER_BOXES && sic.IsSameKind(itemStack))
-							{
-								sic.AddAmount(itemStack.getAmount());
-								sic.AddPlayerItemStackRef(itemStack);
-								found = true;
-								break;
-							}
-						}
-						if(found)
-							break;
-					}
-					
-					if(!found)
-					{
-						//System.out.println("MAKE2 new page for customer!");
-						_shopItemCustomer.add(new ShopItemCustomer[18]);
-						int page = _shopItemCustomer.size()-1;
-						int slot = 0;
-
-						PutCustomerItem(itemStack, page, slot);
-					}
-					
-				}
+		// Reads the live player inventory and writes the menu, so it stays on the main thread
+		ResetPlayerShopItemList();
+		_shopBase.ClearShopItemsFromTarget(_player.getUniqueId());
+		ItemStack itemStack;
+		for (int invSlot = 0; invSlot <  _player.getInventory().getContents().length ; invSlot++) 
+		{
+			if(!_includePlayerHotbarAndArmorslots && (invSlot < 9  || invSlot > _player.getInventory().getContents().length-6)) continue;
+			
+			itemStack = _player.getInventory().getContents()[invSlot];
+			
+			if(itemStack == null) continue;
 				
-				ChangeCustomerPage(0);
-				RefreshPlayerDisplayPageSlots();
-				_lock_player_sell = false;
-				_task_loadPlayerInv = null;
+			if(!CheckTabItem(itemStack)) continue;
+			
+			boolean found = false;
+
+			for(int i = 0; i < _shopItemCustomer.size(); ++i) //page
+			{
+				for(int l = 0; l < _shopItemCustomer.get(i).length; ++l) //slot
+				{
+					ShopItemCustomer sic =  _shopItemCustomer.get(i)[l];
+					if(sic == null)
+					{					
+
+						PutCustomerItem(itemStack, i, l);
+
+						found = true;
+						break;
+					}
+					
+					if(_tab != PlayerTab.SHULKER_BOXES && sic.IsSameKind(itemStack))
+					{
+						sic.AddAmount(itemStack.getAmount());
+						sic.AddPlayerItemStackRef(itemStack);
+						found = true;
+						break;
+					}
+				}
+				if(found)
+					break;
 			}
-		}.runTaskAsynchronously(_main);
+			
+			if(!found)
+			{
+				//System.out.println("MAKE2 new page for customer!");
+				_shopItemCustomer.add(new ShopItemCustomer[18]);
+				int page = _shopItemCustomer.size()-1;
+				int slot = 0;
+
+				PutCustomerItem(itemStack, page, slot);
+			}
+			
+		}
+		
+		ChangeCustomerPage(0);
+		RefreshPlayerDisplayPageSlots();
 
 	}
 
@@ -887,7 +753,7 @@ public class CustomerMenuBaseInv extends CustomerInv
 				continue;
 			}
 
-			if(!sis.CanShowToPlayer(_player) || !_shopBase.IsAbsoluteItemPositions()) // => tollon n�kyy ettei available//if(!sis.CanShowToPlayer(_player) && !_shopBase.IsAbsoluteItemPositions()) 
+			if(!sis.CanShowToPlayer(_player) || !_shopBase.IsAbsoluteItemPositions()) // => tollon nï¿½kyy ettei available//if(!sis.CanShowToPlayer(_player) && !_shopBase.IsAbsoluteItemPositions()) 
 			{
 				idx--;
 				continue;

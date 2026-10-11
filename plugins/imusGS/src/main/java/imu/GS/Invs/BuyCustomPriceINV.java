@@ -228,7 +228,7 @@ public class BuyCustomPriceINV extends CustomerInv
 					_inv.setItem(i, _metods.AddGlow(stack));
 				}
 			}
-		}.runTaskAsynchronously(_main);	
+		}.runTask(_main); // reads the player inventory and balance, main thread only
 	}
 	
 	
@@ -282,12 +282,12 @@ public class BuyCustomPriceINV extends CustomerInv
 		
 		for(CustomPriceData data : datas) { if(data._amount > 0) return false; }
 		
-		//System.out.println("setting data!");
-		if(removeItemsFromPlayerrInv)
-			_player.getInventory().setContents(newStacks);
-		
+		if(!removeItemsFromPlayerrInv) return true;
 
-		_shopBase.BuyConfirmation(_player, _sis, _sis.GetItemPrice().GetCustomerPrice(1),1, removeItemsFromPlayerrInv);	
+		// Take the money first: if the payment fails the player keeps their items
+		if(!_shopBase.BuyConfirmation(_player, _sis, _sis.GetItemPrice().GetCustomerPrice(1),1, true)) return false;
+
+		_player.getInventory().setContents(newStacks);
 		return true;
 	}
 	
@@ -354,6 +354,12 @@ public class BuyCustomPriceINV extends CustomerInv
 		case CONFIRM:
 			
 			ShopItemBase sib = _shopBase.GetItem(_sis.GetPage(), _sis.GetSlot());
+			// The shop may have rearranged its items since this menu opened
+			if(sib != _sis)
+			{
+				_player.sendMessage(Metods.msgC("&cThe shop has changed, please open it again."));
+				return;
+			}
 
 			int amount = _selected_amount;// * ((PriceCustom)sib.GetItemPrice()).GetMinimumStackAmount();
 			if(sib.Get_amount() < amount)

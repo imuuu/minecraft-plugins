@@ -342,7 +342,7 @@ public class Main extends JavaPlugin
 			        _econ = rsp.getProvider();
 			        return;
 			}
-		}.runTaskLaterAsynchronously(this, 20);
+		}.runTaskLater(this, 20);
        
     }
 	

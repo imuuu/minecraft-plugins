@@ -201,7 +201,7 @@ public class ShopItemStockable extends ShopItemSeller
 		if(_cd == null)
 			_cd = new Cooldowns();
 		
-		_cd.setCooldownInSeconds("fill", _modData._fillDelayMinutes * 10);
+		_cd.setCooldownInSeconds("fill", _modData._fillDelayMinutes * 60);
 	}
 	
 	protected void SetMaxAmount(int amount)
