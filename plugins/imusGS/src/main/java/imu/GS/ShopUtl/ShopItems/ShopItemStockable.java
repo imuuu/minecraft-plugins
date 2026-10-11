@@ -76,58 +76,56 @@ public class ShopItemStockable extends ShopItemSeller
 	@Override
 	public boolean CanShowToPlayer(Player player) 
 	{
-		if(_modData == null) return true; 
-		
-		if(_modData._sellTimeStart != -1 && _modData._sellTimeEnd != -1)
+		if(_modData == null) return true;
+
+		// Every restriction that is set must pass
+		if(_modData._sellTimeStart != -1 && _modData._sellTimeEnd != -1 && !IsInSellTime(player.getWorld().getTime()))
 		{
-			System.out.println("checking can show sell time");
-			int w_t = (int) player.getWorld().getTime();
-			if(_modData._sellTimeStart < _modData._sellTimeEnd)
-			{
-				if(!(w_t > _modData._sellTimeStart && w_t < _modData._sellTimeEnd))
-				{
-					return true;
-				}
-			}
-			else
-			{
-				if((w_t < _modData._sellTimeStart) && (w_t > _modData._sellTimeEnd))
-				{
-					return true;
-				}
-			}
 			return false;
 		}
-		
-		if(_modData._locations != null)
+
+		if(_modData._locations != null && !IsNearAnyLocation(player.getLocation()))
 		{
-			for(Tuple<Integer,Location> disLoc : _modData._locations)
-			{
-				if(player.getLocation().getWorld() != disLoc.GetValue().getWorld()) continue;
-				if(player.getLocation().distance(disLoc.GetValue()) < disLoc.GetKey())
-				{
-					return true;
-				}
-			}
 			return false;
 		}
-		
-		if(_modData._permissions != null)
+
+		if(_modData._permissions != null && !HasAnyPermission(player))
 		{
-			System.out.println("checking can show permission");
-			for(String permission : _modData._permissions)
-			{
-				if(player.hasPermission(permission))
-				{
-					return true;
-				}
-			}
 			return false;
 		}
-		
-		
+
 		return true;
-		
+	}
+
+	/** Sold from start to end (world ticks 0-24000). A start after end wraps over midnight, e.g. 13000 1000 = night. */
+	boolean IsInSellTime(long worldTime)
+	{
+		int start = _modData._sellTimeStart;
+		int end = _modData._sellTimeEnd;
+		if(start == end) return true;
+
+		if(start < end) return worldTime >= start && worldTime < end;
+
+		return worldTime >= start || worldTime < end;
+	}
+
+	boolean IsNearAnyLocation(Location playerLoc)
+	{
+		for(Tuple<Integer,Location> disLoc : _modData._locations)
+		{
+			if(playerLoc.getWorld() != disLoc.GetValue().getWorld()) continue;
+			if(playerLoc.distance(disLoc.GetValue()) < disLoc.GetKey()) return true;
+		}
+		return false;
+	}
+
+	boolean HasAnyPermission(Player player)
+	{
+		for(String permission : _modData._permissions)
+		{
+			if(player.hasPermission(permission)) return true;
+		}
+		return false;
 	}
 	
 	@Override
