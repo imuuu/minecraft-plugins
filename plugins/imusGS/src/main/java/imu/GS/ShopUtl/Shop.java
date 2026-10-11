@@ -1,5 +1,6 @@
 package imu.GS.ShopUtl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
@@ -78,7 +79,8 @@ public abstract class Shop
 
 	public void RemoveCustomerALL()
 	{
-		for (Customer cus : GetCustomers())
+		// Closing fires InventoryCloseEvent, which removes the customer from _hCustomers; iterate a copy
+		for (Customer cus : new ArrayList<>(GetCustomers()))
 		{
 			cus.Close();
 		}
@@ -121,7 +123,7 @@ public abstract class Shop
 		_locked = locked;
 		if (_locked && HasCustomers())
 		{
-			for (Customer customer : GetCustomers())
+			for (Customer customer : new ArrayList<>(GetCustomers()))
 			{
 				RemoveCustomer(customer._player.getUniqueId(), true);
 			}

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -28,7 +29,8 @@ public class TagManager
 {
 	Main _main;
 	private HashMap<Material, HashSet<String>> _tags_material = new HashMap<>();
-	private Set<String> _tags_shopItems = new HashSet<>();
+	// Replaced as a whole by the async loader, read on the main thread
+	private volatile Set<String> _tags_shopItems = ConcurrentHashMap.newKeySet();
 	
 	public TagManager(Main main)
 	{
@@ -95,28 +97,25 @@ public class TagManager
 		return new BukkitRunnable() {
 			
 			@Override
-			public void run() 
+			public void run()
 			{
-				_tags_shopItems.clear();
-				final String quarry = "SELECT * FROM "+SQL_TABLES.tags_shopitems;
-				try (Connection con = _main.GetSQL().GetConnection())
+				Set<String> tags = ConcurrentHashMap.newKeySet();
+				final String quarry = "SELECT tag_name FROM "+SQL_TABLES.tags_shopitems;
+				try (Connection con = _main.GetSQL().GetConnection();
+					 PreparedStatement ps = con.prepareStatement(quarry);
+					 ResultSet rs = ps.executeQuery())
 				{
-					PreparedStatement ps = con.prepareStatement(quarry);
-					ResultSet rs = ps.executeQuery();
-					if(rs.isBeforeFirst())
+					while(rs.next())
 					{
-						while(rs.next())
-						{
-							String tag = rs.getString(3);
-							//System.out.println("loading tag: "+tag);
-							_tags_shopItems.add(tag);
-						}
+						String tag = rs.getString(1);
+						if(tag != null) tags.add(tag.toLowerCase());
 					}
-					
-				
 				} catch (Exception e) {
 					System.out.println("Couldnt load tag names from database!");
+					e.printStackTrace();
+					return;
 				}
+				_tags_shopItems = tags;
 				UpdateShopitemTabList();
 			}
 		}.runTaskAsynchronously(_main);
@@ -163,74 +162,87 @@ public class TagManager
 	}
 	
 	
+	void ExecuteAsync(String sql, String... params)
+	{
+		new BukkitRunnable() {
+			@Override
+			public void run()
+			{
+				try(Connection con = _main.GetSQL().GetConnection();
+					PreparedStatement ps = con.prepareStatement(sql))
+				{
+					for(int i = 0; i < params.length; i++) ps.setString(i+1, params[i]);
+					ps.executeUpdate();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}.runTaskAsynchronously(_main);
+	}
+
 	public void SaveTagAsync(Material mat, String tagName)
 	{
-		new BukkitRunnable() {			
-			@Override
-			public void run() 
-			{
-				PreparedStatement ps;
-				try(Connection con = _main.GetSQL().GetConnection()) 
-				{
-					
-					if(!AddTag(mat, tagName)) return;
-					
-					ps = con.prepareStatement("REPLACE INTO "+SQL_TABLES.tags_material.toString()+" "
-							+ "(material_name, tag_name) VALUES (?,?)");
-					ps.setString(1, mat.name());
-					ps.setString(2, tagName);
-					ps.executeUpdate();
-					
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-				
-				UpdateMaterialTabList();
-			}
-		}.runTaskAsynchronously(_main);
-		
-		
+		// Tags are stored and compared in lower case
+		String tag = tagName.toLowerCase();
+		if(!AddTag(mat, tag)) return;
+
+		ExecuteAsync("INSERT INTO "+SQL_TABLES.tags_material.toString()+" (material_name, tag_name) VALUES (?,?)", mat.name(), tag);
+		UpdateMaterialTabList();
 	}
-	
+
 	public void SaveTagsAsync(ShopItemBase sib)
 	{
-		new BukkitRunnable() {			
+		// Captured on the calling (main) thread
+		final String uuid = sib.GetUUID().toString();
+		final ArrayList<String> tags = new ArrayList<>(sib.GetTags());
+
+		new BukkitRunnable() {
 			@Override
-			public void run() 
+			public void run()
 			{
-				PreparedStatement ps;
-				try (Connection con = _main.GetSQL().GetConnection())
+				// Shop saves rewrite these rows too; don't interleave with one
+				synchronized (_main.GetShopManagerSQL().GetWriteLock())
 				{
-					//if(!AddTag(sib, tagName)) return;
-					ps = con.prepareStatement("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid='"+sib.GetUUID().toString()+"';");
-					ps.executeUpdate();
-					
-					for(String tagName : sib.GetTags())
+					try (Connection con = _main.GetSQL().GetConnection())
 					{
-						ps = _main.GetSQL().GetConnection().prepareStatement("INSERT INTO "+SQL_TABLES.tags_shopitems.toString()+" "
-								+ "(sib_uuid, tag_name) VALUES (?,?)");
-						ps.setString(1, sib.GetUUID().toString());
-						ps.setString(2, tagName);
-						ps.executeUpdate();
+						con.setAutoCommit(false);
+						try(PreparedStatement delete = con.prepareStatement("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid=?");
+							PreparedStatement insert = con.prepareStatement("INSERT INTO "+SQL_TABLES.tags_shopitems.toString()+" (sib_uuid, tag_name) VALUES (?,?)"))
+						{
+							delete.setString(1, uuid);
+							delete.executeUpdate();
+
+							for(String tagName : tags)
+							{
+								insert.setString(1, uuid);
+								insert.setString(2, tagName);
+								insert.addBatch();
+							}
+							insert.executeBatch();
+							con.commit();
+						}
+						catch (SQLException e)
+						{
+							con.rollback();
+							throw e;
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
 					}
-					
-					
-				} catch (SQLException e) {
-					e.printStackTrace();
 				}
 			}
 		}.runTaskAsynchronously(_main);
 	}
-	
+
 	boolean AddTag(Material mat, String tagName)
 	{
-		if(!_tags_material.containsKey(mat)) 
+		if(!_tags_material.containsKey(mat))
 		{
 			_tags_material.put(mat, new HashSet<>());
 		}
-		
+
 		for(String tag : _tags_material.get(mat)) { if(tag.equalsIgnoreCase(tagName)) {return false;}}
-		_tags_material.get(mat).add(tagName);
+		_tags_material.get(mat).add(tagName.toLowerCase());
 		return true;
 	}
 	
@@ -263,102 +275,37 @@ public class TagManager
 	}
 	
 	
+	// In-memory changes happen on the calling (main) thread, only the database write is async.
+	// Deletes compare in lower case so rows saved in mixed case by older versions are removed too.
+
 	public void RemoveTagAsync(Material mat, String tagName)
 	{
-		
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				PreparedStatement ps;
-				_tags_material.get(mat).remove(tagName.toLowerCase());
-								
-				try (Connection con = _main.GetSQL().GetConnection())
-				{
-					String quarry  ="DELETE FROM "+SQL_TABLES.tags_material.toString()+" WHERE material_name='"+mat.toString()+"' AND tag_name='"+tagName.toLowerCase()+"';";
-					//System.out.println("Print quarry: "+quarry);
-					ps = con.prepareStatement(quarry);
-					ps.executeUpdate();
-				} catch (SQLException e) 
-				{
-					e.printStackTrace();
-				}
-				
-				UpdateMaterialTabList();
-			}
-		}.runTaskAsynchronously(_main);
-		
+		String tag = tagName.toLowerCase();
+		HashSet<String> tags = _tags_material.get(mat);
+		if(tags != null) tags.remove(tag);
+
+		ExecuteAsync("DELETE FROM "+SQL_TABLES.tags_material.toString()+" WHERE material_name=? AND LOWER(tag_name)=?", mat.name(), tag);
+		UpdateMaterialTabList();
 	}
-	
+
 	public void RemoveTagAsync(ShopItemBase sib, String tagName)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				PreparedStatement ps;
-				sib.RemoveTag(tagName);
-				try (Connection con = _main.GetSQL().GetConnection())
-				{
-					ps = con.prepareStatement("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid='"+sib.GetUUID().toString()+"' AND tag_name='"+tagName.toLowerCase()+"';");
-					ps.executeUpdate();
-				} catch (SQLException e) 
-				{
-					e.printStackTrace();
-				}
-				
-				
-			}
-		}.runTaskAsynchronously(_main);
+		String tag = tagName.toLowerCase();
+		sib.RemoveTag(tag);
+		ExecuteAsync("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid=? AND LOWER(tag_name)=?", sib.GetUUID().toString(), tag);
 	}
-	
+
 	public void RemoveAllAsync(Material mat)
-	{	
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				_tags_material.put(mat, new HashSet<>());
-				PreparedStatement ps;
-								
-				try (Connection con = _main.GetSQL().GetConnection()) 
-				{
-					ps = con.prepareStatement("DELETE FROM "+SQL_TABLES.tags_material.toString()+" WHERE material_name='"+mat.toString()+"';");
-					ps.executeUpdate();
-				} catch (SQLException e) 
-				{
-					e.printStackTrace();
-				}
-				
-				UpdateMaterialTabList();
-			}
-		}.runTaskAsynchronously(_main);
+	{
+		_tags_material.put(mat, new HashSet<>());
+		ExecuteAsync("DELETE FROM "+SQL_TABLES.tags_material.toString()+" WHERE material_name=?", mat.name());
+		UpdateMaterialTabList();
 	}
-	
+
 	public void RemoveAllAsync(ShopItemBase sib)
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				PreparedStatement ps;
-				sib.ClearTags();
-				try (Connection con = _main.GetSQL().GetConnection()) 
-				{
-					ps = con.prepareStatement("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid='"+sib.GetUUID().toString()+"';");
-					ps.executeUpdate();
-				} catch (SQLException e) 
-				{
-					e.printStackTrace();
-				}
-				
-				
-			}
-		}.runTaskAsynchronously(_main);
+		sib.ClearTags();
+		ExecuteAsync("DELETE FROM "+SQL_TABLES.tags_shopitems.toString()+" WHERE sib_uuid=?", sib.GetUUID().toString());
 	}
 	
 	public boolean HasTag(Material mat, String tagName)

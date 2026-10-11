@@ -29,8 +29,14 @@ import imu.iAPI.Other.Tuple;
 public class ShopNormal extends Shop
 {
 	
-	private  int shopHolderSize = 27;
-	
+	public static final int SHOP_HOLDER_SIZE = 27;
+	private  int shopHolderSize = SHOP_HOLDER_SIZE;
+
+	// Items whose database rows failed to load. Saves leave those rows untouched.
+	private final Set<UUID> _unloadedItemUuids = new HashSet<>();
+	// Loading the item list itself failed, saving would wipe the shop from the database
+	private boolean _loadFailed = false;
+
 	private ArrayList<ShopItemSeller[]> _items = new ArrayList<ShopItemSeller[]>();
 	private HashMap<Material, Integer> _materialCount = new HashMap<>();
 	
@@ -96,22 +102,58 @@ public class ShopNormal extends Shop
 	
 	
 	
+	public void MarkItemUnloaded(UUID uuid)
+	{
+		_unloadedItemUuids.add(uuid);
+	}
+
+	public Set<UUID> GetUnloadedItemUuids()
+	{
+		return _unloadedItemUuids;
+	}
+
+	public void SetLoadFailed(boolean failed)
+	{
+		_loadFailed = failed;
+	}
+
+	public boolean IsLoadFailed()
+	{
+		return _loadFailed;
+	}
+
+	/** First empty slot as {page, slot}; a new page when every page is full. */
+	public int[] FindFreeSlot()
+	{
+		for(int page = 0; page < _items.size(); ++page)
+		{
+			for(int slot = 0; slot < _items.get(page).length; ++slot)
+			{
+				if(_items.get(page)[slot] == null) return new int[] {page, slot};
+			}
+		}
+		return new int[] {_items.size(), 0};
+	}
+
 	public void SaveIfPossible()
 	{
+		// Shutdown saves every shop itself, the scheduler no longer accepts tasks
+		if(!_main.isEnabled()) return;
+
 		if(_saveRunnable != null) _saveRunnable.cancel();
-		
+
 		_saveRunnable =  new BukkitRunnable() {
-			
+
 			@Override
-			public void run() 
+			public void run()
 			{
 				if(!HasCustomers())
 				{
-					_main.get_shopManager().GetShopManagerSQL().SaveShopAsync((ShopNormal)_main.get_shopManager().GetShop(GetUUID()));
+					_main.get_shopManager().GetShopManagerSQL().SaveShopAsync(ShopNormal.this);
 				}
 				_saveRunnable = null;
 			}
-		}.runTaskLaterAsynchronously(_main, 20 * _saveIfPossible_s);
+		}.runTaskLater(_main, 20 * _saveIfPossible_s);
 	}
 	
 	public void SetLockToInteract(boolean lock)
@@ -216,10 +258,11 @@ public class ShopNormal extends Shop
 
 	public void SaveDataAsync()
 	{
-		new BukkitRunnable() 
-		{			
+		// Closing inventories and rearranging items must happen on the main thread; the database write itself is async
+		new BukkitRunnable()
+		{
 			@Override
-			public void run() 
+			public void run()
 			{
 				RemoveCustomerALL();
 
@@ -227,7 +270,7 @@ public class ShopNormal extends Shop
 				_main.get_shopManager().SaveShop(GetUUID(), false);
 
 			}
-		}.runTaskAsynchronously(_main);
+		}.runTask(_main);
 	}
 	
 	public void ClearCrap()
@@ -323,9 +366,10 @@ public class ShopNormal extends Shop
 
 			}
 			
-			if(isEmpty && page != 0)
+			// Only trailing empty pages can go: removing a middle page would shift the page numbers stored on later items
+			if(isEmpty && page != 0 && page == _items.size()-1)
 			{
-				_items.remove(_items.size()-1);
+				_items.remove(page);
 			}
 			else
 			{
@@ -371,17 +415,8 @@ public class ShopNormal extends Shop
 		RemoveCustomerALL();
 		
 		ArrangeShopItems(false,false);
-		
-		new BukkitRunnable() {		
-			@Override
-			public void run() 
-			{
-				ArrayList<ShopItemBase> ar = new ArrayList<ShopItemBase>();
-				ar.add(sib);
-				_main.GetShopManagerSQL().DeleteShopItem(ar, true);			
-			}
-		}.runTaskAsynchronously(_main);
-		
+
+		if(sib != null) _main.GetShopManagerSQL().DeleteShopItemAsync(sib.GetUUID());
 	}
 	
 	public void UnRegisterItems(Inventory inv)
@@ -496,18 +531,6 @@ public class ShopNormal extends Shop
 				
 			}
 		}
-	}
-	
-	void SaveNewItemAsync(ShopItemSeller sis)
-	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() 
-			{
-				_main.GetShopManagerSQL().SaveShopItem(sis,true);
-			}
-		}.runTaskAsynchronously(_main);
 	}
 	
 	public ArrayList<ShopItemSeller[]> get_items() {

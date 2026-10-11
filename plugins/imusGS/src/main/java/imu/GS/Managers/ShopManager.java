@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,7 +30,8 @@ public class ShopManager
 {
 	private Main _main;
 	
-	private ArrayList<Shop> _shops;
+	// Iterated by the async shop timer while the main thread adds and removes shops
+	private CopyOnWriteArrayList<Shop> _shops;
 	
 	
 	private BukkitTask RunnableAsyncTask;
@@ -50,30 +52,40 @@ public class ShopManager
 	{
 		_main = main;
 		_cds = new Cooldowns();
-		_shops = new ArrayList<>();
+		_shops = new CopyOnWriteArrayList<>();
 		_shopManagerSQL = new ShopManagerSQL(_main, this);
 		_uniqueManager = new UniqueManager(_main, this, _shopManagerSQL);
 		
 	}
 	
 	public void Init()
-	{	
-		new BukkitRunnable() 
-		{			
+	{
+		new BukkitRunnable()
+		{
 			@Override
-			public void run() 
+			public void run()
 			{
 				_shopManagerSQL.LoadTables();
 				_main.GetMaterialManager().CreateTables();
 				_main.GetMaterialManager().LoadMaterialPrices();
 				_main.GetMaterialManager().LoadMaterialOverflows();
-				_shopManagerSQL.LoadUniques();
-				_shopManagerSQL.LoadShops();	
-				_shopManagerSQL.LoadShopItems();
+				// Enchant values are needed to price enchanted shop items while they load
 				_main.GetShopEnchantManager().INIT();
-				_main.GetTagManager().LoadMaterialTags();				
+				_shopManagerSQL.LoadUniques();
+				List<ShopNormal> loadedShops = _shopManagerSQL.LoadShopsAndItems();
+				_main.GetTagManager().LoadMaterialTags();
 				_main.GetTagManager().LoadAllShopItemTagsNamesAsync();
-				
+
+				// Shops become visible only once fully loaded, so nothing can open or save a half-loaded shop
+				new BukkitRunnable()
+				{
+					@Override
+					public void run()
+					{
+						_shops.addAll(loadedShops);
+						UpdateTabCompliters();
+					}
+				}.runTask(_main);
 			}
 		}.runTaskAsynchronously(_main);
 		
@@ -142,7 +154,7 @@ public class ShopManager
 		return (_savedPriceCustoms.containsKey(playerUUID) ? _savedPriceCustoms.get(playerUUID) : new ArrayList<Tuple<String,PriceCustom>>());
 	}
 	
-	public ArrayList<Shop> GetShops()
+	public List<Shop> GetShops()
 	{
 		return _shops;
 	}
@@ -295,10 +307,11 @@ public class ShopManager
 //	}
 	
 	public void onDisabled()
-	{	
-		closeShopInvs();
+	{
 		if(RunnableAsyncTask != null)
 			RunnableAsyncTask.cancel();
+		closeShopInvs();
+		_shopManagerSQL.SaveShopsSync(GetNormalShops());
 	}
 	
 	void closeShopInvs()

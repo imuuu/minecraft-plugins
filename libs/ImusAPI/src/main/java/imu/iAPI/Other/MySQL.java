@@ -219,14 +219,10 @@ public class MySQL
     public boolean CheckConnection()
     {
         boolean connected = true;
-        try
+        try (Connection con = GetConnection();
+             PreparedStatement ps = con.prepareStatement("SHOW PROCESSLIST"))
         {
-            Connection con = GetConnection();
-            PreparedStatement ps = con.prepareStatement("SHOW PROCESSLIST");
-            ps.executeQuery();
-
-            con.close();
-            ps.close();
+            ps.executeQuery().close();
         } catch (Exception e)
         {
             //System.out.println("[imusGS] Tried to check SQL connection but failed");

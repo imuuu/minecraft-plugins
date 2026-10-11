@@ -1,6 +1,6 @@
 package imu.GS.Main;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
@@ -74,13 +74,14 @@ public class Main extends JavaPlugin
 		_shopManager = new ShopManager(this);		
 		_materialManager = new MaterialManager(this);
 		
-		_shopManager.Init();
-		
-		_denizenScriptCreator = new DenizenScriptCreator(this);
-		
+		// Init loads on another thread and uses these managers, create them first
 		_tagManager = new TagManager(this);
 		_shopEnchantManager = new ShopEnchantManager(this);
 		_shopEnchantManager.CreateGearTypesAsync();
+
+		_shopManager.Init();
+
+		_denizenScriptCreator = new DenizenScriptCreator(this);
 		//_shopManager.loadShopsAsync();
 		 
 	
@@ -93,9 +94,11 @@ public class Main extends JavaPlugin
 	@Override
 	 public void onDisable()
 	{
-		for(CustomInvLayout inv : _opendInvs.values()) { inv.GetPlayer().closeInventory();}
+		// Closing fires InventoryCloseEvent, which unregisters from _opendInvs; iterate a copy
+		for(CustomInvLayout inv : new ArrayList<>(_opendInvs.values())) { inv.GetPlayer().closeInventory();}
 		_opendInvs.clear();
-		
+
+		// Saves every shop synchronously; ImusAPI closes the connection pool after this plugin is disabled
 		if(_shopManager != null)
 			_shopManager.onDisabled();
 

@@ -167,7 +167,10 @@ public class MaterialManager extends Manager
 				}
 				for(Material mat : mats)
 				{
-					PutMaterialPrice(mat, price);
+					// Update in place so the material keeps its smart price and overflow settings
+					PriceMaterial pm = GetPriceMaterial(mat);
+					if(pm == null) PutMaterialPrice(mat, price);
+					else pm.SetPrice(price);
 
 					for(Shop shop : _shopManager.GetShops())
 					{
@@ -185,7 +188,7 @@ public class MaterialManager extends Manager
 								
 								if(sib.GetItemPrice() instanceof PriceMaterial && sib.GetRealItem().getType() == mat)
 								{
-									sib.SetItemPrice(GetPriceMaterial(mat));
+									sib.SetItemPrice(GetPriceMaterialAndCheck(sib.GetRealItem()));
 									removeCustomers = true;
 								}
 							}
@@ -198,24 +201,46 @@ public class MaterialManager extends Manager
 		
 	}
 	
+	void ExecuteBatchAsync(String metodName, String sql, List<Object[]> rows)
+	{
+		if(rows.isEmpty()) return;
+
+		new BukkitRunnable()
+		{
+			@Override
+			public void run()
+			{
+				try(Connection con = _main.GetSQL().GetConnection();
+					PreparedStatement ps = con.prepareStatement(sql))
+				{
+					for(Object[] row : rows)
+					{
+						for(int i = 0; i < row.length; i++) ps.setObject(i+1, row[i]);
+						ps.addBatch();
+					}
+					ps.executeBatch();
+				}
+				catch (SQLException e)
+				{
+					PrintERROR(metodName, "Couldnt save to database");
+					e.printStackTrace();
+				}
+			}
+		}.runTaskAsynchronously(_main);
+	}
+
 	public void SaveMaterialOverflowAsync(Iterable<MaterialOverflow> overflows)
 	{
-		LinkedList<String> statements = new LinkedList<>();
-		
+		List<Object[]> rows = new LinkedList<>();
+
 		for(MaterialOverflow of : overflows)
 		{
-			statements.add("REPLACE INTO "+SQL_TABLES.material_overflow+" (material, softcap, batch_size, min_price, drop_percent) VALUES("
-					+ "\""+of.get_mat()+"\","
-					+ of.get_softCap()+","
-					+ of.Get_batchSize()+","
-					+ of.Get_minPrice()+","
-					+ of.get_dropProsent()
-					+ ");");
-			
+			rows.add(new Object[] {of.get_mat().name(), of.get_softCap(), of.Get_batchSize(), of.Get_minPrice(), of.get_dropProsent()});
+
 			SetMaterialOverflow(of);
 		}
-		
-		_main.GetSQL().ExecuteStatementsAsync(statements);
+
+		ExecuteBatchAsync("SaveMaterialOverflowAsync", "REPLACE INTO "+SQL_TABLES.material_overflow+" (material, softcap, batch_size, min_price, drop_percent) VALUES(?,?,?,?,?)", rows);
 	}
 	public void LoadMaterialOverflows()
 	{
@@ -246,18 +271,12 @@ public class MaterialManager extends Manager
 	
 	public void SaveMaterialSmartDataAsync(Iterable<Material> mats, double multi)
 	{
-		LinkedList<String> statements = new LinkedList<>();
-		
+		List<Object[]> rows = new LinkedList<>();
+
 		for(Material mat : mats)
 		{
-//			statements.add("REPLACE INTO " + SQL_TABLES.price_materials+" (material, price, smart_multiplier) VALUES("
-//					+ "\""+mat.name()+"\","
-//					+ _material_prices.get(mat).GetPrice()+","
-//					+ multi
-//					+ ");");
-			
-			statements.add("UPDATE " + SQL_TABLES.price_materials+" SET smart_multiplier =" +multi+" WHERE material=\""+mat.name()+"\";");
-			
+			rows.add(new Object[] {multi, mat.name()});
+
 			if(multi < 0)
 			{
 				_material_prices.get(mat).SetSmartData(null);
@@ -267,20 +286,20 @@ public class MaterialManager extends Manager
 			data.Calculate();
 			_material_prices.get(mat).SetSmartData(data);
 		}
-		
-		_main.GetSQL().ExecuteStatementsAsync(statements);
+
+		ExecuteBatchAsync("SaveMaterialSmartDataAsync", "UPDATE " + SQL_TABLES.price_materials+" SET smart_multiplier=? WHERE material=?", rows);
 	}
-	
+
 	public void RemoveMaterialOverflow(Iterable<Material> mats)
 	{
-		LinkedList<String> statements = new LinkedList<>();
-		
+		List<Object[]> rows = new LinkedList<>();
+
 		for(Material mat : mats)
 		{
-			statements.add("DELETE FROM " + SQL_TABLES.material_overflow+" WHERE material=\""+mat.toString()+"\";");
+			rows.add(new Object[] {mat.name()});
 			RemoveMaterialOverflow(mat);
 		}
-		_main.GetSQL().ExecuteStatementsAsync(statements);
+		ExecuteBatchAsync("RemoveMaterialOverflow", "DELETE FROM " + SQL_TABLES.material_overflow+" WHERE material=?", rows);
 	}
 	void LoadMaterialPrices()
 	{	
