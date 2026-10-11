@@ -43,7 +43,6 @@ public class ShopNormal extends Shop
 	
 	private double _sellM = 5.0;
 	private double _buyM  = 1.0;
-	private int _saveIfPossible_s = 10;
 	
 	private double _expire_percent = 0.1f;
 	private int _expire_cooldown_m = 60;
@@ -154,7 +153,7 @@ public class ShopNormal extends Shop
 				}
 				_saveRunnable = null;
 			}
-		}.runTaskLater(_main, 20 * _saveIfPossible_s);
+		}.runTaskLater(_main, 20L * _main.get_shopManager().GetSaveDelaySeconds());
 	}
 	
 	public void SetLockToInteract(boolean lock)

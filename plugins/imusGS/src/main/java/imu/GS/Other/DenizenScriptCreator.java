@@ -7,7 +7,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -20,14 +25,41 @@ public class DenizenScriptCreator
 	
 	ArrayList<String> example_script;
 	String str_script_name = null;
-	final private String cmd = "gs open shop ";
+	final private String SHOP_TOKEN = "%shop%";
+	// Scripts made by older versions: execute as_op 'gs open shop <name>'
+	final private Pattern OLD_OP_COMMAND = Pattern.compile("execute as_op '/?gs open shop (.+?)'");
 	private Main _main;
-	public DenizenScriptCreator(Main main) 
+	public DenizenScriptCreator(Main main)
 	{
 		_main = main;
 		_path = "plugins/Denizen/scripts/"+_nameTag;
 		example_script = ReadDenizenTemplate();
-		
+
+	}
+
+	/**
+	 * Older scripts opened the shop with "execute as_op", which makes the player op for the command.
+	 * Rewrites them to run /gsopenfor as the server.
+	 */
+	public void MigrateOpScripts()
+	{
+		File f = new File(_path);
+		if(!f.exists()) return;
+
+		try
+		{
+			String content = Files.readString(f.toPath(), StandardCharsets.UTF_8);
+			Matcher matcher = OLD_OP_COMMAND.matcher(content);
+			if(!matcher.find()) return;
+
+			String migrated = matcher.replaceAll(m -> Matcher.quoteReplacement("execute as_server 'gsopenfor <player.name> " + m.group(1) + "'"));
+			Files.writeString(f.toPath(), migrated, StandardCharsets.UTF_8);
+			_main.getLogger().warning("Updated the shop NPC scripts in "+_path+" to open shops without op. Run /ex reload if Denizen already loaded them.");
+		}
+		catch (Exception e)
+		{
+			_main.getLogger().log(Level.SEVERE, "Couldn't update the shop NPC scripts in "+_path+". They still use 'execute as_op', change them to 'execute as_server' with /gsopenfor by hand.", e);
+		}
 	}
 	
 	public String CreateAssignScript(String script_name, String shopname)
@@ -59,10 +91,7 @@ public class DenizenScriptCreator
 				}
 			}
 			
-			if(line.contains("gs shop"))
-			{
-				mod_str = mod_str.replace("gs shop", cmd+shopname);
-			}
+			mod_str = mod_str.replace(SHOP_TOKEN, shopname);
 			lines_for_new.add(mod_str);
 		}
 		return lines_for_new;

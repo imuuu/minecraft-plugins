@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import imu.GS.Main.Main;
 import imu.GS.Other.CmdData;
 import imu.iAPI.Interfaces.CommandInterface;
+import imu.iAPI.Main.ImusAPI;
 
 public class SubShopCreateCMD implements CommandInterface
 {
@@ -34,7 +35,19 @@ public class SubShopCreateCMD implements CommandInterface
     		return false;
     	}
     	String shopName = StringUtils.join(Arrays.copyOfRange(args, 2, args.length)," ");
-    	
+
+    	// Shops are found by their exact name, so names must be unique
+    	if(ImusAPI._metods.StripColor(shopName).trim().isEmpty())
+    	{
+    		player.sendMessage(_data.get_syntaxText());
+    		return false;
+    	}
+    	if(_main.get_shopManager().GetShop(shopName) != null)
+    	{
+    		player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cA shop named &9"+shopName+" &calready exists!"));
+    		return false;
+    	}
+
     	_main.get_shopManager().CreateNewShop(shopName);
     	//_main.get_shopManager().SaveShop(shopName, true);
     	

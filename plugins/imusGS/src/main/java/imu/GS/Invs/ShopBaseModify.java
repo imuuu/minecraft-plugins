@@ -174,7 +174,12 @@ public class ShopBaseModify extends CustomInvLayout
 		shop.SetAbsolutePosBool(_shopModData._absoluteItemPosition);
 		shop.SetCustomersCanOnlyBuy(_shopModData._customersCanOnlyBuy);
 		shop.RefreshPrices();
-		if(!shop.GetDisplayName().equalsIgnoreCase(_shopModData._displayName)) 
+		Shop sameName = _main.get_shopManager().GetShop(_shopModData._displayName);
+		if(sameName != null && sameName != shop)
+		{
+			_player.sendMessage(Metods.msgC("&cA shop named "+_shopModData._displayName+" &calready exists, the name wasn't changed"));
+		}
+		else if(!shop.GetDisplayName().equalsIgnoreCase(_shopModData._displayName))
 		{
 			String oldName = shop.GetName();
 			_player.sendMessage(Metods.msgC("&2 Shop name has been changed from "+shop.GetDisplayName()+ "&2 to "+_shopModData._displayName));
@@ -185,7 +190,7 @@ public class ShopBaseModify extends CustomInvLayout
 				_main.GetDenizenSCreator().RenameShop(oldName, shop.GetName());
 				_player.sendMessage(Metods.msgC("&9Remember &2reload &9DenizenScripts! =>  &b/ex reload!"));
 			}
-			_main.get_shopManager().AddShop(shop);
+			_main.get_shopManager().UpdateTabCompliters();
 			shop.SaveDataAsync();
 			
 		}

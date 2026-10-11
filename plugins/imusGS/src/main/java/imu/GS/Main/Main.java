@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -23,7 +24,9 @@ import imu.GS.Managers.ShopManagerSQL;
 import imu.GS.Managers.TagManager;
 import imu.GS.Other.CmdHelper;
 import imu.GS.Other.DenizenScriptCreator;
+import imu.GS.SubCmds.OpenForCMD;
 import imu.GS.SubCmds.SubAddStockableCMD;
+import imu.GS.SubCmds.SubConfigCMD;
 import imu.GS.SubCmds.SubAssingToNpcCMD;
 import imu.GS.SubCmds.SubCreateUniqueCMD;
 import imu.GS.SubCmds.SubGetPlayerPriceCMD;
@@ -37,6 +40,7 @@ import imu.GS.SubCmds.SubShopCreateCMD;
 import imu.GS.SubCmds.SubShopOpenCMD;
 import imu.GS.SubCmds.SubTagMaterialCMD;
 import imu.GS.SubCmds.SubUnSetMaterialOverflowCMD;
+import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handelers.CommandHandler;
 import imu.iAPI.Other.CustomInvLayout;
 import imu.iAPI.Other.ImusTabCompleter;
@@ -57,13 +61,18 @@ public class Main extends JavaPlugin
 	Economy _econ = null;
 	private MySQL _SQL;
 	private ImusTabCompleter _tab_cmd1;
-	
+	private ConfigMenu _configMenu;
+
 	private HashMap<UUID, CustomInvLayout> _opendInvs = new HashMap<>();
 	public final String _pluginNamePrefix = "&4[&b"+getName()+"&4]&r";
 	@Override
-	public void onEnable() 
+	public void onEnable()
 	{
 		Instance = this;
+		saveDefaultConfig();
+		// Settings added in an update go into an existing config.yml
+		getConfig().options().copyDefaults(true);
+		saveConfig();
 		ConnectDataBase();
 		
 		//setupImusApi();
@@ -82,7 +91,11 @@ public class Main extends JavaPlugin
 		_shopManager.Init();
 
 		_denizenScriptCreator = new DenizenScriptCreator(this);
-		//_shopManager.loadShopsAsync();
+		_denizenScriptCreator.MigrateOpScripts();
+
+		_configMenu = CreateConfigMenu();
+		_configMenu.register();
+//_shopManager.loadShopsAsync();
 		 
 	
 		registerCommands();
@@ -94,6 +107,8 @@ public class Main extends JavaPlugin
 	@Override
 	 public void onDisable()
 	{
+		if(_configMenu != null) _configMenu.unregister();
+
 		// Closing fires InventoryCloseEvent, which unregisters from _opendInvs; iterate a copy
 		for(CustomInvLayout inv : new ArrayList<>(_opendInvs.values())) { inv.GetPlayer().closeInventory();}
 		_opendInvs.clear();
@@ -163,7 +178,7 @@ public class Main extends JavaPlugin
 	    String full_sub8=cmd1+" "+cmd1_sub8;
 	    _cmdHelper.setCmd(full_sub8, "assign shop to npc", cmd1_sub8);
 	    handler.registerSubCmd(cmd1, cmd1_sub8, new SubAssingToNpcCMD(this, _cmdHelper.getCmdData(full_sub8)));
-	    handler.setPermissionOnLastCmd("gs.assing");
+	    handler.setPermissionOnLastCmd("gs.assign");
 	    
 	    String cmd1_sub9="set material price";
 	    String full_sub9=cmd1+" "+cmd1_sub9;
@@ -207,9 +222,13 @@ public class Main extends JavaPlugin
 	    handler.registerSubCmd(cmd1, cmd1_sub15, new SubSetUnsetMaterialSmartPriceCMD(this, _cmdHelper.getCmdData(full_sub15), false));
 	    handler.setPermissionOnLastCmd("gs.unset.material.smart_price");
 	    
+	    String cmd1_sub16="config";
+	    handler.registerSubCmd(cmd1, cmd1_sub16, new SubConfigCMD(_configMenu));
+	    handler.setPermissionOnLastCmd("gs.config");
+
 	    String[] one_hotbar_inv = new String[] {Cmd_add_options.inventory.toString(),Cmd_add_options.hotbar.toString(),Cmd_add_options.hand.toString()};
-	    
-	    cmd1AndArguments.put(cmd1, new String[] {"create","open","tag", "modify","assign","set","unset","add"});
+
+	    cmd1AndArguments.put(cmd1, new String[] {"create","open","tag", "modify","assign","set","unset","add","config"});
 	    cmd1AndArguments.put("open", new String[] {"shop"});
 	    //cmd1AndArguments.put("delete", new String[] {"shop"});
 	    cmd1AndArguments.put("create", new String[] {"shop","unique"});
@@ -258,7 +277,51 @@ public class Main extends JavaPlugin
 	    getCommand(cmd2).setExecutor(handler);
 	    ImusTabCompleter tab2 = new ImusTabCompleter(cmd2, cmd2AndArguments, null);
 	    getCommand(cmd2).setTabCompleter(tab2);
-	}	
+
+	    // Not through CommandHandler: it only accepts players, and this is run by Denizen as the server
+	    OpenForCMD openFor = new OpenForCMD(this);
+	    getCommand("gsopenfor").setExecutor(openFor);
+	    getCommand("gsopenfor").setTabCompleter(openFor);
+	}
+
+	ConfigMenu CreateConfigMenu()
+	{
+		ConfigMenu menu = new ConfigMenu(this, "imusGS", "gs.config", this::ReloadSettings);
+
+		menu.addInt("shop.check-interval-seconds", "Shop check interval", Material.CLOCK, 1, 3600)
+			.description("Seconds between stockable refills and expire checks")
+			.note("now");
+		menu.addInt("shop.save-delay-seconds", "Save delay", Material.WRITABLE_BOOK, 0, 600)
+			.description("A shop is saved this many seconds")
+			.description("after its last customer leaves")
+			.note("now");
+		menu.addDouble("shop.click-cooldown-seconds", "Click cooldown", Material.STONE_BUTTON, 0, 5)
+			.description("Shortest time between two clicks in a shop")
+			.note("now");
+		menu.addDouble("pricing.durability-penalty", "Durability penalty", Material.DAMAGED_ANVIL, 0, 1)
+			.description("Damaged items are worth durability left - this")
+			.description("0.1 = an item at 80% sells for 70%")
+			.note("prices calculated from now on");
+		menu.addDouble("new-shop.sell-multiplier", "New shop: sell multiplier", Material.EMERALD, 0, 1000)
+			.description("Players buy from the shop for price * this")
+			.note("shops created from now on");
+		menu.addDouble("new-shop.buy-multiplier", "New shop: buy multiplier", Material.GOLD_INGOT, 0, 1000)
+			.description("Players sell to the shop for price * this")
+			.note("shops created from now on");
+		menu.addDouble("new-shop.expire-percent", "New shop: expire share", Material.ROTTEN_FLESH, 0, 1)
+			.description("Share of stock that disappears every cooldown")
+			.description("0.1 = 10%")
+			.note("shops created from now on");
+		menu.addInt("new-shop.expire-cooldown-minutes", "New shop: expire cooldown", Material.HOPPER, 1, 10080)
+			.note("shops created from now on");
+		return menu;
+	}
+
+	public void ReloadSettings()
+	{
+		reloadConfig();
+		if(_shopManager != null) _shopManager.LoadSettings();
+	}
 		
 	public void UpdateShopNames(String[] shopNames)
 	{

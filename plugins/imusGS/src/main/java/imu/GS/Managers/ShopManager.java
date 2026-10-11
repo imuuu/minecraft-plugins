@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -41,8 +42,11 @@ public class ShopManager
 	//private HashMap<UUID, CustomInvLayout> _opened_invs = new HashMap<>();
 	private HashMap<UUID, ArrayList<Tuple<String, PriceCustom>>> _savedPriceCustoms = new HashMap<>();
 	
+	// From config.yml, see LoadSettings
 	private int _shopCheckTime_s = 20;
-	
+	private int _saveDelay_s = 10;
+	private double _clickCooldown_s = 0.2;
+
 	public final String pd_page="gs.page";
 	public final String pd_slot="gs.slot";
 	public double _durability_penalty = 0.1; // 0.0 => 0%
@@ -58,8 +62,36 @@ public class ShopManager
 		
 	}
 	
+	/** Reads the values of config.yml. Restarts the shop timer when its interval changed. */
+	public void LoadSettings()
+	{
+		FileConfiguration config = _main.getConfig();
+		int oldCheckTime = _shopCheckTime_s;
+		_shopCheckTime_s = Math.max(1, config.getInt("shop.check-interval-seconds"));
+		_saveDelay_s = Math.max(0, config.getInt("shop.save-delay-seconds"));
+		_clickCooldown_s = Math.max(0, config.getDouble("shop.click-cooldown-seconds"));
+		_durability_penalty = Math.max(0, config.getDouble("pricing.durability-penalty"));
+
+		if(RunnableAsyncTask != null && oldCheckTime != _shopCheckTime_s)
+		{
+			RunnableAsyncTask.cancel();
+			RunnableAsync();
+		}
+	}
+
+	public int GetSaveDelaySeconds()
+	{
+		return _saveDelay_s;
+	}
+
+	public double GetClickCooldownSeconds()
+	{
+		return _clickCooldown_s;
+	}
+
 	public void Init()
 	{
+		LoadSettings();
 		new BukkitRunnable()
 		{
 			@Override
@@ -326,6 +358,12 @@ public class ShopManager
 	public void CreateNewShop(String name)
 	{
 		ShopNormal shop = new ShopNormal(_main, UUID.randomUUID(), name, 1);
+		FileConfiguration config = _main.getConfig();
+		shop.set_sellM(config.getDouble("new-shop.sell-multiplier"));
+		shop.set_buyM(config.getDouble("new-shop.buy-multiplier"));
+		shop.set_expire_percent(config.getDouble("new-shop.expire-percent"));
+		shop.set_expire_cooldown_m(config.getInt("new-shop.expire-cooldown-minutes"));
+		shop.SetNewExpire();
 		AddShop(shop);
 	}
 	
@@ -359,20 +397,15 @@ public class ShopManager
 		return null;
 	}
 	
+	/** The shop with exactly this name, ignoring case and colour codes. */
 	public Shop GetShop(String name)
 	{
-		String searchName = ImusAPI._metods.StripColor(name);
+		String searchName = ImusAPI._metods.StripColor(name).trim();
 
 		for(Shop s : _shops)
 		{
-			if(s.GetName().toLowerCase().contains(searchName.toLowerCase()))
-			{
-				//System.out.println("Shop found!");
-				return s;
-			}
-				
+			if(s.GetName().trim().equalsIgnoreCase(searchName)) return s;
 		}
-		//System.out.println("Shop NOT found by name!"+name);
 		return null;
 	}
 	

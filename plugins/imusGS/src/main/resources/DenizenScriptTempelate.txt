@@ -32,11 +32,11 @@ generalstore_open:
 
                 script:
 
-                - execute as_op 'gs shop'
+                - execute as_server 'gsopenfor <player.name> %shop%'
 
             damage trigger:
 
                 script:
 
-                - execute as_op 'gs shop'
+                - execute as_server 'gsopenfor <player.name> %shop%'
 

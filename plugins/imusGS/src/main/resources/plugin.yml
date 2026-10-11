@@ -3,15 +3,90 @@ author: imu
 version: 1.0
 main: imu.GS.Main.Main
 api-version: '26.2'
-softdepend: [Vault, imusAPI]
+description: NPC general stores that buy and sell items
+depend: [imusAPI]
+softdepend: [Vault]
 commands:
    gs:
-     description: GS
-     usage: /<command>
-   gs create shop:
-     description: Create Shop
+     description: imusGS shop commands
      usage: /<command>
    g:
-     description: G
-     usage: /<command>
-   
+     description: Check what the shops pay for your items
+     usage: /<command> getprice <hand|hotbar|inventory>
+   gsopenfor:
+     description: Open a shop for a player. For NPC scripts (Denizen) and the console.
+     usage: /<command> <player> <shop name>
+     permission: gs.openfor
+permissions:
+   gs.admin:
+     description: Every imusGS admin command
+     default: op
+     children:
+       gs.create.shop: true
+       gs.open.shop: true
+       gs.openfor: true
+       gs.add: true
+       gs.create.uniques: true
+       gs.modify.uniques: true
+       gs.modify.shop: true
+       gs.modify.enchants: true
+       gs.assign: true
+       gs.set.material.price: true
+       gs.set.material.overflow: true
+       gs.unset.material.overflow: true
+       gs.set.material.smart_price: true
+       gs.unset.material.smart_price: true
+       gs.tag: true
+       gs.config: true
+       gs.tabcompleter: true
+   gs.create.shop:
+     description: /gs create shop
+     default: op
+   gs.open.shop:
+     description: /gs open shop, open any shop anywhere. Players normally open shops through an NPC instead.
+     default: op
+   gs.openfor:
+     description: /gsopenfor, open a shop for another player
+     default: op
+   gs.add:
+     description: /gs add, add stockable items to a shop
+     default: op
+   gs.create.uniques:
+     description: /gs create unique
+     default: op
+   gs.modify.uniques:
+     description: /gs modify uniques
+     default: op
+   gs.modify.shop:
+     description: /gs modify shop
+     default: op
+   gs.modify.enchants:
+     description: /gs modify enchantments
+     default: op
+   gs.assign:
+     description: /gs assign, create the Denizen NPC script for a shop
+     default: op
+   gs.set.material.price:
+     description: /gs set material price
+     default: op
+   gs.set.material.overflow:
+     description: /gs set material overflow
+     default: op
+   gs.unset.material.overflow:
+     description: /gs unset material overflow
+     default: op
+   gs.set.material.smart_price:
+     description: /gs set material smart_price
+     default: op
+   gs.unset.material.smart_price:
+     description: /gs unset material smart_price
+     default: op
+   gs.tag:
+     description: /gs tag, tag materials and shop items and change their prices
+     default: op
+   gs.config:
+     description: /gs config, the in-game settings menu
+     default: op
+   gs.tabcompleter:
+     description: Tab completion of /gs
+     default: op

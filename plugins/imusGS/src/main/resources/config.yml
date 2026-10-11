@@ -1,0 +1,26 @@
+# imusGS settings. The database connection is in DataBaseSettings.yml.
+# Every value here can be changed in game with /gs config (or /ia config).
+
+shop:
+  # How often shops refill stockable items and check for expiring stock, in seconds
+  check-interval-seconds: 20
+  # A shop is saved to the database this many seconds after its last customer leaves.
+  # Shops are always saved on shutdown too.
+  save-delay-seconds: 10
+  # Shortest time between two clicks in the shop menu, in seconds
+  click-cooldown-seconds: 0.2
+
+pricing:
+  # Damaged tools and armor are worth (durability left - penalty) of their price.
+  # 0.1 = an item at 80% durability sells for 70% of the full price. A brand new item has no penalty.
+  durability-penalty: 0.1
+
+# Values a newly created shop starts with. Existing shops keep their own, change those with /gs modify shop
+new-shop:
+  # Players buy from the shop for item price * this
+  sell-multiplier: 5.0
+  # Players sell to the shop for item price * this
+  buy-multiplier: 1.0
+  # Share of the shop's stock that disappears every expire cooldown, 0.1 = 10%. Stockable items never expire.
+  expire-percent: 0.1
+  expire-cooldown-minutes: 60

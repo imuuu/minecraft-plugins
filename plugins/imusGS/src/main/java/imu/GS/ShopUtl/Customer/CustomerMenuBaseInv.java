@@ -46,7 +46,6 @@ public class CustomerMenuBaseInv extends CustomerInv
 	final int _shop_slot_start = 0;
 	
 	//PLAYER_INV_STATE p_state = PLAYER_INV_STATE.NORMAL;
-	final double _cdButtonClick = 0.2;
 	int _playerInvPage = 0;
 	int _shopInvPage = 0;
 	ShopNormal _shopBase;
@@ -200,7 +199,7 @@ public class CustomerMenuBaseInv extends CustomerInv
 		
 		if(!_cd.isCooldownReady("buttonPress")) return;
 		
-		_cd.setCooldownInSeconds("buttonPress", _cdButtonClick);
+		_cd.setCooldownInSeconds("buttonPress", _sm.GetClickCooldownSeconds());
 		
 		
 		ItemStack stack = e.getCurrentItem();
