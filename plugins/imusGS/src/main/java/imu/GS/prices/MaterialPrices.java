@@ -1,6 +1,7 @@
 package imu.GS.prices;
 
 import imu.GS.engine.pricing.Overflow;
+import imu.GS.engine.pricing.SellLimit;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Tuple;
 import org.bukkit.Material;
@@ -31,6 +32,15 @@ public class MaterialPrices
         private Double _smartMultiplier;
         private Overflow _overflow;
         private final Set<String> _tags = new HashSet<>();
+        private String _limitGroup;
+
+        /**
+         * The sell limit group (crops, iron...), null when selling the material isn't limited.
+         */
+        public String getLimitGroup()
+        {
+            return _limitGroup;
+        }
 
         public double getPrice()
         {
@@ -60,6 +70,8 @@ public class MaterialPrices
     }
 
     private final Map<Material, Entry> _entries = new EnumMap<>(Material.class);
+    // Sell limit group -> its limit in every shop
+    private final Map<String, SellLimit> _limits = new HashMap<>();
     // Ingredient -> units per crafted unit, looked up once per material
     private final Map<Material, Map<Material, Double>> _recipes = new HashMap<>();
 
@@ -128,6 +140,27 @@ public class MaterialPrices
     public void setOverflow(Material material, Overflow overflow)
     {
         get(material)._overflow = overflow;
+    }
+
+    // Sell limits ====================================================================================================
+
+    /**
+     * Null takes the material out of every sell limit group.
+     */
+    public void setLimitGroup(Material material, String group)
+    {
+        get(material)._limitGroup = group == null || group.isBlank() ? null : group.toLowerCase(Locale.ROOT);
+    }
+
+    public Map<String, SellLimit> getLimits()
+    {
+        return _limits;
+    }
+
+    public void setLimits(Map<String, SellLimit> limits)
+    {
+        _limits.clear();
+        limits.forEach((group, limit) -> _limits.put(group.toLowerCase(Locale.ROOT), limit));
     }
 
     // Tags ===========================================================================================================

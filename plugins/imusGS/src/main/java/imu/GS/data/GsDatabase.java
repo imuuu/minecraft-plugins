@@ -2,6 +2,8 @@ package imu.GS.data;
 
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.pricing.Overflow;
+import imu.GS.engine.pricing.SellLimit;
+import imu.GS.engine.pricing.SellPressure;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.trade.Trade;
@@ -19,8 +21,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -77,7 +81,10 @@ public class GsDatabase
         }
     }
 
-    public record MaterialRow(String material, double price, Double smartMultiplier, Overflow overflow, Set<String> tags) {}
+    /**
+     * @param limitGroup null when the material isn't in a sell limit group
+     */
+    public record MaterialRow(String material, double price, Double smartMultiplier, Overflow overflow, Set<String> tags, String limitGroup) {}
 
     public record EnchantRow(String enchant, EnchantPrices.EnchantValue value) {}
 
@@ -110,7 +117,20 @@ public class GsDatabase
                     + "overflow_softcap INT NULL, "
                     + "overflow_drop DOUBLE NULL, "
                     + "overflow_min DOUBLE NULL, "
-                    + "tags VARCHAR(1000) NOT NULL DEFAULT '')");
+                    + "tags VARCHAR(1000) NOT NULL DEFAULT '', "
+                    + "limit_group VARCHAR(64) NULL)");
+            addColumnIfMissing(con, st, "gs_materials", "limit_group", "VARCHAR(64) NULL");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_limits ("
+                    + "grp VARCHAR(64) NOT NULL PRIMARY KEY, "
+                    + "allowance DOUBLE NOT NULL, "
+                    + "refill_per_hour DOUBLE NOT NULL, "
+                    + "min_fraction DOUBLE NOT NULL)");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_pressure ("
+                    + "shop_id CHAR(36) NOT NULL, "
+                    + "grp VARCHAR(64) NOT NULL, "
+                    + "pressure DOUBLE NOT NULL, "
+                    + "updated BIGINT NOT NULL, "
+                    + "PRIMARY KEY (shop_id, grp))");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_enchants ("
                     + "enchant VARCHAR(100) NOT NULL PRIMARY KEY, "
                     + "max_level INT NOT NULL, "
@@ -137,6 +157,16 @@ public class GsDatabase
                     + "price DOUBLE NOT NULL, "
                     + "INDEX (player_id), INDEX (shop_id))");
         }
+    }
+
+    private static void addColumnIfMissing(Connection con, Statement st, String table, String column, String definition) throws SQLException
+    {
+        try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), null, table, column))
+        {
+            if (rs.next())
+                return;
+        }
+        st.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
     }
 
     // Loading, startup only ==========================================================================================
@@ -170,7 +200,7 @@ public class GsDatabase
     {
         List<MaterialRow> rows = new ArrayList<>();
         try (Connection con = _sql.GetConnection();
-             PreparedStatement ps = con.prepareStatement("SELECT material, price, smart_multiplier, overflow_softcap, overflow_drop, overflow_min, tags FROM gs_materials");
+             PreparedStatement ps = con.prepareStatement("SELECT material, price, smart_multiplier, overflow_softcap, overflow_drop, overflow_min, tags, limit_group FROM gs_materials");
              ResultSet rs = ps.executeQuery())
         {
             while (rs.next())
@@ -183,10 +213,36 @@ public class GsDatabase
                     if (!tag.isBlank())
                         tags.add(tag.trim());
                 }
-                rows.add(new MaterialRow(rs.getString(1), rs.getDouble(2), smart, overflow, tags));
+                rows.add(new MaterialRow(rs.getString(1), rs.getDouble(2), smart, overflow, tags, rs.getString(8)));
             }
         }
         return rows;
+    }
+
+    public Map<String, SellLimit> loadSellLimits() throws SQLException
+    {
+        Map<String, SellLimit> limits = new LinkedHashMap<>();
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT grp, allowance, refill_per_hour, min_fraction FROM gs_sell_limits");
+             ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+                limits.put(rs.getString(1), new SellLimit(rs.getDouble(2), rs.getDouble(3), rs.getDouble(4)));
+        }
+        return limits;
+    }
+
+    public List<SellPressure.Entry> loadSellPressure() throws SQLException
+    {
+        List<SellPressure.Entry> entries = new ArrayList<>();
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT shop_id, grp, pressure, updated FROM gs_sell_pressure");
+             ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+                entries.add(new SellPressure.Entry(UUID.fromString(rs.getString(1)), rs.getString(2), rs.getDouble(3), rs.getLong(4)));
+        }
+        return entries;
     }
 
     public void loadEnchants(EnchantPrices enchants) throws SQLException
@@ -298,7 +354,7 @@ public class GsDatabase
             return;
         write("save material prices", con ->
         {
-            try (PreparedStatement ps = con.prepareStatement("REPLACE INTO gs_materials (material, price, smart_multiplier, overflow_softcap, overflow_drop, overflow_min, tags) VALUES (?,?,?,?,?,?,?)"))
+            try (PreparedStatement ps = con.prepareStatement("REPLACE INTO gs_materials (material, price, smart_multiplier, overflow_softcap, overflow_drop, overflow_min, tags, limit_group) VALUES (?,?,?,?,?,?,?,?)"))
             {
                 for (MaterialRow row : rows)
                 {
@@ -309,6 +365,7 @@ public class GsDatabase
                     ps.setObject(5, row.overflow() == null ? null : row.overflow().dropFactor());
                     ps.setObject(6, row.overflow() == null ? null : row.overflow().minPrice());
                     ps.setString(7, String.join(",", row.tags()));
+                    ps.setString(8, row.limitGroup());
                     ps.addBatch();
                 }
                 ps.executeBatch();
@@ -318,7 +375,60 @@ public class GsDatabase
 
     public static MaterialRow materialRow(Material material, MaterialPrices.Entry entry)
     {
-        return new MaterialRow(material.name(), entry.getPrice(), entry.getSmartMultiplier(), entry.getOverflow(), new LinkedHashSet<>(entry.getTags()));
+        return new MaterialRow(material.name(), entry.getPrice(), entry.getSmartMultiplier(), entry.getOverflow(), new LinkedHashSet<>(entry.getTags()), entry.getLimitGroup());
+    }
+
+    /**
+     * Replaces every sell limit with these.
+     */
+    public void saveSellLimits(Map<String, SellLimit> limits)
+    {
+        Map<String, SellLimit> copy = new LinkedHashMap<>(limits);
+        write("save sell limits", con ->
+        {
+            try (Statement st = con.createStatement())
+            {
+                st.executeUpdate("DELETE FROM gs_sell_limits");
+            }
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO gs_sell_limits (grp, allowance, refill_per_hour, min_fraction) VALUES (?,?,?,?)"))
+            {
+                for (Map.Entry<String, SellLimit> entry : copy.entrySet())
+                {
+                    ps.setString(1, entry.getKey());
+                    ps.setDouble(2, entry.getValue().allowance());
+                    ps.setDouble(3, entry.getValue().refillPerHour());
+                    ps.setDouble(4, entry.getValue().minFraction());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        });
+    }
+
+    /**
+     * Replaces the saved sell pressure with this snapshot.
+     */
+    public void saveSellPressure(List<SellPressure.Entry> entries)
+    {
+        write("save sell pressure", con ->
+        {
+            try (Statement st = con.createStatement())
+            {
+                st.executeUpdate("DELETE FROM gs_sell_pressure");
+            }
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO gs_sell_pressure (shop_id, grp, pressure, updated) VALUES (?,?,?,?)"))
+            {
+                for (SellPressure.Entry entry : entries)
+                {
+                    ps.setString(1, entry.owner().toString());
+                    ps.setString(2, truncate(entry.group(), 64));
+                    ps.setDouble(3, entry.pressure());
+                    ps.setLong(4, entry.updatedMillis());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        });
     }
 
     public void saveEnchants(List<EnchantRow> rows)

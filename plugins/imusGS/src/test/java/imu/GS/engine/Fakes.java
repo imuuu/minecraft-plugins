@@ -6,6 +6,7 @@ import imu.GS.engine.customer.CustomerInventory;
 import imu.GS.engine.customer.Wallet;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceRules;
+import imu.GS.engine.pricing.SellLimit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +37,20 @@ public final class Fakes
         public final Map<ItemKey, Double> uniques = new HashMap<>();
         public final Map<ItemKey, Double> conditions = new HashMap<>();
         public final Map<ItemKey, ItemKey> leftovers = new HashMap<>();
+        public final Map<ItemKey, String> limitGroups = new HashMap<>();
+        public final Map<String, SellLimit> limits = new HashMap<>();
+
+        @Override
+        public String sellLimitGroup(ItemKey item)
+        {
+            return limitGroups.get(item);
+        }
+
+        @Override
+        public SellLimit sellLimit(String group)
+        {
+            return limits.get(group);
+        }
 
         public Rules value(String item, double value)
         {

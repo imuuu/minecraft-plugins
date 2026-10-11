@@ -4,6 +4,7 @@ import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceRules;
+import imu.GS.engine.pricing.SellLimit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -102,6 +103,18 @@ public class ServerPriceRules implements PriceRules
         if (left >= 1.0)
             return 1.0;
         return Math.max(0, Math.min(1, left - _durabilityPenalty.getAsDouble()));
+    }
+
+    @Override
+    public String sellLimitGroup(ItemKey item)
+    {
+        return _materials.get(ItemKeys.template(item).getType()).getLimitGroup();
+    }
+
+    @Override
+    public SellLimit sellLimit(String group)
+    {
+        return _materials.getLimits().get(group);
     }
 
     @Override

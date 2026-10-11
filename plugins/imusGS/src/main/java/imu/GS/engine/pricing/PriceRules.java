@@ -39,4 +39,21 @@ public interface PriceRules
      * What the player gets back for each unit they sell, e.g. an empty bucket for a water bucket. Null for nothing.
      */
     ItemKey leftover(ItemKey item);
+
+    /**
+     * The sell limit group of the item (crops, iron...), or null when selling it isn't limited.
+     */
+    default String sellLimitGroup(ItemKey item)
+    {
+        return null;
+    }
+
+    /**
+     * The limit of a group in one shop, shared by everyone who sells to it, or null when the group has none.
+     * Sellers compete for it: what one sells lowers the price for the next.
+     */
+    default SellLimit sellLimit(String group)
+    {
+        return null;
+    }
 }

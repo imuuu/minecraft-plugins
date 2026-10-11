@@ -119,10 +119,14 @@ public class ImusGS extends JavaPlugin
         sub(handler, gs, "unset material smart_price", "gs.unset.material.smart_price", _commands::unsetSmartPrice);
         sub(handler, gs, "tag", "gs.tag", _commands::tag);
         sub(handler, gs, "config", "gs.config", _commands::config);
+        sub(handler, gs, "profile", "gs.profile", _commands::profile);
+        sub(handler, gs, "limits", "gs.limits", _commands::limits);
+        sub(handler, gs, "reset limits", "gs.limits", _commands::resetLimits);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset" });
+        arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc" });
         arguments.put("open", new String[] { "shop" });
         arguments.put("modify", new String[] { "shop", "uniques", "enchantments" });
@@ -130,6 +134,7 @@ public class ImusGS extends JavaPlugin
         arguments.put("set", new String[] { "material" });
         arguments.put("unset", new String[] { "material" });
         arguments.put("tag", new String[] { "materials", "shopitems" });
+        arguments.put("reset", new String[] { "limits" });
         _tabCompleter = new ImusTabCompleter(gs, new HashMap<>(arguments), "gs.tabcompleter");
         getCommand(gs).setTabCompleter(_tabCompleter);
 
@@ -179,6 +184,12 @@ public class ImusGS extends JavaPlugin
         _tabCompleter.setArgumenrs("shop", shops.toArray(new String[0]));
         _tabCompleter.SetRule("/gs create npc", 3, shops);
         _tabCompleter.SetRule("/gs add", 3, shops);
+        _tabCompleter.SetRule("/gs limits", 2, shops);
+        _tabCompleter.SetRule("/gs reset limits", 3, shops);
+
+        _tabCompleter.SetRule("/gs profile apply", 3, _service.getProfiles().names());
+        _tabCompleter.SetRule("/gs profile apply", 4, List.of("1000", "confirm"));
+        _tabCompleter.SetRule("/gs profile apply", 5, List.of("confirm"));
 
         _tabCompleter.SetRule("/gs set material", 3, List.of("price", "overflow", "smart_price"));
         _tabCompleter.SetRule("/gs set material", 4, options);

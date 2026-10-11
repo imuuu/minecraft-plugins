@@ -9,6 +9,8 @@ import imu.GS.data.ListingCodec;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.customer.Customer;
 import imu.GS.engine.pricing.PriceCalculator;
+import imu.GS.engine.pricing.SellLimit;
+import imu.GS.engine.pricing.SellPressure;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopListener;
@@ -19,6 +21,8 @@ import imu.GS.prices.EnchantPrices;
 import imu.GS.prices.MaterialPrices;
 import imu.GS.prices.ServerPriceRules;
 import imu.GS.prices.UniqueItems;
+import imu.GS.prices.profile.PriceProfiles;
+import imu.GS.prices.profile.ProfileCalculator;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Other.MySQL;
 import org.bukkit.Bukkit;
@@ -56,9 +60,11 @@ public class GsService implements Listener
     private final EnchantPrices _enchants = new EnchantPrices();
     private final UniqueItems _uniques = new UniqueItems();
     private final ServerPriceRules _rules;
+    private final SellPressure _pressure = new SellPressure();
     private final PriceCalculator _prices;
     private final VaultWallet _wallet = new VaultWallet();
     private final TradeService _trades;
+    private final PriceProfiles _profiles;
 
     private final Map<UUID, Shop> _shops = new LinkedHashMap<>();
     private final Set<UUID> _dirty = new HashSet<>();
@@ -85,6 +91,7 @@ public class GsService implements Listener
     };
 
     private boolean _loaded;
+    private boolean _pressureDirty;
     private BukkitTask _tickTask;
     private BukkitTask _saveTask;
 
@@ -94,9 +101,14 @@ public class GsService implements Listener
         _db = new GsDatabase(sql, plugin.getLogger());
         _rules = new ServerPriceRules(_materials, _enchants, _uniques,
                 () -> plugin.getConfig().getDouble("pricing.durability-penalty"));
-        _prices = new PriceCalculator(_rules);
+        _prices = new PriceCalculator(_rules, _pressure, System::currentTimeMillis);
         _trades = new TradeService(_prices, _wallet);
-        _trades.addListener((shop, customer, trade) -> _db.logTrade(trade, shop.getName()));
+        _trades.addListener((shop, customer, trade) ->
+        {
+            _db.logTrade(trade, shop.getName());
+            _pressureDirty = true;
+        });
+        _profiles = new PriceProfiles(plugin);
     }
 
     // Lifecycle ======================================================================================================
@@ -116,7 +128,14 @@ public class GsService implements Listener
                 EnchantPrices enchants = new EnchantPrices();
                 _db.loadEnchants(enchants);
                 List<GsDatabase.UniqueRow> uniques = _db.loadUniques();
-                Bukkit.getScheduler().runTask(_plugin, () -> apply(shops, materials, enchants, uniques));
+                Map<String, SellLimit> limits = _db.loadSellLimits();
+                List<SellPressure.Entry> pressure = _db.loadSellPressure();
+                Bukkit.getScheduler().runTask(_plugin, () ->
+                {
+                    _materials.setLimits(limits);
+                    pressure.forEach(_pressure::restore);
+                    apply(shops, materials, enchants, uniques);
+                });
             } catch (SQLException e)
             {
                 _plugin.getLogger().log(Level.SEVERE, "Couldn't load the shops from the database; shops are off until a restart", e);
@@ -135,6 +154,7 @@ public class GsService implements Listener
             _materials.setSmartMultiplier(material, row.smartMultiplier());
             _materials.setOverflow(material, row.overflow());
             _materials.setTags(material, row.tags());
+            _materials.setLimitGroup(material, row.limitGroup());
         }
 
         _enchants.getValues().putAll(enchants.getValues());
@@ -174,9 +194,32 @@ public class GsService implements Listener
         }
         _dirty.clear();
         _loaded = true;
+        if (materialRows.isEmpty())
+            applyFirstStartProfile();
         _plugin.getLogger().info("Loaded " + _shops.size() + " shops");
         _plugin.updateTabCompletion();
         restartTimers();
+    }
+
+    /**
+     * With no material prices saved yet, prices everything with the profile config.yml names, if any.
+     */
+    private void applyFirstStartProfile()
+    {
+        String name = _plugin.getConfig().getString("pricing.first-start-profile", "");
+        if (name == null || name.isBlank())
+            return;
+        try
+        {
+            double diamond = _plugin.getConfig().getDouble("pricing.first-start-diamond-price", 1000);
+            ProfileCalculator.Result result = PriceProfiles.calculate(_profiles.load(name), _materials, diamond);
+            applyProfile(result);
+            _plugin.getLogger().info("No material prices yet: priced " + result.prices().size() + " materials with the profile '"
+                    + name + "' (diamond = " + diamond + ")");
+        } catch (RuntimeException e)
+        {
+            _plugin.getLogger().log(Level.WARNING, "Couldn't apply the first start price profile '" + name + "'", e);
+        }
     }
 
     public void restartTimers()
@@ -319,6 +362,63 @@ public class GsService implements Listener
                 saveNow(shop);
         }
         _dirty.clear();
+        if (_pressureDirty)
+        {
+            _pressureDirty = false;
+            _pressure.forgetRefilled(_materials.getLimits(), System.currentTimeMillis());
+            _db.saveSellPressure(_pressure.entries());
+        }
+    }
+
+    /**
+     * Gives every material the price, tags and sell limit group a profile worked out, and replaces the sell limits.
+     * Smart prices are removed; overflows stay.
+     */
+    public void applyProfile(ProfileCalculator.Result result)
+    {
+        List<Material> changed = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : result.prices().entrySet())
+        {
+            Material material = Material.matchMaterial(entry.getKey());
+            if (material == null)
+                continue;
+            _materials.setPrice(material, entry.getValue());
+            _materials.setSmartMultiplier(material, null);
+            _materials.setTags(material, result.tags().getOrDefault(entry.getKey(), Set.of()));
+            _materials.setLimitGroup(material, result.limitGroups().get(entry.getKey()));
+            changed.add(material);
+        }
+        _materials.setLimits(result.limits());
+        _db.saveSellLimits(_materials.getLimits());
+        saveMaterials(changed);
+        _plugin.updateTabCompletion();
+    }
+
+    /**
+     * How much of each sell limit group the shop has bought lately: group -> value, refills included.
+     */
+    public Map<String, Double> sellPressure(Shop shop)
+    {
+        Map<String, Double> pressure = new java.util.TreeMap<>();
+        long now = System.currentTimeMillis();
+        _materials.getLimits().forEach((group, limit) -> pressure.put(group, _pressure.get(shop.getId(), group, limit, now)));
+        return pressure;
+    }
+
+    /**
+     * Gives the shop back the full allowance of every sell limit group.
+     */
+    public void resetSellPressure(Shop shop)
+    {
+        _pressure.reset(shop.getId());
+        _pressureDirty = true;
+        saveDirty();
+        refreshMenus();
+    }
+
+    public PriceProfiles getProfiles()
+    {
+        return _profiles;
     }
 
     public void saveMaterials(Collection<Material> materials)

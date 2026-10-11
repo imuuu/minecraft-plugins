@@ -1,5 +1,5 @@
 'use strict'
-// Shops, their stock and material prices survive a server restart. Restarts the server, so it only runs with
+// Shops, their stock, material prices and sell limits survive a server restart. Restarts the server, so it only runs with
 // SHOPBOT_RESTART=1. Run it after the other tests, which fill the shops.
 const { test, after } = require('node:test')
 const assert = require('node:assert/strict')
@@ -23,6 +23,16 @@ after(async () => {
 /**
  * What a player sees of the shops: item and amount of every listing on the first page, per shop.
  */
+/**
+ * How much iron the sell limit test's shop has bought lately, from /gs limits.
+ */
+async function ironSold () {
+  bot.clearMessages()
+  await bot.command('gs limits BotLimit')
+  const line = await bot.waitForMessage(/iron: sold/)
+  return Number(/iron: sold ([\d,.]+)/.exec(line)[1].replace(/,/g, ''))
+}
+
 async function snapshot (shops) {
   const seen = {}
   for (const shop of shops) {
@@ -51,6 +61,7 @@ test('shops, stock and prices are the same after a restart', { skip: !run && 'se
   bot.bot.setQuickBarSlot(0)
   const before = await snapshot(shops)
   const priceBefore = await bot.waitForMessage(/DIAMOND price is/)
+  const ironBefore = await ironSold()
 
   bot.quit()
   rcon.close()
@@ -63,9 +74,13 @@ test('shops, stock and prices are the same after a restart', { skip: !run && 'se
   bot.bot.setQuickBarSlot(0)
   const afterRestart = await snapshot(shops)
   const priceAfter = await bot.waitForMessage(/DIAMOND price is/)
+  const ironAfter = await ironSold()
 
   assert.deepEqual(afterRestart, before)
   assert.equal(priceAfter, priceBefore)
+  assert.ok(ironBefore > 25600, 'Run the sell limit test first, it fills the iron limit of BotLimit')
+  // The limit refills 6 400 an hour, about 2 a second, also while the server is down
+  assert.ok(ironAfter <= ironBefore && ironAfter > ironBefore - 400, `iron sold ${ironBefore} before the restart, ${ironAfter} after`)
   for (const shop of shops)
     assert.ok(before[shop].length > 0, shop + ' should have had listings to compare')
 })

@@ -5,8 +5,11 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.LongSupplier;
 
 /**
  * Prices of buying from and selling to a shop. Only reads; prices are rounded to cents.
@@ -14,10 +17,22 @@ import java.util.Map;
 public class PriceCalculator
 {
     private final PriceRules _rules;
+    private final SellPressure _pressure;
+    private final LongSupplier _clock;
 
     public PriceCalculator(PriceRules rules)
     {
+        this(rules, new SellPressure(), System::currentTimeMillis);
+    }
+
+    /**
+     * @param clock current time in milliseconds; tests move it by hand
+     */
+    public PriceCalculator(PriceRules rules, SellPressure pressure, LongSupplier clock)
+    {
         _rules = rules;
+        _pressure = pressure;
+        _clock = clock;
     }
 
     public PriceRules getRules()
@@ -78,27 +93,111 @@ public class PriceCalculator
     }
 
     /**
-     * What the shop pays for {@code amount} units. With an overflow every unit over the soft cap is worth less;
-     * unique items never drop.
+     * What the shop pays for {@code amount} units. With an overflow every unit over the soft cap is worth less,
+     * and past the shop's {@link SellLimit} of the item's group the price drops too; unique items never drop.
      */
     public double sellPrice(Shop shop, ItemKey item, int amount)
     {
-        double fullPrice = sellUnitPrice(shop, item);
-        Overflow overflow = _rules.uniquePrice(item) == null ? _rules.overflow(item) : null;
-        if (overflow == null)
-            return round(fullPrice * amount);
-        return round(overflow.totalPrice(fullPrice, overflowStock(shop, item), amount));
+        return quote(shop, item, amount, new HashMap<>()).price();
     }
 
     /**
-     * What the shop pays for everything in a shulker box.
+     * What the shop pays for everything in a shulker box. Items of the same limit group count against the
+     * limit one after another.
      */
     public double shulkerPrice(Shop shop, Map<ItemKey, Integer> contents)
     {
+        Map<String, Double> pending = new HashMap<>();
         double total = 0;
         for (Map.Entry<ItemKey, Integer> entry : contents.entrySet())
-            total += sellPrice(shop, entry.getKey(), entry.getValue());
+            total += quote(shop, entry.getKey(), entry.getValue(), pending).price();
         return round(total);
+    }
+
+    // Sell limits ====================================================================================================
+
+
+    /**
+     * @param price     what the shop pays
+     * @param shopId    the shop sold to
+     * @param group     the item's sell limit group, null when not limited
+     * @param fullValue the units' worth at the full price, which is what the sale adds to the pressures
+     */
+    public record SellQuote(double price, UUID shopId, String group, double fullValue) {}
+
+    /**
+     * The price of selling, with the shop stock's overflow and the shop's sell limit of the item's group.
+     *
+     * @param pending pressure of this batch not yet recorded, per group; this quote's units are added to it
+     */
+    public SellQuote quote(Shop shop, ItemKey item, int amount, Map<String, Double> pending)
+    {
+        double fullPrice = sellUnitPrice(shop, item);
+        boolean unique = _rules.uniquePrice(item) != null;
+        Overflow overflow = unique ? null : _rules.overflow(item);
+        int stock = overflow == null ? 0 : overflowStock(shop, item);
+        String group = unique ? null : _rules.sellLimitGroup(item);
+        SellLimit limit = group == null ? null : _rules.sellLimit(group);
+
+        double pressure = limit == null ? 0
+                : _pressure.get(shop.getId(), group, limit, _clock.getAsLong()) + pending.getOrDefault(group, 0.0);
+
+        double total = 0;
+        for (int i = 0; i < amount; i++)
+        {
+            double unit = overflow == null ? fullPrice : overflow.unitPrice(fullPrice, stock + i);
+            if (limit != null)
+            {
+                unit *= limit.multiplier(pressure);
+                pressure += fullPrice;
+            }
+            total += unit;
+        }
+
+        double fullValue = fullPrice * amount;
+        if (limit == null)
+            group = null;
+        else
+            pending.merge(group, fullValue, Double::sum);
+        return new SellQuote(round(total), shop.getId(), group, fullValue);
+    }
+
+    /**
+     * Adds a finished sale to the shop's pressure on the group.
+     */
+    public void recordSale(SellQuote quote)
+    {
+        if (quote.group() == null)
+            return;
+        SellLimit limit = _rules.sellLimit(quote.group());
+        if (limit != null)
+            _pressure.add(quote.shopId(), quote.group(), limit, quote.fullValue(), _clock.getAsLong());
+    }
+
+    /**
+     * How the shop's sell limit of the item stands.
+     *
+     * @param unitsLeft  units anyone can still sell before the price drops, -1 when the item has no limit
+     * @param multiplier share of the full price the next unit gets, 1.0 = full price
+     */
+    public record LimitStatus(int unitsLeft, double multiplier) {}
+
+    public LimitStatus limitStatus(Shop shop, ItemKey item)
+    {
+        String group = _rules.uniquePrice(item) != null ? null : _rules.sellLimitGroup(item);
+        SellLimit limit = group == null ? null : _rules.sellLimit(group);
+        double fullPrice = sellUnitPrice(shop, item);
+        if (limit == null || fullPrice <= 0)
+            return new LimitStatus(-1, 1.0);
+        double pressure = _pressure.get(shop.getId(), group, limit, _clock.getAsLong());
+        double left = limit.allowance() - pressure;
+        int units = left < 0 ? 0 : (int) Math.floor(left / fullPrice) + 1;
+        return new LimitStatus(units, limit.multiplier(pressure));
+    }
+
+    public SellPressure getPressure()
+    {
+        return _pressure;
     }
 
     /**

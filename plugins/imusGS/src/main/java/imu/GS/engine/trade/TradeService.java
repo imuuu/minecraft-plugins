@@ -10,6 +10,7 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.trade.TradeResult.Status;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,7 +138,8 @@ public class TradeService
         if (inventory.count(item) < amount)
             return TradeResult.fail(Status.NOT_ENOUGH_ITEMS);
 
-        double price = _prices.sellPrice(shop, item, amount);
+        PriceCalculator.SellQuote quote = _prices.quote(shop, item, amount, new HashMap<>());
+        double price = quote.price();
         if (!_wallet.deposit(customer.id(), price))
             return TradeResult.fail(Status.PAYMENT_FAILED);
         if (!inventory.remove(item, amount))
@@ -147,6 +149,7 @@ public class TradeService
             return TradeResult.fail(Status.NOT_ENOUGH_ITEMS);
         }
 
+        _prices.recordSale(quote);
         Listing listing = shop.receive(item, amount, _prices.priceForSoldItem(item));
         giveLeftover(shop, customer, item, amount);
         notify(shop, customer, new Trade(Trade.Type.SELL, shop.getId(), customer.id(), customer.name(), listing.getId(), item, amount, price));
@@ -167,13 +170,14 @@ public class TradeService
             return TradeResult.fail(Status.NOTHING_TO_SELL);
 
         // Each item is priced before any of the box goes into the shop, like the price the menu showed
-        Map<ItemKey, Double> prices = new LinkedHashMap<>();
+        Map<ItemKey, PriceCalculator.SellQuote> quotes = new LinkedHashMap<>();
+        Map<String, Double> pending = new HashMap<>();
         double total = 0;
         for (Map.Entry<ItemKey, Integer> entry : contents.entrySet())
         {
-            double price = _prices.sellPrice(shop, entry.getKey(), entry.getValue());
-            prices.put(entry.getKey(), price);
-            total += price;
+            PriceCalculator.SellQuote quote = _prices.quote(shop, entry.getKey(), entry.getValue(), pending);
+            quotes.put(entry.getKey(), quote);
+            total += quote.price();
         }
         total = PriceCalculator.round(total);
         if (total <= 0)
@@ -192,9 +196,11 @@ public class TradeService
         {
             ItemKey item = entry.getKey();
             int amount = entry.getValue();
+            PriceCalculator.SellQuote quote = quotes.get(item);
+            _prices.recordSale(quote);
             Listing listing = shop.receive(item, amount, _prices.priceForSoldItem(item));
             giveLeftover(shop, customer, item, amount);
-            notify(shop, customer, new Trade(Trade.Type.SELL, shop.getId(), customer.id(), customer.name(), listing.getId(), item, amount, prices.get(item)));
+            notify(shop, customer, new Trade(Trade.Type.SELL, shop.getId(), customer.id(), customer.name(), listing.getId(), item, amount, quote.price()));
             units += amount;
         }
         return TradeResult.success(units, total);

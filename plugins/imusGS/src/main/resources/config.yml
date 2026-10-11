@@ -14,6 +14,11 @@ pricing:
   # Damaged tools and armor are worth (durability left - penalty) of their price.
   # 0.1 = an item at 80% durability sells for 70% of the full price. A brand new item has no penalty.
   durability-penalty: 0.1
+  # On the first start, while no material has a price yet, price every material with this profile from
+  # plugins/imusGS/profiles (see /gs profile). Empty = start with every price at 0.
+  first-start-profile: default
+  # What diamond costs with that profile; everything else is scaled to match
+  first-start-diamond-price: 1000
 
 # Values a newly created shop starts with. Existing shops keep their own, change those with /gs modify shop
 new-shop:

@@ -255,6 +255,17 @@ public class ShopMenu extends CustomInventory implements ShopListener
             lore.add(" ");
             lore.add(dropsIn <= 0 ? "&b&k# &e&nThe Price Drops&b&k #" : "&e&nThe Price Drops in:&2&l " + dropsIn);
         }
+        PriceCalculator.LimitStatus limit = prices.limitStatus(_shop, entry.getItem());
+        if (limit.unitsLeft() > 0)
+        {
+            lore.add(" ");
+            lore.add("&e&nFull Price for:&2&l " + limit.unitsLeft());
+        } else if (limit.unitsLeft() == 0)
+        {
+            lore.add(" ");
+            lore.add("&e&nShop is Full:&c&l " + Math.round(limit.multiplier() * 100) + "% &eprice");
+            lore.add("&7The price comes back over time");
+        }
         return new Button(slot, Icons.withLore(item, lore), e -> sell(entry, e));
     }
 

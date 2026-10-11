@@ -39,6 +39,8 @@ permissions:
        gs.config: true
        gs.tabcompleter: true
        gs.create.npc: true
+       gs.profile: true
+       gs.limits: true
        ia.npc.edit: true
    gs.create.shop:
      description: /gs create shop
@@ -90,4 +92,10 @@ permissions:
      default: op
    gs.create.npc:
      description: /gs create npc, spawn an NPC that opens a shop, and link an NPC to a shop in its settings
+     default: op
+   gs.profile:
+     description: /gs profile, price every material with a price profile
+     default: op
+   gs.limits:
+     description: /gs limits and /gs reset limits, see and reset a shop's sell limits
      default: op

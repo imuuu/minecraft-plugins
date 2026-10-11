@@ -1,0 +1,379 @@
+# imusGS price profile: a price for every material, relative to diamond = 1000.
+#
+# Apply it with   /gs profile apply default [diamond price] confirm
+# e.g. "/gs profile apply default 500 confirm" makes diamond 500 and scales everything else to match.
+# Applying replaces the price, tags and sell limits of every material (overflow settings stay).
+#
+# A material's price comes from, in this order:
+#   1. its exact name below
+#   2. the most specific wildcard (*) below that matches it (the one with the most letters)
+#   3. its crafting recipe: the ingredients' prices x crafted-multiplier
+#      (planks from logs, tools from ingots and sticks, blocks from ingots...)
+#   4. default-price
+# So only raw resources and things a recipe can't price need to be listed. Prices of 0 can't be sold.
+#
+# imusGS rewrites this file on every start, so edits here are lost: copy it to make your own profile
+# (e.g. profiles/myserver.yml); it shows up in /gs profile list.
+
+reference-price: 1000      # what DIAMOND costs below
+crafted-multiplier: 1.1    # crafting adds 10% to the ingredients' worth
+default-price: 1           # anything not listed and without a crafting recipe
+
+prices:
+  # --- Minerals --------------------------------------------------------------------------------------
+  DIAMOND: 1000
+  EMERALD: 600
+  NETHERITE_SCRAP: 3000
+  ANCIENT_DEBRIS: 3000
+  GOLD_INGOT: 150
+  IRON_INGOT: 80
+  COPPER_INGOT: 20
+  RAW_GOLD: 130
+  RAW_IRON: 70
+  RAW_COPPER: 18
+  LAPIS_LAZULI: 40
+  REDSTONE: 12
+  COAL: 15
+  CHARCOAL: 12
+  QUARTZ: 25
+  AMETHYST_SHARD: 25
+  ECHO_SHARD: 800
+  GLOWSTONE_DUST: 10
+  FLINT: 3
+  RESIN_CLUMP: 10
+
+  # --- Ores ------------------------------------------------------------------------------------------
+  "*_ORE": 20
+  COAL_ORE: 20
+  DEEPSLATE_COAL_ORE: 22
+  COPPER_ORE: 25
+  DEEPSLATE_COPPER_ORE: 27
+  IRON_ORE: 80
+  DEEPSLATE_IRON_ORE: 85
+  GOLD_ORE: 150
+  DEEPSLATE_GOLD_ORE: 160
+  NETHER_GOLD_ORE: 40
+  REDSTONE_ORE: 50
+  DEEPSLATE_REDSTONE_ORE: 55
+  LAPIS_ORE: 200
+  DEEPSLATE_LAPIS_ORE: 210
+  DIAMOND_ORE: 1100
+  DEEPSLATE_DIAMOND_ORE: 1150
+  EMERALD_ORE: 650
+  DEEPSLATE_EMERALD_ORE: 680
+  NETHER_QUARTZ_ORE: 35
+
+  # --- Stone and earth -------------------------------------------------------------------------------
+  STONE: 1
+  COBBLESTONE: 0.5
+  DEEPSLATE: 1
+  COBBLED_DEEPSLATE: 0.6
+  GRANITE: 1
+  DIORITE: 1
+  ANDESITE: 1
+  TUFF: 1
+  CALCITE: 2
+  DRIPSTONE_BLOCK: 1.5
+  POINTED_DRIPSTONE: 1
+  BASALT: 1
+  SMOOTH_BASALT: 1.5
+  SMOOTH_STONE: 2
+  BLACKSTONE: 1
+  NETHERRACK: 0.3
+  SOUL_SAND: 1
+  SOUL_SOIL: 1
+  END_STONE: 2
+  OBSIDIAN: 50
+  CRYING_OBSIDIAN: 80
+  DIRT: 0.3
+  COARSE_DIRT: 0.4
+  ROOTED_DIRT: 0.5
+  GRASS_BLOCK: 0.6
+  PODZOL: 1
+  MYCELIUM: 2
+  MUD: 0.5
+  CLAY_BALL: 2
+  SAND: 0.5
+  RED_SAND: 0.6
+  GRAVEL: 0.5
+  SNOWBALL: 0.2
+  ICE: 2
+  MOSS_BLOCK: 1
+  GLASS: 2
+  TERRACOTTA: 3
+  BRICK: 2
+  NETHER_BRICK: 1.5
+  SPONGE: 300
+  WET_SPONGE: 300
+
+  # --- Wood and plants -------------------------------------------------------------------------------
+  "*_LOG": 4
+  "*_STEM": 4
+  "STRIPPED_*": 4
+  BAMBOO_BLOCK: 4
+  BAMBOO: 1
+  "*_SAPLING": 2
+  MANGROVE_PROPAGULE: 2
+  "*_LEAVES": 0.5
+  VINE: 0.5
+  LILY_PAD: 1
+  SHORT_GRASS: 0.2
+  TALL_GRASS: 0.3
+  FERN: 0.2
+  HANGING_ROOTS: 0.5
+  GLOW_LICHEN: 1
+  BROWN_MUSHROOM: 6
+  RED_MUSHROOM: 6
+  CRIMSON_FUNGUS: 3
+  WARPED_FUNGUS: 3
+  SHROOMLIGHT: 10
+  CHORUS_FLOWER: 10
+  WITHER_ROSE: 50
+
+  # --- Farming and food ------------------------------------------------------------------------------
+  # Crops pay well for the work early on; the crops sell limit below stops endless farm output from paying the same
+  WHEAT: 16
+  WHEAT_SEEDS: 1
+  BEETROOT_SEEDS: 1
+  CARROT: 12
+  POTATO: 12
+  POISONOUS_POTATO: 2
+  BEETROOT: 14
+  MELON_SLICE: 4
+  PUMPKIN: 24
+  SUGAR_CANE: 10
+  CACTUS: 6
+  COCOA_BEANS: 10
+  NETHER_WART: 12
+  SWEET_BERRIES: 6
+  GLOW_BERRIES: 8
+  KELP: 2
+  DRIED_KELP: 3
+  APPLE: 20
+  EGG: 6
+  BROWN_EGG: 6
+  BLUE_EGG: 6
+  CHORUS_FRUIT: 8
+  TORCHFLOWER_SEEDS: 30
+  PITCHER_POD: 30
+  BEEF: 10
+  PORKCHOP: 10
+  CHICKEN: 8
+  MUTTON: 8
+  RABBIT: 10
+  COD: 8
+  SALMON: 10
+  TROPICAL_FISH: 15
+  PUFFERFISH: 15
+  "COOKED_*": 18
+  BAKED_POTATO: 16
+  ENCHANTED_GOLDEN_APPLE: 20000
+
+  # --- Mob drops -------------------------------------------------------------------------------------
+  LEATHER: 20
+  FEATHER: 6
+  STRING: 3
+  BONE: 4
+  ROTTEN_FLESH: 0.5
+  SPIDER_EYE: 6
+  GUNPOWDER: 12
+  ENDER_PEARL: 50
+  BLAZE_ROD: 60
+  BREEZE_ROD: 100
+  GHAST_TEAR: 200
+  SLIME_BALL: 20
+  PHANTOM_MEMBRANE: 80
+  RABBIT_HIDE: 8
+  RABBIT_FOOT: 60
+  INK_SAC: 8
+  GLOW_INK_SAC: 12
+  PRISMARINE_SHARD: 10
+  PRISMARINE_CRYSTALS: 12
+  TURTLE_SCUTE: 150
+  ARMADILLO_SCUTE: 80
+  HONEYCOMB: 15
+  HONEY_BOTTLE: 15
+  WHITE_WOOL: 8
+  DRAGON_BREATH: 300
+
+  # --- Rare finds ------------------------------------------------------------------------------------
+  NETHER_STAR: 25000
+  ELYTRA: 30000
+  TOTEM_OF_UNDYING: 6000
+  TRIDENT: 6000
+  HEART_OF_THE_SEA: 4000
+  NAUTILUS_SHELL: 400
+  SHULKER_SHELL: 1500
+  HEAVY_CORE: 8000
+  SNIFFER_EGG: 2000
+  TURTLE_EGG: 200
+  TRIAL_KEY: 300
+  OMINOUS_TRIAL_KEY: 1000
+  OMINOUS_BOTTLE: 500
+  WITHER_SKELETON_SKULL: 2000
+  SKELETON_SKULL: 300
+  ZOMBIE_HEAD: 300
+  CREEPER_HEAD: 500
+  PIGLIN_HEAD: 500
+  DRAGON_HEAD: 5000
+  SADDLE: 400
+  NAME_TAG: 300
+  IRON_HORSE_ARMOR: 400
+  GOLDEN_HORSE_ARMOR: 600
+  DIAMOND_HORSE_ARMOR: 3000
+  EXPERIENCE_BOTTLE: 30
+  "MUSIC_DISC_*": 400
+  "*_POTTERY_SHERD": 250
+  "*_SMITHING_TEMPLATE": 2000
+  NETHERITE_UPGRADE_SMITHING_TEMPLATE: 6000
+  # Netherite gear is made by smithing, which has no crafting recipe: diamond gear + ingot + template
+  NETHERITE_SWORD: 16000
+  NETHERITE_PICKAXE: 17000
+  NETHERITE_AXE: 17000
+  NETHERITE_SHOVEL: 15000
+  NETHERITE_HOE: 16000
+  NETHERITE_HELMET: 19000
+  NETHERITE_CHESTPLATE: 23000
+  NETHERITE_LEGGINGS: 22000
+  NETHERITE_BOOTS: 18000
+
+  # --- Not for sale: can't be got in survival, or priced elsewhere ----------------------------------
+  "*_SPAWN_EGG": 0
+  COMMAND_BLOCK: 0
+  CHAIN_COMMAND_BLOCK: 0
+  REPEATING_COMMAND_BLOCK: 0
+  COMMAND_BLOCK_MINECART: 0
+  STRUCTURE_BLOCK: 0
+  STRUCTURE_VOID: 0
+  JIGSAW: 0
+  BARRIER: 0
+  LIGHT: 0
+  DEBUG_STICK: 0
+  BEDROCK: 0
+  SPAWNER: 0
+  TRIAL_SPAWNER: 0
+  VAULT: 0
+  END_PORTAL_FRAME: 0
+  REINFORCED_DEEPSLATE: 0
+  BUDDING_AMETHYST: 0
+  KNOWLEDGE_BOOK: 0
+  PETRIFIED_OAK_SLAB: 0
+  FARMLAND: 0
+  DIRT_PATH: 0
+  FROGSPAWN: 0
+  PLAYER_HEAD: 0
+  DRAGON_EGG: 0
+  FILLED_MAP: 0
+  WRITTEN_BOOK: 0
+  # An enchanted book is worth its enchants (/gs modify enchantments)
+  ENCHANTED_BOOK: 0
+  TEST_BLOCK: 0
+  TEST_INSTANCE_BLOCK: 0
+
+# Tags group materials for /gs tag materials set_price|increase_price <tag> <value>.
+# A material can be in several tags.
+tags:
+  ores: ["*_ORE", ANCIENT_DEBRIS, "RAW_*"]
+  minerals: [DIAMOND, EMERALD, LAPIS_LAZULI, REDSTONE, COAL, CHARCOAL, QUARTZ, AMETHYST_SHARD, NETHERITE_SCRAP,
+             "*_INGOT", "*_NUGGET", DIAMOND_BLOCK, EMERALD_BLOCK, GOLD_BLOCK, IRON_BLOCK, COPPER_BLOCK, LAPIS_BLOCK,
+             REDSTONE_BLOCK, COAL_BLOCK, NETHERITE_BLOCK, "RAW_*_BLOCK"]
+  wood: ["*_LOG", "*_WOOD", "STRIPPED_*", "*_STEM", "*_HYPHAE", "*_PLANKS", "*_SAPLING", "*_LEAVES", BAMBOO,
+         BAMBOO_BLOCK, STICK, MANGROVE_PROPAGULE]
+  stone: [STONE, COBBLESTONE, MOSSY_COBBLESTONE, "*STONE_BRICK*", "*DEEPSLATE*", GRANITE, DIORITE, ANDESITE,
+          "POLISHED_*", TUFF, CALCITE, SMOOTH_STONE, BASALT, BLACKSTONE, OBSIDIAN, CRYING_OBSIDIAN, DRIPSTONE_BLOCK,
+          SANDSTONE, RED_SANDSTONE]
+  earth: [DIRT, COARSE_DIRT, ROOTED_DIRT, GRASS_BLOCK, PODZOL, MYCELIUM, MUD, CLAY, CLAY_BALL, SAND, RED_SAND,
+          GRAVEL, MOSS_BLOCK, SNOWBALL, SNOW_BLOCK, ICE, PACKED_ICE, BLUE_ICE]
+  farming: [WHEAT, "*_SEEDS", CARROT, POTATO, BEETROOT, MELON_SLICE, MELON, PUMPKIN, SUGAR_CANE, CACTUS,
+            COCOA_BEANS, NETHER_WART, SWEET_BERRIES, GLOW_BERRIES, KELP, APPLE, EGG, BROWN_EGG, BLUE_EGG, HAY_BLOCK,
+            "*_MUSHROOM", PITCHER_POD]
+  food: [BREAD, CAKE, COOKIE, PUMPKIN_PIE, "COOKED_*", BAKED_POTATO, "*_STEW", "*_SOUP", GOLDEN_CARROT,
+         GOLDEN_APPLE, ENCHANTED_GOLDEN_APPLE, HONEY_BOTTLE, BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, COD, SALMON,
+         TROPICAL_FISH, PUFFERFISH, DRIED_KELP]
+  mob_drops: [LEATHER, FEATHER, STRING, BONE, BONE_MEAL, ROTTEN_FLESH, SPIDER_EYE, GUNPOWDER, ENDER_PEARL,
+              BLAZE_ROD, BREEZE_ROD, GHAST_TEAR, SLIME_BALL, PHANTOM_MEMBRANE, RABBIT_HIDE, RABBIT_FOOT, INK_SAC,
+              GLOW_INK_SAC, "*_SCUTE", WHITE_WOOL, HONEYCOMB]
+  nether: [NETHERRACK, "NETHER_*", "*NETHERITE*", QUARTZ, "*QUARTZ*", GLOWSTONE, GLOWSTONE_DUST, SOUL_SAND,
+           SOUL_SOIL, "CRIMSON_*", "WARPED_*", SHROOMLIGHT, MAGMA_BLOCK, MAGMA_CREAM, BLAZE_POWDER, ANCIENT_DEBRIS]
+  end: [END_STONE, "END_STONE_*", "PURPUR_*", CHORUS_FRUIT, CHORUS_FLOWER, POPPED_CHORUS_FRUIT, SHULKER_SHELL,
+        "*SHULKER_BOX", ELYTRA, DRAGON_BREATH, END_ROD, ENDER_EYE]
+  ocean: ["PRISMARINE*", SPONGE, WET_SPONGE, SEA_PICKLE, SEAGRASS, NAUTILUS_SHELL, HEART_OF_THE_SEA, TRIDENT,
+          "*_CORAL*", TURTLE_SCUTE, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+  redstone: [REDSTONE, "REDSTONE_*", REPEATER, COMPARATOR, PISTON, STICKY_PISTON, OBSERVER, HOPPER, DROPPER,
+             DISPENSER, LEVER, "*_BUTTON", "*_PRESSURE_PLATE", TRIPWIRE_HOOK, DAYLIGHT_DETECTOR, TARGET, "*RAIL",
+             CRAFTER, SCULK_SENSOR, CALIBRATED_SCULK_SENSOR, TNT]
+  decoration: ["*_WOOL", "*_CARPET", "*_DYE", "*STAINED_GLASS*", GLASS, GLASS_PANE, "*TERRACOTTA", "*_CONCRETE*",
+               "*_BANNER", "*CANDLE", "*_BED", FLOWER_POT, PAINTING, ITEM_FRAME, GLOW_ITEM_FRAME]
+  tools: ["*_SWORD", "*_PICKAXE", "*_AXE", "*_SHOVEL", "*_HOE", "*_SPEAR", BOW, CROSSBOW, TRIDENT, MACE, SHEARS,
+          FISHING_ROD, FLINT_AND_STEEL, BRUSH, SPYGLASS]
+  armor: ["*_HELMET", "*_CHESTPLATE", "*_LEGGINGS", "*_BOOTS", SHIELD, ELYTRA, "*_HORSE_ARMOR", WOLF_ARMOR]
+  rare: [NETHER_STAR, ELYTRA, TOTEM_OF_UNDYING, HEART_OF_THE_SEA, SHULKER_SHELL, ENCHANTED_GOLDEN_APPLE, TRIDENT,
+         HEAVY_CORE, "*_SMITHING_TEMPLATE", "MUSIC_DISC_*", ECHO_SHARD, DRAGON_HEAD, WITHER_SKELETON_SKULL,
+         NETHERITE_SCRAP, ANCIENT_DEBRIS, SPONGE, SNIFFER_EGG]
+
+# Sell limits stop farms from paying without end. Each shop buys a group's worth of items at the full price up to
+# its allowance; past that the price drops evenly, down to min-percent of the full price at twice the allowance.
+# The allowance comes back over time (refill-per-hour). The limit belongs to the shop and every seller shares it,
+# so farmers compete over it, and selling elsewhere is fine.
+#
+# allowance and refill-per-hour are money at diamond = 1000, scaled with the diamond price like the prices above.
+# Crafted items count by their value against the group of their most valuable ingredient: hay bales and bread
+# against crops, iron blocks and tools against iron. Anything in no group (diamonds, netherite...) has no limit.
+#
+# For scale: mining diamonds pays about 30 000 an hour. Farming crops pays a little less: a shop takes about
+# 1 500 wheat (24 000) at the full price and 1 500 more every hour.
+sell-limits:
+  crops:
+    allowance: 24000
+    refill-per-hour: 24000
+    min-percent: 20
+    items: [WHEAT, "*_SEEDS", CARROT, POTATO, POISONOUS_POTATO, BEETROOT, MELON_SLICE, MELON, PUMPKIN, SUGAR_CANE,
+            CACTUS, COCOA_BEANS, NETHER_WART, SWEET_BERRIES, GLOW_BERRIES, KELP, DRIED_KELP, APPLE, BAKED_POTATO,
+            "*_MUSHROOM", CHORUS_FRUIT, PITCHER_POD, HAY_BLOCK]
+  animals:
+    allowance: 18000
+    refill-per-hour: 18000
+    min-percent: 20
+    items: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT, COD, SALMON, TROPICAL_FISH, PUFFERFISH, "COOKED_*", LEATHER,
+            FEATHER, EGG, BROWN_EGG, BLUE_EGG, "*_WOOL", RABBIT_HIDE, INK_SAC, HONEYCOMB, HONEY_BOTTLE, MILK_BUCKET]
+  mob_drops:
+    allowance: 20000
+    refill-per-hour: 15000
+    min-percent: 20
+    items: [STRING, BONE, BONE_MEAL, ROTTEN_FLESH, SPIDER_EYE, GUNPOWDER, ENDER_PEARL, BLAZE_ROD, BREEZE_ROD,
+            GHAST_TEAR, SLIME_BALL, MAGMA_CREAM, PHANTOM_MEMBRANE, GLOW_INK_SAC, PRISMARINE_SHARD, PRISMARINE_CRYSTALS,
+            REDSTONE, GLOWSTONE_DUST, SUGAR, ARROW]
+  # About 5 stacks of iron ingots at the full price, and a stack more every 45 minutes
+  iron:
+    allowance: 25600
+    refill-per-hour: 6400
+    min-percent: 20
+    items: [IRON_INGOT, RAW_IRON, IRON_NUGGET, IRON_ORE, DEEPSLATE_IRON_ORE]
+  gold:
+    allowance: 30000
+    refill-per-hour: 7500
+    min-percent: 20
+    items: [GOLD_INGOT, RAW_GOLD, GOLD_NUGGET, "*GOLD_ORE"]
+  copper:
+    allowance: 10000
+    refill-per-hour: 4000
+    min-percent: 20
+    items: [COPPER_INGOT, RAW_COPPER, "*COPPER_ORE"]
+  # Villager trading makes emeralds without end
+  emerald:
+    allowance: 30000
+    refill-per-hour: 12000
+    min-percent: 20
+    items: [EMERALD, "*EMERALD_ORE"]
+  wood:
+    allowance: 8000
+    refill-per-hour: 4000
+    min-percent: 20
+    items: ["*_LOG", "*_WOOD", "*_STEM", "*_HYPHAE", "STRIPPED_*", BAMBOO, BAMBOO_BLOCK, "*_SAPLING", "*_LEAVES",
+            MANGROVE_PROPAGULE]
+  stone:
+    allowance: 5000
+    refill-per-hour: 2500
+    min-percent: 20
+    items: [STONE, COBBLESTONE, DEEPSLATE, COBBLED_DEEPSLATE, GRANITE, DIORITE, ANDESITE, TUFF, BASALT, BLACKSTONE,
+            NETHERRACK, END_STONE, OBSIDIAN, SAND, RED_SAND, GRAVEL, DIRT, MUD, CLAY_BALL, SNOWBALL, ICE]
