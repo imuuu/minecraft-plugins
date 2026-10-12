@@ -11,7 +11,9 @@ import imu.GS.engine.customer.Customer;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.pricing.SellPressure;
+import imu.GS.engine.live.WantedRequests;
 import imu.GS.live.LiveEvents;
+import imu.GS.live.MarketEvents;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopListener;
@@ -68,6 +70,7 @@ public class GsService implements Listener
     private final TradeService _trades;
     private final PriceProfiles _profiles;
     private final LiveEvents _live;
+    private final MarketEvents _market;
 
     private final Map<UUID, Shop> _shops = new LinkedHashMap<>();
     private final Set<UUID> _dirty = new HashSet<>();
@@ -113,6 +116,8 @@ public class GsService implements Listener
         });
         _profiles = new PriceProfiles(plugin);
         _live = new LiveEvents(this);
+        _market = new MarketEvents(this);
+        _prices.setMarket(_market);
     }
 
     // Lifecycle ======================================================================================================
@@ -142,12 +147,14 @@ public class GsService implements Listener
                 Map<String, SellLimit> limits = _db.loadSellLimits();
                 List<SellPressure.Entry> pressure = _db.loadSellPressure();
                 Map<UUID, String> flashDeals = _db.loadFlashDeals();
+                List<WantedRequests.Wanted> wanted = _db.loadWanted();
                 Bukkit.getScheduler().runTask(_plugin, () ->
                 {
                     _materials.setLimits(limits);
                     pressure.forEach(_pressure::restore);
                     apply(shops, materials, enchants, uniques);
                     _live.load(flashDeals);
+                    _market.load(wanted);
                 });
             } catch (SQLException e)
             {
@@ -250,6 +257,7 @@ public class GsService implements Listener
             for (Shop shop : _shops.values())
                 shop.tick(now);
             _live.tick(now);
+            _market.tick(now, _live.liveShops());
         }, tickTicks, tickTicks);
 
         long saveTicks = Math.max(1, config.getInt("shop.save-delay-seconds")) * 20L;
@@ -357,6 +365,7 @@ public class GsService implements Listener
         shop.removeListener(_dirtyMarker);
         _db.deleteShop(shop.getId());
         _live.endFlashDeal(shop);
+        _market.endWanted(shop);
         _plugin.updateTabCompletion();
     }
 
@@ -385,6 +394,7 @@ public class GsService implements Listener
             _db.saveSellPressure(_pressure.entries(), retryLater(() -> _pressureDirty = true));
         }
         _live.save(retryLater(_live::markDirty));
+        _market.save(retryLater(_market::markDirty));
     }
 
     /**
@@ -484,6 +494,8 @@ public class GsService implements Listener
         for (Material material : materials)
             rows.add(GsDatabase.materialRow(material, _materials.get(material)));
         _db.saveMaterials(rows);
+        // Tags may have changed, and the mood follows them
+        _market.reload();
         refreshMenus();
     }
 
@@ -611,6 +623,11 @@ public class GsService implements Listener
     public LiveEvents getLive()
     {
         return _live;
+    }
+
+    public MarketEvents getMarket()
+    {
+        return _market;
     }
 
     public TradeService getTrades()

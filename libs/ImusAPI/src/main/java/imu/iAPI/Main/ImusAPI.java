@@ -180,6 +180,7 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         _cmdHelper.setCmd(full_sub3, "Open plugin settings", full_sub3);
         handler.registerSubCmd(cmd1, cmd1_sub3, new Sub_Cmd_OpenConfigMenus(_cmdHelper.getCmdData(full_sub3)));
         handler.setPermissionOnLastCmd("ia.config");
+        handler.allowConsole(cmd1, cmd1_sub3);
 
         String cmd1_sub4 = "npc create";
         handler.registerSubCmd(cmd1, cmd1_sub4, new Sub_Cmd_CreateNpc(_npcManager));

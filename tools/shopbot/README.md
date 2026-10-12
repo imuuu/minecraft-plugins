@@ -34,7 +34,8 @@ balances before and after each click, so they can be run again on the same serve
 | `profile.test.js` | The default price profile: preview without confirm, diamond 1000, recipe-priced items, scaling, tags |
 | `sell-limit.test.js` | A shop buys 5 stacks of iron at the full price, then pays less to every seller; another shop has its own limit |
 | `flash.test.js` | Flash deals: the announcement, a peek, the blinking button, buying up to the per player limit, no selling back; `/gs restock` |
-| `restart.test.js` | Shops, stock, prices, sell limits and flash deals are the same after the server restarts |
+| `market.test.js` | The day's mood (market button, prices follow it) and wanted requests (announcement, button, the bonus) |
+| `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of
 `run/Kaynnista-palvelin.bat`, log in `run/logs/shopbot-server.log`), so it is skipped unless asked for.

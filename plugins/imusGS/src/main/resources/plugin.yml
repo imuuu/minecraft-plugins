@@ -102,7 +102,7 @@ permissions:
      description: /gs limits and /gs reset limits, see and reset a shop's sell limits
      default: op
    gs.flash:
-     description: /gs flash start|end and /gs restock, start live events by hand
+     description: /gs flash start|end, /gs wanted start|end and /gs restock, start live events by hand
      default: op
    gs.peek:
      description: /gs peek, a look at a few flash deals from anywhere

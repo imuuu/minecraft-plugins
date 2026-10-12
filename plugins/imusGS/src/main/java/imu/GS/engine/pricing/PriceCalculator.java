@@ -19,6 +19,7 @@ public class PriceCalculator
     private final PriceRules _rules;
     private final SellPressure _pressure;
     private final LongSupplier _clock;
+    private Market _market = Market.NONE;
 
     public PriceCalculator(PriceRules rules)
     {
@@ -40,6 +41,27 @@ public class PriceCalculator
         return _rules;
     }
 
+    public Market getMarket()
+    {
+        return _market;
+    }
+
+    /**
+     * The day's mood and the shops' wanted requests; {@link Market#NONE} turns them off.
+     */
+    public void setMarket(Market market)
+    {
+        _market = market == null ? Market.NONE : market;
+    }
+
+    /**
+     * The item's value with today's mood.
+     */
+    private double marketValue(ItemKey item)
+    {
+        return _rules.value(item) * _market.moodFactor(item);
+    }
+
     // Players buying =================================================================================================
 
     /**
@@ -50,7 +72,7 @@ public class PriceCalculator
         double sellMultiplier = shop.getSettings().sellMultiplier();
         return switch (listing.getPrice())
         {
-            case PriceRule.Material m -> _rules.value(listing.getItem()) * sellMultiplier;
+            case PriceRule.Material m -> marketValue(listing.getItem()) * sellMultiplier;
             case PriceRule.Fixed fixed -> fixed.price();
             case PriceRule.Unique unique -> unique.price() * sellMultiplier;
             case PriceRule.Custom custom -> throw new IllegalArgumentException("A custom price is paid with customCost");
@@ -93,7 +115,9 @@ public class PriceCalculator
     // Players selling ================================================================================================
 
     /**
-     * What the shop pays for one unit before any overflow.
+     * What the shop pays for one unit before any overflow: the value with today's mood, and the shop's wanted
+     * bonus. A bonus never makes the shop pay as much as it sells the item for, so buying it to sell back never
+     * pays.
      */
     public double sellUnitPrice(Shop shop, ItemKey item)
     {
@@ -101,7 +125,27 @@ public class PriceCalculator
         Double unique = _rules.uniquePrice(item);
         if (unique != null)
             return unique * _rules.condition(item) * buyMultiplier;
-        return _rules.value(item) * buyMultiplier;
+        double value = marketValue(item);
+        double price = value * buyMultiplier;
+        double bonus = _market.wantedBonus(shop.getId(), item);
+        if (bonus <= 0)
+            return price;
+        double cap = 0.9 * cheapestBuyPrice(shop, item, value);
+        return Math.max(price, Math.min(price * (1 + bonus), cap));
+    }
+
+    /**
+     * The least the shop sells one unit of the item for: by its material price, or a listing of it.
+     */
+    private double cheapestBuyPrice(Shop shop, ItemKey item, double marketValue)
+    {
+        double cheapest = marketValue * shop.getSettings().sellMultiplier();
+        for (Listing listing : shop.getListings())
+        {
+            if (listing.getItem().equals(item) && !(listing.getPrice() instanceof PriceRule.Custom))
+                cheapest = Math.min(cheapest, buyUnitPrice(shop, listing));
+        }
+        return cheapest;
     }
 
     /**

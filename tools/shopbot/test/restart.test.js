@@ -1,5 +1,5 @@
 'use strict'
-// Shops, their stock, material prices, sell limits and flash deals survive a server restart. Restarts the server, so it only runs with
+// Shops, their stock, material prices, sell limits, flash deals and wanted requests survive a server restart. Restarts the server, so it only runs with
 // SHOPBOT_RESTART=1. Run it after the other tests, which fill the shops.
 const { test, after } = require('node:test')
 const assert = require('node:assert/strict')
@@ -63,6 +63,7 @@ test('shops, stock and prices are the same after a restart', { skip: !run && 'se
   const priceBefore = await bot.waitForMessage(/DIAMOND price is/)
   const ironBefore = await ironSold()
   await rcon.command('gs flash start BotFlash')
+  await rcon.command('gs wanted start BotMarket')
 
   bot.quit()
   rcon.close()
@@ -80,10 +81,14 @@ test('shops, stock and prices are the same after a restart', { skip: !run && 'se
   await bot.command('gs peek BotFlash')
   const peek = await bot.waitForWindow()
   await rcon.command('gs flash end BotFlash')
+  await openShop(rcon, bot, 'BotMarket', { includeHotbar: false })
+  const wantedAfter = bot.slot(29).name
+  await rcon.command('gs wanted end BotMarket')
 
   assert.deepEqual(afterRestart, before)
   assert.equal(priceAfter, priceBefore)
   assert.ok(peek, 'the flash deal is still on after the restart')
+  assert.notEqual(wantedAfter, 'red_stained_glass_pane', 'the wanted request is still on after the restart')
   assert.ok(ironBefore > 25600, 'Run the sell limit test first, it fills the iron limit of BotLimit')
   // The limit refills 6 400 an hour, about 2 a second, also while the server is down
   assert.ok(ironAfter <= ironBefore && ironAfter > ironBefore - 400, `iron sold ${ironBefore} before the restart, ${ironAfter} after`)

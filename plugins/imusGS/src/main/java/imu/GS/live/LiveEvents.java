@@ -75,7 +75,10 @@ public class LiveEvents implements Listener
         return section != null ? section : new org.bukkit.configuration.MemoryConfiguration();
     }
 
-    private List<Shop> liveShops()
+    /**
+     * Shops that take part in live events: their switch is on and they aren't locked.
+     */
+    public List<Shop> liveShops()
     {
         List<Shop> shops = new ArrayList<>();
         for (Shop shop : _service.getShops())

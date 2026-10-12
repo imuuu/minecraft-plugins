@@ -102,3 +102,27 @@ live:
     block-stacks-max: 6
     block-player-limit: 128
     tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]
+  # Now and then a shop wants a few items for a while and pays a bonus for them. The bonus never makes the
+  # shop pay as much as it sells the item for, and sell limits still count.
+  wanted:
+    enabled: true
+    interval-minutes-min: 180
+    interval-minutes-max: 360
+    duration-minutes: 120
+    items-min: 1
+    items-max: 2
+    # Percent more the shop pays, in steps of 5
+    bonus-min: 30
+    bonus-max: 80
+    value-scale: 5
+    tags: [farming, food, mob_drops, wood, ores, minerals, ocean, nether, stone, earth]
+  # Every day each kind of item is a little up or down in price, for buying and selling alike. An item follows
+  # the first tag of this list it has. The day's moods come from the date and the seed, so they are the same
+  # all day and after restarts.
+  mood:
+    enabled: true
+    max-percent: 10
+    # 0 = picked on the first start, so every server has moods of its own
+    seed: 0
+    tags: [ores, minerals, farming, food, wood, stone, earth, mob_drops, nether, end, ocean, redstone, decoration,
+           tools, armor]

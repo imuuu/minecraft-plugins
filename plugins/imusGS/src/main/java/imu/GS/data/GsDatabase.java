@@ -1,6 +1,7 @@
 package imu.GS.data;
 
 import imu.GS.engine.ItemKey;
+import imu.GS.engine.live.WantedRequests;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.pricing.SellPressure;
@@ -128,6 +129,11 @@ public class GsDatabase
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_flash_deals ("
                     + "shop_id CHAR(36) NOT NULL PRIMARY KEY, "
                     + "data MEDIUMTEXT NOT NULL)");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_wanted ("
+                    + "shop_id CHAR(36) NOT NULL, "
+                    + "item MEDIUMTEXT NOT NULL, "
+                    + "bonus DOUBLE NOT NULL, "
+                    + "end_millis BIGINT NOT NULL)");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_pressure ("
                     + "shop_id CHAR(36) NOT NULL, "
                     + "grp VARCHAR(64) NOT NULL, "
@@ -161,7 +167,7 @@ public class GsDatabase
                     + "INDEX (player_id), INDEX (shop_id))");
             // Item components and names can hold any character, e.g. the flash deal mark or an emoji
             for (String table : List.of("gs_shops", "gs_listings", "gs_materials", "gs_enchants", "gs_enchant_settings",
-                    "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_sell_pressure"))
+                    "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_wanted", "gs_sell_pressure"))
                 useUtf8mb4(con, st, table);
         }
     }
@@ -283,6 +289,19 @@ public class GsDatabase
                 deals.put(UUID.fromString(rs.getString(1)), rs.getString(2));
         }
         return deals;
+    }
+
+    public List<WantedRequests.Wanted> loadWanted() throws SQLException
+    {
+        List<WantedRequests.Wanted> wanted = new ArrayList<>();
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT shop_id, item, bonus, end_millis FROM gs_wanted");
+             ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+                wanted.add(new WantedRequests.Wanted(UUID.fromString(rs.getString(1)), new ItemKey(rs.getString(2)), rs.getDouble(3), rs.getLong(4)));
+        }
+        return wanted;
     }
 
     public List<SellPressure.Entry> loadSellPressure() throws SQLException
@@ -479,6 +498,33 @@ public class GsDatabase
                 {
                     ps.setString(1, entry.getKey().toString());
                     ps.setString(2, entry.getValue());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        });
+    }
+
+    /**
+     * Replaces every saved wanted request with these.
+     */
+    public void saveWanted(List<WantedRequests.Wanted> wanted, Runnable onFailure)
+    {
+        List<WantedRequests.Wanted> copy = List.copyOf(wanted);
+        write("save wanted requests", onFailure, con ->
+        {
+            try (Statement st = con.createStatement())
+            {
+                st.executeUpdate("DELETE FROM gs_wanted");
+            }
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO gs_wanted (shop_id, item, bonus, end_millis) VALUES (?,?,?,?)"))
+            {
+                for (WantedRequests.Wanted request : copy)
+                {
+                    ps.setString(1, request.shopId().toString());
+                    ps.setString(2, request.item().id());
+                    ps.setDouble(3, request.bonus());
+                    ps.setLong(4, request.endMillis());
                     ps.addBatch();
                 }
                 ps.executeBatch();

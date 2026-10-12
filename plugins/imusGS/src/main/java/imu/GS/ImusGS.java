@@ -80,6 +80,7 @@ public class ImusGS extends JavaPlugin
     public void reloadSettings()
     {
         reloadConfig();
+        _service.getMarket().reload();
         _service.restartTimers();
         _service.refreshMenus();
     }
@@ -130,10 +131,11 @@ public class ImusGS extends JavaPlugin
         sub(handler, gs, "peek", "gs.peek", live::peek);
         consoleSub(handler, gs, "flash", "gs.flash", live::flash);
         consoleSub(handler, gs, "restock", "gs.flash", live::restock);
+        consoleSub(handler, gs, "wanted", "gs.flash", live::wanted);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "restock" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc" });
         arguments.put("open", new String[] { "shop" });
@@ -144,6 +146,7 @@ public class ImusGS extends JavaPlugin
         arguments.put("tag", new String[] { "materials", "shopitems" });
         arguments.put("reset", new String[] { "limits" });
         arguments.put("flash", new String[] { "start", "end" });
+        arguments.put("wanted", new String[] { "start", "end" });
         _tabCompleter = new ImusTabCompleter(gs, new HashMap<>(arguments), "gs.tabcompleter");
         getCommand(gs).setTabCompleter(_tabCompleter);
 
@@ -209,6 +212,8 @@ public class ImusGS extends JavaPlugin
         _tabCompleter.SetRule("/gs restock", 2, shops);
         _tabCompleter.SetRule("/gs flash start", 3, shops);
         _tabCompleter.SetRule("/gs flash end", 3, shops);
+        _tabCompleter.SetRule("/gs wanted start", 3, shops);
+        _tabCompleter.SetRule("/gs wanted end", 3, shops);
 
         _tabCompleter.SetRule("/gs profile apply", 3, _service.getProfiles().names());
         _tabCompleter.SetRule("/gs profile apply", 4, List.of("1000", "confirm"));
@@ -252,6 +257,21 @@ public class ImusGS extends JavaPlugin
                 .description("Trades older than this are deleted")
                 .description("0 = keep forever")
                 .note("on the next start");
+        menu.addBoolean("live.flash-deals.enabled", "Flash deals", Material.NETHER_STAR)
+                .description("Limited time offers every few hours")
+                .note("now");
+        menu.addBoolean("live.wanted.enabled", "Wanted requests", Material.GOAT_HORN)
+                .description("Shops pay a bonus for some items for a while")
+                .note("now");
+        menu.addBoolean("live.mood.enabled", "Market mood", Material.FILLED_MAP)
+                .description("Prices of each kind of item move a little every day")
+                .note("now");
+        menu.addBoolean("live.rotation.enabled", "Rotating stock", Material.CHEST)
+                .description("Random items come to shops every few hours")
+                .note("now");
+        menu.addBoolean("live.found-items.enabled", "Found items", Material.DIAMOND_PICKAXE)
+                .description("What players gather turns up in shops now and then")
+                .note("now");
         menu.addDouble("pricing.durability-penalty", "Durability penalty", Material.DAMAGED_ANVIL, 0, 1)
                 .description("Damaged items are worth durability left - this")
                 .description("0.1 = an item at 80% sells for 70%")

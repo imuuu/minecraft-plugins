@@ -135,11 +135,11 @@ public class ConfigMenu
     }
 
     /**
-     * Validates, saves and applies a new value. Messages the player with the result.
+     * Validates, saves and applies a new value. Messages the player (or the console) with the result.
      *
      * @return true when the value was saved
      */
-    public boolean setValue(Player player, ConfigEntry entry, Object value)
+    public boolean setValue(CommandSender player, ConfigEntry entry, Object value)
     {
         if (!canEdit(player))
         {
@@ -169,6 +169,19 @@ public class ConfigMenu
             e.printStackTrace();
         }
         return true;
+    }
+
+    /**
+     * The entry of this config path, or null.
+     */
+    public ConfigEntry getEntry(String path)
+    {
+        for (ConfigEntry entry : getEntries())
+        {
+            if (entry.getPath().equalsIgnoreCase(path))
+                return entry;
+        }
+        return null;
     }
 
     public Plugin getPlugin()

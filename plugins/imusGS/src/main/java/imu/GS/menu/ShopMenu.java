@@ -7,6 +7,8 @@ import imu.GS.engine.ItemCategory;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.customer.Customer;
 import imu.GS.engine.live.FlashDeal;
+import imu.GS.engine.live.WantedRequests;
+import imu.GS.live.MarketEvents;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.PriceRule;
@@ -36,7 +38,7 @@ import java.util.Map;
  *
  * <pre>
  *  0-26  shop page (27 listings)
- *  27 &lt;&lt; Shop   28,29 -   30 &lt;&lt; Inv   31 tab   32 Inv &gt;&gt;   33 hotbar/armor   34 flash deals   35 Shop &gt;&gt;
+ *  27 &lt;&lt; Shop   28 market today   29 wanted   30 &lt;&lt; Inv   31 tab   32 Inv &gt;&gt;   33 hotbar/armor   34 flash deals   35 Shop &gt;&gt;
  *  36-53 customer's items (18 per page)
  * </pre>
  *
@@ -184,14 +186,15 @@ public class ShopMenu extends CustomInventory implements ShopListener
         }
 
         List<String> lore = priceLines("&2BUY ", listing.getAmount(), amount -> prices.buyPrice(_shop, listing, amount));
+        if (listing.getPrice() instanceof PriceRule.Material)
+            addMoodLine(lore, listing.getItem());
         return new Button(slot, Icons.withLore(item, lore), e -> buy(listing, e));
     }
 
     private void drawControls()
     {
-        ItemStack red = Icons.filler(Material.RED_STAINED_GLASS_PANE);
-        addButton(new Button(28, red));
-        addButton(new Button(29, red));
+        addButton(marketButton());
+        addButton(wantedButton());
         addButton(flashButton());
 
         addButton(new Button(27, Icons.icon(Material.DARK_OAK_SIGN, "&9<< Shop"), e -> changeShopPage(-1)));
@@ -220,6 +223,61 @@ public class ShopMenu extends CustomInventory implements ShopListener
             _inventory.setIncludeHotbarAndArmor(!_inventory.isIncludeHotbarAndArmor());
             refresh();
         }));
+    }
+
+    // Market =========================================================================================================
+
+    private void addMoodLine(List<String> lore, ItemKey item)
+    {
+        String mood = moodText(_service.getMarket().moodFactor(item));
+        if (mood != null)
+            lore.add(mood + " &7today");
+    }
+
+    /**
+     * "&amp;a▲ +7%" for 1.07, null for no change.
+     */
+    private static String moodText(double factor)
+    {
+        long percent = Math.round((factor - 1) * 100);
+        if (percent == 0)
+            return null;
+        return percent > 0 ? "&a▲ +" + percent + "%" : "&c▼ " + percent + "%";
+    }
+
+    /**
+     * Slot 28: how each kind of item is priced today.
+     */
+    private Button marketButton()
+    {
+        Map<String, Double> moods = _service.getMarket().todaysMood();
+        if (moods.isEmpty())
+            return new Button(28, Icons.filler(Material.RED_STAINED_GLASS_PANE));
+        List<String> lore = new ArrayList<>();
+        for (Map.Entry<String, Double> mood : moods.entrySet())
+        {
+            String text = moodText(mood.getValue());
+            lore.add("&7" + mood.getKey() + " " + (text == null ? "&7±0%" : text));
+        }
+        return new Button(28, Icons.icon(Material.FILLED_MAP, "&6Market Today", lore));
+    }
+
+    /**
+     * Slot 29: what the shop wants now, if anything.
+     */
+    private Button wantedButton()
+    {
+        List<WantedRequests.Wanted> wanted = _service.getMarket().activeWanted(_shop);
+        if (wanted.isEmpty())
+            return new Button(29, Icons.filler(Material.RED_STAINED_GLASS_PANE));
+        List<String> lore = new ArrayList<>();
+        for (WantedRequests.Wanted request : wanted)
+            lore.add("&e" + MarketEvents.itemName(ItemKeys.template(request.item()).getType()) + " &a+" + Math.round(request.bonus() * 100) + "%");
+        long left = wanted.getFirst().endMillis() - System.currentTimeMillis();
+        lore.add("&7Ends in " + (left / 3_600_000) + " h " + (left / 60_000 % 60) + " min");
+        lore.add("&7The shop pays more for these now!");
+        ItemStack icon = Icons.glow(Icons.icon(ItemKeys.template(wanted.getFirst().item()).getType(), "&a&lWANTED", lore));
+        return new Button(29, icon);
     }
 
     // Flash deals ====================================================================================================
@@ -301,6 +359,11 @@ public class ShopMenu extends CustomInventory implements ShopListener
             return new Button(slot, Icons.withLore(item, List.of(amountLine(entry.getAmount()), "&cThe shop doesn't buy this")));
 
         List<String> lore = priceLines("&3SELL ", entry.getAmount(), amount -> prices.sellPrice(_shop, entry.getItem(), amount));
+        double wanted = _service.getMarket().wantedBonus(_shop.getId(), entry.getItem());
+        if (wanted > 0)
+            lore.add("&a&lWANTED &a+" + Math.round(wanted * 100) + "%");
+        if (_service.getRules().uniquePrice(entry.getItem()) == null)
+            addMoodLine(lore, entry.getItem());
         Overflow overflow = _service.getRules().uniquePrice(entry.getItem()) == null ? _service.getRules().overflow(entry.getItem()) : null;
         if (overflow != null)
         {

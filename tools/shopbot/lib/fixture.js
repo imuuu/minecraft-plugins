@@ -8,9 +8,11 @@ const TAB_BUTTON = 31
 const HOTBAR_TOGGLE = 33
 
 /**
- * Makes the player an op in survival with an empty inventory and this much money.
+ * Makes the player an op in survival with an empty inventory and this much money. Also turns the market's
+ * daily mood off, so prices are the ones the tests set.
  */
 async function resetPlayer (rcon, name, money = 1000) {
+  await rcon.command('ia config imusgs set live.mood.enabled false')
   await rcon.command(`op ${name}`)
   await rcon.command(`gamemode survival ${name}`)
   await rcon.command(`clear ${name}`)
