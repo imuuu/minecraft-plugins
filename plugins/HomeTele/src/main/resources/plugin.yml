@@ -1,0 +1,44 @@
+name: HomeTele
+author: imu
+version: 2.0
+main: imu.hometele.HomeTele
+description: Homes players can teleport to
+api-version: '26.2'
+depend: [imusAPI]
+commands:
+  sethome:
+    description: Set a home where you stand
+    usage: /<command> [name]
+    permission: hometele.use
+  home:
+    description: Teleport to your home
+    usage: /<command> [name]
+    permission: hometele.use
+  delhome:
+    description: Delete a home
+    usage: /<command> [name]
+    permission: hometele.use
+  homes:
+    description: Your homes
+    usage: /<command>
+    permission: hometele.use
+  homelist:
+    description: Everyone's homes, to visit them
+    usage: /<command>
+    permission: hometele.admin
+  homeof:
+    description: Go to someone's home right away
+    usage: /<command> <player> [home]
+    permission: hometele.admin
+permissions:
+  hometele.use:
+    description: Set and use homes
+    default: true
+  hometele.admin:
+    description: List and visit everyone's homes, and change the settings
+    default: op
+    children:
+      hometele.use: true
+  hometele.bypass:
+    description: No cooldowns
+    default: op

@@ -26,6 +26,7 @@
         <module>plugins/imusSpawners</module>
         <module>plugins/imusTNT</module>
         <module>plugins/imusWaystones</module>
+        <module>plugins/HomeTele</module>
     </modules>
 
     <properties>

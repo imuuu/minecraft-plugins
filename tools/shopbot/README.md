@@ -39,6 +39,8 @@ balances before and after each click, so they can be run again on the same serve
 | `stats.test.js` | `/gs stats` after a sale, live events in the stats, the language setting (fi/en) |
 | `village.test.js` | A blacksmith from its preset with its NPC: buy only, lasting stock, enchanted gear, gear flash deals; `/gs village`; removing a shop with its NPC |
 | `custom.test.js` | Custom enchants and items of ImusEnchants and imusTNT through ImusAPI: known to the shop, special TNT at its tier price, an admin price, the Enchanter's boosters and custom books, progress |
+| `hometele.test.js` | HomeTele: /sethome and /home after the warmup, moving cancels, the cooldown, named homes up to the limit, /homelist |
+| `hometele-upgrade.test.js` | An old HomeTele's homes.yml and settings.yml carry over (restarts the server, SHOPBOT_RESTART=1) |
 | `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of

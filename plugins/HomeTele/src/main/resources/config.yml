@@ -1,0 +1,38 @@
+# HomeTele settings. Change them in game or from the console with /ia config hometele (list|set <setting> <value>).
+
+# How many homes a player can set. With 1, /sethome and /home need no name.
+max-homes: 1
+# Seconds to stand still before the teleport; moving away or taking damage cancels it
+warmup-seconds: 10
+# Seconds between teleports home
+teleport-cooldown-seconds: 300
+# Seconds between setting homes
+sethome-cooldown-seconds: 1800
+# Seconds to wait after a cancelled teleport
+cancel-cooldown-seconds: 15
+# Blocks a player may move during the warmup
+cancel-distance: 1.0
+cancel-on-damage: true
+
+# Texts players see. & colour codes and {placeholders} work; an empty text ("") isn't sent.
+messages:
+  home-set: "&aHome &e{name} &aset!"
+  home-moved: "&aHome &e{name} &amoved here!"
+  home-deleted: "&eHome &6{name} &edeleted"
+  limit: "&cYou can have {max} home(s): &e{homes}&c. Move one with /sethome <name> or delete one with /delhome <name>."
+  bad-name: "&cA home name is 1-16 letters, numbers, - or _"
+  no-home: "&cYou don't have a home yet. Set one with /sethome"
+  unknown-home: "&cNo home &e{name}&c. Your homes: &e{homes}"
+  cooldown: "&cYou can do that again in &e{seconds}s"
+  warmup: "&eTeleporting home in &6{seconds}s&e... stand still!"
+  already-waiting: "&eYou are already on your way home"
+  cancelled-moved: "&cTeleport cancelled, you moved!"
+  cancelled-damage: "&cTeleport cancelled, you were hit!"
+  teleported: "&aYou have teleported home!"
+  world-missing: "&cThat home's world &e{world} &cisn't loaded"
+  homes-title: "&9Your homes &7({count}/{max}):"
+  click-to-go: "&7Click to go there"
+  homelist-title: "&9Homes of &e{count} &9players:"
+  nobody-has-homes: "&eNobody has a home yet"
+  homeof-usage: "&c/homeof <player> [home]"
+  no-permission: "&cYou don't have permission to do that"
