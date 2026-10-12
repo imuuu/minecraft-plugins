@@ -55,6 +55,14 @@ set SHOPBOT_RESTART=1 && node --test test/restart.test.js
 
 `lib/shopbot.js` has the helpers: `joinServer(name)`, `click(slot, 'left'|'right'|'shiftLeft'|'shiftRight'|'middle')`,
 `shopSlotsWith(item)`, `customerSlotsWith(item)`, `count(item)`, `waitForWindow()`, `waitForMessage(regex)`.
+
+The helpers wait for the server instead of sleeping a fixed time. The plugins open a menu first and fill it after,
+so a menu that just opened can still be empty: `waitForWindow()`, `nextWindow()` and `clickForNewWindow(slot)`
+return the menu only after the server has sent its contents, and `click()` returns after the server has answered
+the click (and keeps the shop's 0.2 s click cooldown between clicks). Use `waitForShopSlot(item)`,
+`waitForCustomerSlot(item)` and `waitForOwnSlot(item)` for a slot that should be there, and `until(check)` for
+anything else that shows up a little later; keep `shopSlotsWith(item)` for checking that something is gone.
+
 `lib/fixture.js` resets a test player, reads balances, sets prices and opens shops. `lib/rcon.js` runs console
 commands; use `minecraft:give` for items with components, Essentials' `/give` doesn't understand them. Shop menu slots: 0-26 the shop, 27-35 buttons (33 = hotbar on/off),
 36-53 the player's items.

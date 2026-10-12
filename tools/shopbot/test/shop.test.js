@@ -49,17 +49,17 @@ test('left click sells one diamond for 10 and the shop lists it', async () => {
   await open()
   const shopAmountBefore = bot.shopSlotsWith('diamond').map(slot => bot.amount(slot))[0] ?? 0
 
-  await bot.click(bot.customerSlotsWith('diamond')[0], 'left')
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'left')
 
   assert.equal(bot.count('diamond'), 63)
   assert.equal(await money(), before + 10)
-  const [shopSlot] = bot.shopSlotsWith('diamond')
+  const shopSlot = await bot.waitForShopSlot('diamond')
   assert.equal(bot.amount(shopSlot), shopAmountBefore + 1)
 })
 
 test('the lore shows the buy prices', async () => {
   await open()
-  const lore = bot.lore(bot.shopSlotsWith('diamond')[0]).join('\n')
+  const lore = bot.lore(await bot.waitForShopSlot('diamond')).join('\n')
   assert.match(lore, /BUY\s+:\s+1\s+:\s+50\.0 \$/)
 })
 
@@ -67,7 +67,7 @@ test('left click buys one diamond for 50', async () => {
   const before = await money()
   await open()
 
-  await bot.click(bot.shopSlotsWith('diamond')[0], 'left')
+  await bot.click(await bot.waitForShopSlot('diamond'), 'left')
 
   assert.equal(bot.count('diamond'), 64)
   assert.equal(await money(), before - 50)
@@ -77,7 +77,7 @@ test('right click sells 8', async () => {
   const before = await money()
   await open()
 
-  await bot.click(bot.customerSlotsWith('diamond')[0], 'right')
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'right')
 
   assert.equal(bot.count('diamond'), 56)
   assert.equal(await money(), before + 80)
@@ -87,7 +87,7 @@ test('shift + right click sells everything', async () => {
   const before = await money()
   await open()
 
-  await bot.click(bot.customerSlotsWith('diamond')[0], 'shiftRight')
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'shiftRight')
 
   assert.equal(bot.count('diamond'), 0)
   assert.equal(await money(), before + 560)
@@ -96,7 +96,7 @@ test('shift + right click sells everything', async () => {
 test('shift + left click buys 64', async () => {
   await rcon.command(`eco set ${BOT} 5000`)
   await open()
-  const [slot] = bot.shopSlotsWith('diamond')
+  const slot = await bot.waitForShopSlot('diamond')
   assert.ok(bot.amount(slot) >= 64, 'The shop should have at least 64 diamonds by now')
 
   await bot.click(slot, 'shiftLeft')
@@ -110,7 +110,7 @@ test('buying with too little money is refused and changes nothing', async () => 
   await open()
   bot.clearMessages()
 
-  await bot.click(bot.shopSlotsWith('diamond')[0], 'left')
+  await bot.click(await bot.waitForShopSlot('diamond'), 'left')
 
   await bot.waitForMessage(/Balance isn't enough/)
   assert.equal(bot.count('diamond'), 64)

@@ -45,7 +45,7 @@ async function paidToday () {
 test('stats show what the shop paid after a sale', async () => {
   const before = await paidToday()
   await openShop(rcon, bot, SHOP)
-  await bot.click(bot.customerSlotsWith('diamond')[0], 'right')
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'right')
   bot.closeWindow()
 
   const after = await paidToday()
@@ -65,11 +65,11 @@ test('the texts follow the language setting', async () => {
   const answer = (await rcon.command('ia config imusgs set language fi')).replace(/§./g, '')
   assert.match(answer, /Language changed/)
   await openShop(rcon, bot, SHOP)
-  const lore = bot.lore(bot.customerSlotsWith('diamond')[0]).join('\n')
+  const lore = bot.lore(await bot.waitForCustomerSlot('diamond')).join('\n')
   assert.match(lore, /Määrä: 2/)
   assert.match(lore, /MYY/)
 
   await rcon.command('ia config imusgs set language en')
   await openShop(rcon, bot, SHOP)
-  assert.match(bot.lore(bot.customerSlotsWith('diamond')[0]).join('\n'), /Amount: 2/)
+  assert.match(bot.lore(await bot.waitForCustomerSlot('diamond')).join('\n'), /Amount: 2/)
 })

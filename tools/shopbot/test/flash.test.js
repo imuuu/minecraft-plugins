@@ -68,7 +68,6 @@ test('starting a deal tells everyone, without naming the items', async () => {
 test('a peek shows a couple of offers and hides the rest', async () => {
   await bot.command(`gs peek ${SHOP}`)
   await bot.waitForWindow()
-  await sleep(300)
   assert.match(bot.windowTitle(), /Peek/)
 
   const slots = offerSlots()

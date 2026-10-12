@@ -35,7 +35,7 @@ after(async () => {
 
 test('the shulker box is listed on its own tab with the price of its contents', async () => {
   await openShop(rcon, bot, SHOP, { tab: SHULKER_TAB })
-  const [slot] = bot.customerSlotsWith('shulker_box')
+  const slot = await bot.waitForCustomerSlot('shulker_box')
   assert.ok(slot !== undefined, 'The shulker box should be on the shulker tab')
   assert.match(bot.lore(slot).join('\n'), /Sell Content with 60\.0 \$/)
 })
@@ -45,10 +45,10 @@ test('selling it pays for the contents, fills the shop and keeps the empty box',
   await openShop(rcon, bot, SHOP, { tab: SHULKER_TAB })
   const goldBefore = bot.shopSlotsWith('gold_ingot').map(slot => bot.amount(slot))[0] ?? 0
 
-  await bot.click(bot.customerSlotsWith('shulker_box')[0], 'left')
+  await bot.click(await bot.waitForCustomerSlot('shulker_box'), 'left')
 
   assert.equal(await balance(rcon, BOT), before + 60)
   assert.equal(bot.count('shulker_box'), 1, 'The box stays with the player')
-  assert.equal(bot.amount(bot.shopSlotsWith('gold_ingot')[0]), goldBefore + 15)
+  assert.equal(bot.amount(await bot.waitForShopSlot('gold_ingot')), goldBefore + 15)
   assert.equal(bot.customerSlotsWith('shulker_box').length, 0, 'The empty box can no longer be sold')
 })

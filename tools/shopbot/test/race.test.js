@@ -38,28 +38,28 @@ after(async () => {
 test('only one of two players gets the last emerald', async () => {
   // A sells its emerald, then buys back anything over one so exactly one is left
   await openShop(rcon, botA, SHOP)
-  await botA.click(botA.customerSlotsWith('emerald')[0], 'left')
-  let [slot] = botA.shopSlotsWith('emerald')
+  await botA.click(await botA.waitForCustomerSlot('emerald'), 'left')
+  let slot = await botA.waitForShopSlot('emerald')
   while (botA.amount(slot) > 1) {
     await botA.click(slot, 'left')
-    slot = botA.shopSlotsWith('emerald')[0]
+    slot = await botA.waitForShopSlot('emerald')
   }
   assert.equal(botA.amount(slot), 1)
   await resetPlayer(rcon, A)
 
   await openShop(rcon, botA, SHOP)
   await openShop(rcon, botB, SHOP)
-  const slotA = botA.shopSlotsWith('emerald')[0]
-  const slotB = botB.shopSlotsWith('emerald')[0]
+  const slotA = await botA.waitForShopSlot('emerald')
+  const slotB = await botB.waitForShopSlot('emerald')
   assert.ok(slotA !== undefined && slotB !== undefined, 'Both should see the emerald')
 
   await Promise.all([botA.click(slotA, 'left'), botB.click(slotB, 'left')])
-  await sleep(500)
+  // The other bot's menu shows the sale when the shop redraws for its viewers
+  await botA.until(() => botA.shopSlotsWith('emerald').length === 0, 3000, 'A should see it sold out')
+  await botB.until(() => botB.shopSlotsWith('emerald').length === 0, 3000, 'B should see it sold out')
 
   const emeralds = botA.count('emerald') + botB.count('emerald')
   const spent = (1000 - await balance(rcon, A)) + (1000 - await balance(rcon, B))
   assert.equal(emeralds, 1, 'Exactly one emerald should have been bought')
   assert.equal(spent, 25, 'Only the buyer should have paid')
-  assert.equal(botA.shopSlotsWith('emerald').length, 0, 'A should see it sold out')
-  assert.equal(botB.shopSlotsWith('emerald').length, 0, 'B should see it sold out')
 })

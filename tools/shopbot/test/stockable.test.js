@@ -35,7 +35,7 @@ after(async () => {
 test('/gs add lists the stack and the player keeps it', async () => {
   await bot.waitForMessage(/has been added to/)
   await openShop(rcon, bot, SHOP)
-  const [slot] = bot.shopSlotsWith('bread')
+  const slot = await bot.waitForShopSlot('bread')
   assert.ok(slot !== undefined, 'The bread should be listed')
   assert.equal(bot.amount(slot), 16)
 })
@@ -43,12 +43,12 @@ test('/gs add lists the stack and the player keeps it', async () => {
 test('buying from it never lowers its stock', async () => {
   const before = await balance(rcon, BOT)
   await openShop(rcon, bot, SHOP)
-  const [slot] = bot.shopSlotsWith('bread')
+  const slot = await bot.waitForShopSlot('bread')
 
   await bot.click(slot, 'right')
-  await bot.click(bot.shopSlotsWith('bread')[0], 'shiftRight')
+  await bot.click(await bot.waitForShopSlot('bread'), 'shiftRight')
 
   assert.equal(bot.count('bread'), 8 + 16)
   assert.equal(await balance(rcon, BOT), before - 24 * 10)
-  assert.equal(bot.amount(bot.shopSlotsWith('bread')[0]), 16)
+  assert.equal(bot.amount(await bot.waitForShopSlot('bread')), 16)
 })

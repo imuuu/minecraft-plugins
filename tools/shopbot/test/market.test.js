@@ -77,7 +77,7 @@ test('with the mood the shop shows the market of the day, and prices follow it',
   await sleep(300)
   await openShop(rcon, bot, SHOP)
   const before = await balance(rcon, BOT)
-  await bot.click(bot.customerSlotsWith('diamond')[0])
+  await bot.click(await bot.waitForCustomerSlot('diamond'))
   assert.ok(Math.abs(await balance(rcon, BOT) - before - 1000 * factor) < 0.02, `diamond with ${minerals}`)
 
   await rcon.command('ia config imusgs set live.mood.enabled false')

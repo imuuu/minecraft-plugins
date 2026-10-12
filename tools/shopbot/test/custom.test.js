@@ -94,8 +94,16 @@ test('the enchanter sells boosters and custom enchant books', async () => {
   await openShop(rcon, bot, ENCHANTER)
   const boosters = shopSlotsWhere(item => item.name === 'netherite_upgrade_smithing_template')
   assert.equal(boosters.length, 3, 'three tiers of boosters')
-  const custom = shopSlotsWhere((item, lore) => item.name === 'enchanted_book' && /Custom Enchant/.test(lore))
-  assert.ok(custom.length > 0, 'a custom enchant book from the first rotation')
+  // A rotation brings 2-4 books and each is a custom enchant's half the time, so about one rotation in seven
+  // has none; another rotation brings more
+  const customBooks = () => shopSlotsWhere((item, lore) => item.name === 'enchanted_book' && /Custom Enchant/.test(lore))
+  let custom = customBooks()
+  for (let i = 0; i < 5 && custom.length === 0; i++) {
+    assert.match(plain(await rcon.command(`gs restock ${ENCHANTER}`)), /kinds of items came/)
+    await openShop(rcon, bot, ENCHANTER)
+    custom = customBooks()
+  }
+  assert.ok(custom.length > 0, 'a custom enchant book from the rotations')
 
   await rcon.command(`clear ${BOT}`)
   await sleep(200)

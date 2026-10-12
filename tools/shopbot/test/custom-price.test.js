@@ -55,7 +55,7 @@ after(async () => {
  * admin does: pick it up, click the slot, put it back. The editor keeps a copy as part of the price.
  */
 async function addToPrice (bot, itemName) {
-  const [from] = bot.ownSlotsWith(itemName)
+  const from = await bot.waitForOwnSlot(itemName)
   assert.ok(from !== undefined, `${bot.name} should have ${itemName}`)
   let target = 0
   while (target < CUSTOM_PRICE_ITEM_SLOTS && bot.slot(target)) target++
@@ -80,8 +80,7 @@ test('an admin sets a custom price of 20 diamonds and 10 iron', async () => {
   admin.closeWindow()
   await admin.command(`gs modify shop ${SHOP}`)
   await admin.waitForWindow()
-  await sleep(300)
-  const [listing] = admin.shopSlotsWith(ITEM)
+  const listing = await admin.waitForShopSlot(ITEM)
   assert.ok(listing !== undefined, 'The editor should show the stockable totem')
 
   await admin.clickForNewWindow(listing)
@@ -105,7 +104,7 @@ test('an admin sets a custom price of 20 diamonds and 10 iron', async () => {
 
 test('the shop shows the item with a custom price', async () => {
   await openShop(rcon, buyer, SHOP, { includeHotbar: false })
-  const [slot] = buyer.shopSlotsWith(ITEM)
+  const slot = await buyer.waitForShopSlot(ITEM)
   assert.ok(slot !== undefined, 'The totem should be listed')
   assert.match(buyer.lore(slot).join('\n'), /Click.*to see price/)
 })
@@ -113,7 +112,7 @@ test('the shop shows the item with a custom price', async () => {
 test('without the items the purchase is refused and nothing changes', async () => {
   await resetPlayer(rcon, BUYER)
   await openShop(rcon, buyer, SHOP, { includeHotbar: false })
-  await buyer.clickForNewWindow(buyer.shopSlotsWith(ITEM)[0])
+  await buyer.clickForNewWindow(await buyer.waitForShopSlot(ITEM))
   assert.match(buyer.windowTitle(), /Buying/)
   buyer.clearMessages()
 
@@ -131,8 +130,8 @@ test('a player pays with 20 diamonds and 10 iron and gets the totem', async () =
   const moneyBefore = await balance(rcon, BUYER)
 
   await openShop(rcon, buyer, SHOP, { includeHotbar: false })
-  await buyer.clickForNewWindow(buyer.shopSlotsWith(ITEM)[0])
-  const [diamondCost] = buyer.shopSlotsWith('diamond')
+  await buyer.clickForNewWindow(await buyer.waitForShopSlot(ITEM))
+  const diamondCost = await buyer.waitForShopSlot('diamond')
   assert.ok(diamondCost !== undefined, 'The buy menu should show the diamond cost')
   const costLore = buyer.lore(diamondCost).join('\n')
   assert.match(costLore, /You have: 20/)

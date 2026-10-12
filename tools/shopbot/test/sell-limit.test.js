@@ -42,13 +42,13 @@ after(async () => {
   rcon?.close()
 })
 
-function loreOfIron (player) {
-  return player.lore(player.customerSlotsWith('iron_ingot')[0]).join('\n')
+async function loreOfIron (player) {
+  return player.lore(await player.waitForCustomerSlot('iron_ingot')).join('\n')
 }
 
 test('the lore tells how much the shop still buys at the full price', async () => {
   await openShop(rcon, bot, SHOP)
-  assert.match(loreOfIron(bot), /Full Price for: 321/)
+  assert.match(await loreOfIron(bot), /Full Price for: 321/)
 })
 
 test('5 stacks of iron sell at the full price', async () => {
@@ -56,7 +56,7 @@ test('5 stacks of iron sell at the full price', async () => {
   await openShop(rcon, bot, SHOP)
 
   for (let i = 0; i < 5; i++)
-    await bot.click(bot.customerSlotsWith('iron_ingot')[0], 'shiftLeft')
+    await bot.click(await bot.waitForCustomerSlot('iron_ingot'), 'shiftLeft')
 
   assert.equal(bot.count('iron_ingot'), 64)
   assert.equal(await balance(rcon, BOT), before + 320 * 80)
@@ -66,7 +66,7 @@ test('the sixth stack sells for less', async () => {
   const before = await balance(rcon, BOT)
   await openShop(rcon, bot, SHOP)
 
-  await bot.click(bot.customerSlotsWith('iron_ingot')[0], 'shiftLeft')
+  await bot.click(await bot.waitForCustomerSlot('iron_ingot'), 'shiftLeft')
 
   const got = await balance(rcon, BOT) - before
   assert.equal(bot.count('iron_ingot'), 0)
@@ -77,9 +77,9 @@ test('the sixth stack sells for less', async () => {
 test('another seller gets the lower price too', async () => {
   const before = await balance(rcon, OTHER_BOT)
   await openShop(rcon, other, SHOP)
-  assert.match(loreOfIron(other), /Shop is Full: \d+% price/)
+  assert.match(await loreOfIron(other), /Shop is Full: \d+% price/)
 
-  await other.click(other.customerSlotsWith('iron_ingot')[0], 'right')
+  await other.click(await other.waitForCustomerSlot('iron_ingot'), 'right')
 
   const got = await balance(rcon, OTHER_BOT) - before
   assert.ok(got < 8 * 80, `Iron should pay under the full ${8 * 80} after the shop is full, got ${got}`)
@@ -91,7 +91,7 @@ test('another shop has its own limit', async () => {
   const before = await balance(rcon, OTHER_BOT)
   await openShop(rcon, other, OTHER_SHOP)
 
-  await other.click(other.customerSlotsWith('iron_ingot')[0], 'right')
+  await other.click(await other.waitForCustomerSlot('iron_ingot'), 'right')
 
   assert.equal(await balance(rcon, OTHER_BOT), before + 8 * 80)
 })

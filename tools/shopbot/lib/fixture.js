@@ -47,11 +47,11 @@ async function setHandPrice (bot, price) {
  * button is clicked; tab 0 = blocks, 1 = tools and armor, 2 = shulker boxes.
  */
 async function openShop (rcon, bot, shop, { includeHotbar = true, tab = 0 } = {}) {
-  bot.closeWindow()
-  await sleep(300)
+  // Opening a menu closes the one open on the server too. Closing it here first would race the open: the
+  // server closes whatever is open when the close packet comes, also a menu that opened after it
+  const opened = bot.nextWindow(5000, `${shop} did not open for ${bot.name}`)
   await rcon.command(`gsopenfor ${bot.name} ${shop}`)
-  const window = await bot.waitForWindow()
-  await sleep(200)
+  const window = await opened
   if (includeHotbar)
     await bot.click(HOTBAR_TOGGLE)
   for (let i = 0; i < tab; i++)
