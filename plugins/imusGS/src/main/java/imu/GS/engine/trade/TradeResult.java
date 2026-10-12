@@ -29,6 +29,12 @@ public record TradeResult(Status status, int amount, double price)
         NOTHING_TO_SELL,
         /** The shop pays nothing for the item, and selling for nothing is off */
         ZERO_PRICE,
+        /** The shop never buys this item back, e.g. a flash deal item */
+        NOT_BOUGHT,
+        /** The flash deal is over */
+        DEAL_OVER,
+        /** The customer has bought as many of the flash deal item as one player may */
+        OVER_LIMIT,
         /** The economy plugin refused the payment */
         PAYMENT_FAILED
     }

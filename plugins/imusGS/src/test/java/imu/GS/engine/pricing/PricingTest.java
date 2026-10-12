@@ -95,7 +95,7 @@ class PricingTest
     @Test
     void aBuyMultiplierOverTheSellMultiplierIsAProfit()
     {
-        _shop.setSettings(new ShopSettings(1, 2, 0.1, 60, false, false, true));
+        _shop.setSettings(new ShopSettings(1, 2, 0.1, 60, false, false, true, true));
         assertEquals(10, _prices.buyBackProfit(_shop, listing("diamond", 1, PriceRule.MATERIAL)));
     }
 

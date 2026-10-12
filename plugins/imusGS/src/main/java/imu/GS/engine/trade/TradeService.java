@@ -4,6 +4,9 @@ import imu.GS.engine.ItemKey;
 import imu.GS.engine.customer.Customer;
 import imu.GS.engine.customer.CustomerInventory;
 import imu.GS.engine.customer.Wallet;
+import imu.GS.engine.live.FlashDeal;
+import imu.GS.engine.live.FlashDeals;
+import imu.GS.engine.live.FlashOffer;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.PriceRule;
 import imu.GS.engine.shop.Listing;
@@ -16,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
@@ -47,10 +51,13 @@ public class TradeService
     }
 
     /**
-     * Whether the shop takes the item: it pays something for it, or selling for nothing is allowed.
+     * Whether the shop takes the item: it isn't one shops never buy (a flash deal item), and the shop pays
+     * something for it or selling for nothing is allowed.
      */
     public boolean buysItem(Shop shop, ItemKey item)
     {
+        if (_prices.getRules().neverBuys(item))
+            return false;
         return _allowZeroPriceSells.getAsBoolean() || _prices.sellUnitPrice(shop, item) > 0;
     }
 
@@ -145,6 +152,37 @@ public class TradeService
         return TradeResult.success(amount, cost.money());
     }
 
+    /**
+     * The customer buys units of a flash deal offer of the shop. They get the offer's item, marked so no shop
+     * buys it back.
+     */
+    public TradeResult buyFlash(Shop shop, Customer customer, FlashDeals deals, UUID offerId, int amount, long nowMillis)
+    {
+        if (amount <= 0)
+            return TradeResult.fail(Status.INVALID_AMOUNT);
+        FlashDeal deal = deals.active(shop.getId(), nowMillis);
+        if (deal == null)
+            return TradeResult.fail(Status.DEAL_OVER);
+        FlashOffer offer = deal.getOffer(offerId);
+        if (offer == null)
+            return TradeResult.fail(Status.NO_LISTING);
+        if (amount > offer.getStock())
+            return TradeResult.fail(Status.NOT_ENOUGH_STOCK);
+        if (amount > offer.canBuy(customer.id()))
+            return TradeResult.fail(Status.OVER_LIMIT);
+
+        double price = PriceCalculator.round(offer.getUnitPrice() * amount);
+        if (_wallet.balance(customer.id()) < price)
+            return TradeResult.fail(Status.NOT_ENOUGH_MONEY);
+        if (!_wallet.withdraw(customer.id(), price))
+            return TradeResult.fail(Status.PAYMENT_FAILED);
+
+        deals.recordPurchase(deal, offer, customer.id(), amount);
+        customer.inventory().give(offer.getItem(), amount);
+        notify(shop, customer, new Trade(Trade.Type.BUY, shop.getId(), customer.id(), customer.name(), offer.getId(), offer.getItem(), amount, price));
+        return TradeResult.success(amount, price);
+    }
+
     // Selling ========================================================================================================
 
     /**
@@ -159,6 +197,8 @@ public class TradeService
         CustomerInventory inventory = customer.inventory();
         if (inventory.count(item) < amount)
             return TradeResult.fail(Status.NOT_ENOUGH_ITEMS);
+        if (_prices.getRules().neverBuys(item))
+            return TradeResult.fail(Status.NOT_BOUGHT);
         if (!buysItem(shop, item))
             return TradeResult.fail(Status.ZERO_PRICE);
 

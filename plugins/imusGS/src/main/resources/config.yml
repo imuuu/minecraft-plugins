@@ -35,3 +35,70 @@ new-shop:
   # Share of the shop's stock that disappears every expire cooldown, 0.1 = 10%. Stockable items never expire.
   expire-percent: 0.1
   expire-cooldown-minutes: 60
+
+# Live events make a shop feel alive. Each part can be turned off here, and each shop has its own
+# "Live Events" switch in /gs modify shop.
+live:
+  # Now and then something players gather (mine, farm, kill, fish) also turns up in a shop. The rarer the item,
+  # the rarer it is: chance = base-chance / sqrt(1 + price / value-scale). With the defaults cobblestone turns up
+  # about 1 in 170, iron ore 1 in 700 and diamond 1 in 2 400. Blocks players placed themselves don't count
+  # (grown crops do).
+  found-items:
+    enabled: true
+    base-chance: 0.006
+    value-scale: 5
+    # A shop never gets more found items of one kind than this
+    max-per-item: 64
+    mining: true
+    mobs: true
+    fishing: true
+  # Every interval a few random items of these material tags come to the shop, about budget worth of each.
+  # Rarer items come less often. Normal expiry takes them away again over time.
+  rotation:
+    enabled: true
+    interval-minutes: 180
+    items-min: 3
+    items-max: 6
+    budget: 2000
+    value-scale: 5
+    tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]
+  # Limited time offers. Players are told only that deals are on, with a [Peek] at a couple of them.
+  # Items bought from a deal can't be sold back to a shop.
+  flash-deals:
+    enabled: true
+    # A deal starts at a random time this many minutes after the last one
+    interval-minutes-min: 120
+    interval-minutes-max: 300
+    duration-minutes: 20
+    offers-min: 4
+    offers-max: 7
+    # Percent off the normal price. Never so cheap that selling the item back would pay.
+    discount-min: 20
+    discount-max: 50
+    # How many offers are peeked
+    peek-offers: 2
+    # Share of offers that are enchanted gear; the rest are blocks and items of the rotation tags
+    gear-share: 0.4
+    gear-stock-min: 2
+    gear-stock-max: 5
+    gear-player-limit: 2
+    # Enchants of gear can go a level or two over the normal max with this chance, per enchant
+    over-max-level-chance: 0.15
+    gear-enchants-min: 2
+    gear-enchants-max: 5
+    gear: [DIAMOND_SWORD, DIAMOND_PICKAXE, DIAMOND_AXE, DIAMOND_SHOVEL, DIAMOND_HELMET, DIAMOND_CHESTPLATE,
+           DIAMOND_LEGGINGS, DIAMOND_BOOTS, NETHERITE_SWORD, NETHERITE_PICKAXE, NETHERITE_AXE, NETHERITE_HELMET,
+           NETHERITE_CHESTPLATE, NETHERITE_LEGGINGS, NETHERITE_BOOTS, BOW, CROSSBOW, TRIDENT, MACE, FISHING_ROD,
+           ELYTRA, SHIELD]
+    # Now and then a rare item instead of gear
+    special-chance: 0.2
+    special-items: [TOTEM_OF_UNDYING, ENCHANTED_GOLDEN_APPLE, NETHER_STAR, HEART_OF_THE_SEA, SHULKER_SHELL,
+                    NETHERITE_INGOT, NETHERITE_UPGRADE_SMITHING_TEMPLATE, TRIAL_KEY, OMINOUS_TRIAL_KEY]
+    special-stock-min: 2
+    special-stock-max: 4
+    special-player-limit: 2
+    # Blocks and items: this many stacks in stock, and at most this many units per player
+    block-stacks-min: 2
+    block-stacks-max: 6
+    block-player-limit: 128
+    tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]

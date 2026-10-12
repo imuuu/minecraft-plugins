@@ -41,6 +41,14 @@ public interface PriceRules
     ItemKey leftover(ItemKey item);
 
     /**
+     * True when no shop ever buys the item, e.g. one bought from a flash deal.
+     */
+    default boolean neverBuys(ItemKey item)
+    {
+        return false;
+    }
+
+    /**
      * The sell limit group of the item (crops, iron...), or null when selling it isn't limited.
      */
     default String sellLimitGroup(ItemKey item)

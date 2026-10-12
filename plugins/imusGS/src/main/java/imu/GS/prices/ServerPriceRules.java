@@ -1,5 +1,6 @@
 package imu.GS.prices;
 
+import imu.GS.bukkit.FlashItems;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.pricing.Overflow;
@@ -103,6 +104,12 @@ public class ServerPriceRules implements PriceRules
         if (left >= 1.0)
             return 1.0;
         return Math.max(0, Math.min(1, left - _durabilityPenalty.getAsDouble()));
+    }
+
+    @Override
+    public boolean neverBuys(ItemKey item)
+    {
+        return FlashItems.isMarked(ItemKeys.template(item));
     }
 
     @Override

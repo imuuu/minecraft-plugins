@@ -203,7 +203,7 @@ class TradeServiceTest
     @Test
     void aShopThatOnlySellsBuysNothing()
     {
-        _shop.setSettings(new ShopSettings(5, 1, 0.1, 60, false, true, true));
+        _shop.setSettings(new ShopSettings(5, 1, 0.1, 60, false, true, true, true));
         _inventory.put(10, "stone", 3, ItemCategory.BLOCKS);
         assertEquals(Status.SHOP_DOESNT_BUY, _trades.sell(_shop, _alex, item("stone"), 1).status());
     }

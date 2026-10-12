@@ -125,6 +125,9 @@ public class GsDatabase
                     + "allowance DOUBLE NOT NULL, "
                     + "refill_per_hour DOUBLE NOT NULL, "
                     + "min_fraction DOUBLE NOT NULL)");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_flash_deals ("
+                    + "shop_id CHAR(36) NOT NULL PRIMARY KEY, "
+                    + "data MEDIUMTEXT NOT NULL)");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_pressure ("
                     + "shop_id CHAR(36) NOT NULL, "
                     + "grp VARCHAR(64) NOT NULL, "
@@ -156,7 +159,26 @@ public class GsDatabase
                     + "amount INT NOT NULL, "
                     + "price DOUBLE NOT NULL, "
                     + "INDEX (player_id), INDEX (shop_id))");
+            // Item components and names can hold any character, e.g. the flash deal mark or an emoji
+            for (String table : List.of("gs_shops", "gs_listings", "gs_materials", "gs_enchants", "gs_enchant_settings",
+                    "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_sell_pressure"))
+                useUtf8mb4(con, st, table);
         }
+    }
+
+    private static void useUtf8mb4(Connection con, Statement st, String table) throws SQLException
+    {
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"))
+        {
+            ps.setString(1, table);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (!rs.next() || (rs.getString(1) != null && rs.getString(1).startsWith("utf8mb4")))
+                    return;
+            }
+        }
+        st.executeUpdate("ALTER TABLE " + table + " CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
 
     private static void addColumnIfMissing(Connection con, Statement st, String table, String column, String definition) throws SQLException
@@ -245,6 +267,22 @@ public class GsDatabase
                 limits.put(rs.getString(1), new SellLimit(rs.getDouble(2), rs.getDouble(3), rs.getDouble(4)));
         }
         return limits;
+    }
+
+    /**
+     * Saved flash deals: shop id -> deal JSON, see {@link FlashDealCodec}.
+     */
+    public Map<UUID, String> loadFlashDeals() throws SQLException
+    {
+        Map<UUID, String> deals = new LinkedHashMap<>();
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT shop_id, data FROM gs_flash_deals");
+             ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+                deals.put(UUID.fromString(rs.getString(1)), rs.getString(2));
+        }
+        return deals;
     }
 
     public List<SellPressure.Entry> loadSellPressure() throws SQLException
@@ -416,6 +454,31 @@ public class GsDatabase
                     ps.setDouble(2, entry.getValue().allowance());
                     ps.setDouble(3, entry.getValue().refillPerHour());
                     ps.setDouble(4, entry.getValue().minFraction());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        });
+    }
+
+    /**
+     * Replaces every saved flash deal with these: shop id -> deal JSON.
+     */
+    public void saveFlashDeals(Map<UUID, String> deals, Runnable onFailure)
+    {
+        Map<UUID, String> copy = new LinkedHashMap<>(deals);
+        write("save flash deals", onFailure, con ->
+        {
+            try (Statement st = con.createStatement())
+            {
+                st.executeUpdate("DELETE FROM gs_flash_deals");
+            }
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO gs_flash_deals (shop_id, data) VALUES (?,?)"))
+            {
+                for (Map.Entry<UUID, String> entry : copy.entrySet())
+                {
+                    ps.setString(1, entry.getKey().toString());
+                    ps.setString(2, entry.getValue());
                     ps.addBatch();
                 }
                 ps.executeBatch();

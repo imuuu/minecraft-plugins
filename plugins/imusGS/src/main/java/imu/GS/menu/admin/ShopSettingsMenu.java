@@ -34,6 +34,7 @@ public class ShopSettingsMenu extends AdminMenu
     private boolean _locked;
     private boolean _customersCanOnlyBuy;
     private boolean _absolutePositions;
+    private boolean _liveEvents;
     private boolean _removing;
 
     public ShopSettingsMenu(GsService service, Shop shop)
@@ -48,6 +49,7 @@ public class ShopSettingsMenu extends AdminMenu
         _locked = settings.locked();
         _customersCanOnlyBuy = settings.customersCanOnlyBuy();
         _absolutePositions = settings.absolutePositions();
+        _liveEvents = settings.liveEvents();
     }
 
     @Override
@@ -142,6 +144,12 @@ public class ShopSettingsMenu extends AdminMenu
             refresh();
         }));
 
+        addButton(toggle(16, Material.NETHER_STAR, "&6Live Events", _liveEvents, "&7Flash deals, rotating stock and", "&7items found by players", e ->
+        {
+            _liveEvents = e.isRightClick() || !_liveEvents;
+            refresh();
+        }));
+
         addButton(new Button(20, Icons.icon(Material.BARRIER, "&l&6Remove This Shop", "&eConfirmation Needed!"), e ->
         {
             _removing = true;
@@ -188,7 +196,7 @@ public class ShopSettingsMenu extends AdminMenu
         }
 
         _shop.setSettings(new ShopSettings(_sellMultiplier, _buyMultiplier, _expirePercent, _expireCooldown,
-                _locked, _customersCanOnlyBuy, _absolutePositions));
+                _locked, _customersCanOnlyBuy, _absolutePositions, _liveEvents));
         if (!_displayName.equals(_shop.getDisplayName()))
         {
             Shop other = _service.getShop(_displayName);

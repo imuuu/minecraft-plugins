@@ -53,7 +53,7 @@ class ListingCodecTest
     @Test
     void shopSettingsComeBack()
     {
-        ShopSettings settings = new ShopSettings(3.5, 0.8, 0.25, 30, true, true, false);
+        ShopSettings settings = new ShopSettings(3.5, 0.8, 0.25, 30, true, true, false, false);
         assertEquals(settings, ListingCodec.settingsFromJson(ListingCodec.toJson(settings)));
     }
 }

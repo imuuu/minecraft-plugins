@@ -41,6 +41,8 @@ permissions:
        gs.create.npc: true
        gs.profile: true
        gs.limits: true
+       gs.flash: true
+       gs.peek: true
        ia.npc.edit: true
    gs.create.shop:
      description: /gs create shop
@@ -99,3 +101,9 @@ permissions:
    gs.limits:
      description: /gs limits and /gs reset limits, see and reset a shop's sell limits
      default: op
+   gs.flash:
+     description: /gs flash start|end and /gs restock, start live events by hand
+     default: op
+   gs.peek:
+     description: /gs peek, a look at a few flash deals from anywhere
+     default: true

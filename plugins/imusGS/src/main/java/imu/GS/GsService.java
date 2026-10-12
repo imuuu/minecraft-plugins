@@ -11,6 +11,7 @@ import imu.GS.engine.customer.Customer;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.pricing.SellPressure;
+import imu.GS.live.LiveEvents;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopListener;
@@ -66,6 +67,7 @@ public class GsService implements Listener
     private final VaultWallet _wallet = new VaultWallet();
     private final TradeService _trades;
     private final PriceProfiles _profiles;
+    private final LiveEvents _live;
 
     private final Map<UUID, Shop> _shops = new LinkedHashMap<>();
     private final Set<UUID> _dirty = new HashSet<>();
@@ -110,6 +112,7 @@ public class GsService implements Listener
             _pressureDirty = true;
         });
         _profiles = new PriceProfiles(plugin);
+        _live = new LiveEvents(this);
     }
 
     // Lifecycle ======================================================================================================
@@ -138,11 +141,13 @@ public class GsService implements Listener
                 List<GsDatabase.UniqueRow> uniques = _db.loadUniques();
                 Map<String, SellLimit> limits = _db.loadSellLimits();
                 List<SellPressure.Entry> pressure = _db.loadSellPressure();
+                Map<UUID, String> flashDeals = _db.loadFlashDeals();
                 Bukkit.getScheduler().runTask(_plugin, () ->
                 {
                     _materials.setLimits(limits);
                     pressure.forEach(_pressure::restore);
                     apply(shops, materials, enchants, uniques);
+                    _live.load(flashDeals);
                 });
             } catch (SQLException e)
             {
@@ -244,6 +249,7 @@ public class GsService implements Listener
             long now = System.currentTimeMillis();
             for (Shop shop : _shops.values())
                 shop.tick(now);
+            _live.tick(now);
         }, tickTicks, tickTicks);
 
         long saveTicks = Math.max(1, config.getInt("shop.save-delay-seconds")) * 20L;
@@ -323,7 +329,7 @@ public class GsService implements Listener
                 config.getDouble("new-shop.buy-multiplier"),
                 config.getDouble("new-shop.expire-percent"),
                 config.getInt("new-shop.expire-cooldown-minutes"),
-                false, false, true);
+                false, false, true, true);
         Shop shop = new Shop(UUID.randomUUID(), plainName(displayName), displayName, settings);
         addShop(shop);
         saveNow(shop);
@@ -350,6 +356,7 @@ public class GsService implements Listener
         _dirty.remove(shop.getId());
         shop.removeListener(_dirtyMarker);
         _db.deleteShop(shop.getId());
+        _live.endFlashDeal(shop);
         _plugin.updateTabCompletion();
     }
 
@@ -377,6 +384,7 @@ public class GsService implements Listener
             _pressure.forgetRefilled(_materials.getLimits(), System.currentTimeMillis());
             _db.saveSellPressure(_pressure.entries(), retryLater(() -> _pressureDirty = true));
         }
+        _live.save(retryLater(_live::markDirty));
     }
 
     /**
@@ -598,6 +606,11 @@ public class GsService implements Listener
     public PriceCalculator getPrices()
     {
         return _prices;
+    }
+
+    public LiveEvents getLive()
+    {
+        return _live;
     }
 
     public TradeService getTrades()

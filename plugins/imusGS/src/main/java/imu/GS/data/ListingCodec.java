@@ -191,6 +191,7 @@ public final class ListingCodec
         json.addProperty("locked", settings.locked());
         json.addProperty("customersCanOnlyBuy", settings.customersCanOnlyBuy());
         json.addProperty("absolutePositions", settings.absolutePositions());
+        json.addProperty("liveEvents", settings.liveEvents());
         return json.toString();
     }
 
@@ -205,6 +206,7 @@ public final class ListingCodec
                 json.has("expireCooldownMinutes") ? json.get("expireCooldownMinutes").getAsInt() : d.expireCooldownMinutes(),
                 json.has("locked") && json.get("locked").getAsBoolean(),
                 json.has("customersCanOnlyBuy") && json.get("customersCanOnlyBuy").getAsBoolean(),
-                !json.has("absolutePositions") || json.get("absolutePositions").getAsBoolean());
+                !json.has("absolutePositions") || json.get("absolutePositions").getAsBoolean(),
+                !json.has("liveEvents") || json.get("liveEvents").getAsBoolean());
     }
 }

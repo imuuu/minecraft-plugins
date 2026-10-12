@@ -39,6 +39,13 @@ public final class Fakes
         public final Map<ItemKey, ItemKey> leftovers = new HashMap<>();
         public final Map<ItemKey, String> limitGroups = new HashMap<>();
         public final Map<String, SellLimit> limits = new HashMap<>();
+        public final Set<ItemKey> neverBought = new HashSet<>();
+
+        @Override
+        public boolean neverBuys(ItemKey item)
+        {
+            return neverBought.contains(item);
+        }
 
         @Override
         public String sellLimitGroup(ItemKey item)

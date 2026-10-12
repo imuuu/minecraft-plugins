@@ -3,6 +3,7 @@ package imu.GS;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.command.GetPriceCommand;
 import imu.GS.command.GsCommands;
+import imu.GS.command.LiveCommands;
 import imu.GS.command.PricingCommands;
 import imu.GS.command.ItemSelection;
 import imu.GS.command.OpenForCommand;
@@ -47,6 +48,7 @@ public class ImusGS extends JavaPlugin
 
         _service = new GsService(this, new MySQL(this, 10, "imusGS"));
         getServer().getPluginManager().registerEvents(_service, this);
+        getServer().getPluginManager().registerEvents(_service.getLive(), this);
 
         ImusAPI._instance.GetNpcManager().registerAction(new ShopNpcAction(_service));
 
@@ -124,10 +126,14 @@ public class ImusGS extends JavaPlugin
         consoleSub(handler, gs, "profile", "gs.profile", pricing::profile);
         consoleSub(handler, gs, "limits", "gs.limits", pricing::limits);
         consoleSub(handler, gs, "reset limits", "gs.limits", pricing::resetLimits);
+        LiveCommands live = new LiveCommands(_service);
+        sub(handler, gs, "peek", "gs.peek", live::peek);
+        consoleSub(handler, gs, "flash", "gs.flash", live::flash);
+        consoleSub(handler, gs, "restock", "gs.flash", live::restock);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "restock" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc" });
         arguments.put("open", new String[] { "shop" });
@@ -137,6 +143,7 @@ public class ImusGS extends JavaPlugin
         arguments.put("unset", new String[] { "material" });
         arguments.put("tag", new String[] { "materials", "shopitems" });
         arguments.put("reset", new String[] { "limits" });
+        arguments.put("flash", new String[] { "start", "end" });
         _tabCompleter = new ImusTabCompleter(gs, new HashMap<>(arguments), "gs.tabcompleter");
         getCommand(gs).setTabCompleter(_tabCompleter);
 
@@ -198,6 +205,10 @@ public class ImusGS extends JavaPlugin
         _tabCompleter.SetRule("/gs add", 3, shops);
         _tabCompleter.SetRule("/gs limits", 2, shops);
         _tabCompleter.SetRule("/gs reset limits", 3, shops);
+        _tabCompleter.SetRule("/gs peek", 2, shops);
+        _tabCompleter.SetRule("/gs restock", 2, shops);
+        _tabCompleter.SetRule("/gs flash start", 3, shops);
+        _tabCompleter.SetRule("/gs flash end", 3, shops);
 
         _tabCompleter.SetRule("/gs profile apply", 3, _service.getProfiles().names());
         _tabCompleter.SetRule("/gs profile apply", 4, List.of("1000", "confirm"));

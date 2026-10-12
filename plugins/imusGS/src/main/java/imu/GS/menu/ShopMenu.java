@@ -6,6 +6,7 @@ import imu.GS.bukkit.PlayerInventoryAdapter;
 import imu.GS.engine.ItemCategory;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.customer.Customer;
+import imu.GS.engine.live.FlashDeal;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.PriceRule;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,7 +36,7 @@ import java.util.Map;
  *
  * <pre>
  *  0-26  shop page (27 listings)
- *  27 &lt;&lt; Shop   28,29 -   30 &lt;&lt; Inv   31 tab   32 Inv &gt;&gt;   33 hotbar/armor   34 -   35 Shop &gt;&gt;
+ *  27 &lt;&lt; Shop   28,29 -   30 &lt;&lt; Inv   31 tab   32 Inv &gt;&gt;   33 hotbar/armor   34 flash deals   35 Shop &gt;&gt;
  *  36-53 customer's items (18 per page)
  * </pre>
  *
@@ -55,6 +57,9 @@ public class ShopMenu extends CustomInventory implements ShopListener
     private int _customerPage = 0;
     private int _tab = 0;
     private long _lastClick;
+    private BukkitTask _animation;
+    private int _frame;
+    private boolean _flashShown;
 
     public ShopMenu(GsService service, Shop shop)
     {
@@ -89,12 +94,15 @@ public class ShopMenu extends CustomInventory implements ShopListener
         _shop.addListener(this);
         _service.menuOpened(this);
         refresh();
+        _animation = Bukkit.getScheduler().runTaskTimer(_service.getPlugin(), this::animateFlashButton, 10, 10);
     }
 
     @Override
     public void onClose()
     {
         super.onClose();
+        if (_animation != null)
+            _animation.cancel();
         _shop.removeListener(this);
         _service.menuClosed(this);
         _shop.removeViewer();
@@ -184,7 +192,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         ItemStack red = Icons.filler(Material.RED_STAINED_GLASS_PANE);
         addButton(new Button(28, red));
         addButton(new Button(29, red));
-        addButton(new Button(34, red));
+        addButton(flashButton());
 
         addButton(new Button(27, Icons.icon(Material.DARK_OAK_SIGN, "&9<< Shop"), e -> changeShopPage(-1)));
         addButton(new Button(35, Icons.icon(Material.DARK_OAK_SIGN, "&9Shop >>"), e -> changeShopPage(1)));
@@ -212,6 +220,44 @@ public class ShopMenu extends CustomInventory implements ShopListener
             _inventory.setIncludeHotbarAndArmor(!_inventory.isIncludeHotbarAndArmor());
             refresh();
         }));
+    }
+
+    // Flash deals ====================================================================================================
+
+    private static final Material[] FLASH_FRAMES = { Material.NETHER_STAR, Material.YELLOW_STAINED_GLASS_PANE,
+            Material.GOLD_BLOCK, Material.ORANGE_STAINED_GLASS_PANE };
+    private static final String[] FLASH_NAMES = { "&e&l⚡ FLASH DEALS ⚡", "&6&l⚡ FLASH DEALS ⚡" };
+
+    /**
+     * Slot 34: a blinking button to the flash deals while they are on, otherwise a filler.
+     */
+    private Button flashButton()
+    {
+        FlashDeal deal = _service.getLive().getDeals().active(_shop.getId(), System.currentTimeMillis());
+        _flashShown = deal != null;
+        if (deal == null)
+            return new Button(34, Icons.filler(Material.RED_STAINED_GLASS_PANE));
+
+        ItemStack icon = Icons.glow(Icons.icon(FLASH_FRAMES[_frame % FLASH_FRAMES.length], FLASH_NAMES[_frame % FLASH_NAMES.length],
+                "&eEnds in &6" + FlashDealMenu.timeLeft(deal.millisLeft(System.currentTimeMillis())),
+                "&7Limited offers, while they last", "&bClick to see!"));
+        return new Button(34, icon, e ->
+        {
+            Player player = getPlayer();
+            Bukkit.getScheduler().runTask(_service.getPlugin(), () -> new FlashDealMenu(_service, _shop, false).open(player));
+        });
+    }
+
+    private void animateFlashButton()
+    {
+        if (getPlayer() == null)
+            return;
+        boolean active = _service.getLive().getDeals().active(_shop.getId(), System.currentTimeMillis()) != null;
+        if (!active && !_flashShown)
+            return;
+        _frame++;
+        addButton(flashButton());
+        updateButton(34);
     }
 
     private void drawCustomer()
