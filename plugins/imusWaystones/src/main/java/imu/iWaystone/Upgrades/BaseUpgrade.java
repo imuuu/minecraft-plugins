@@ -1,12 +1,13 @@
 package imu.iWaystone.Upgrades;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Enums.UpgradeType;
 
@@ -27,7 +28,7 @@ public abstract class BaseUpgrade
 		_tierReduceValue = GetTierReduceValue();
 		_description = GetDescription();
 		_displayItem = new ItemStack(GetMaterial());
-		Metods.setDisplayName(_displayItem, GetDisplayName());
+		ItemUtils.SetDisplayName(_displayItem, GetDisplayName());
 		//Tooltip();
 	}
 	
@@ -92,7 +93,7 @@ public abstract class BaseUpgrade
 		}
 		
 		//System.out.println("lores: "+lores);
-		Metods._ins.SetLores(_displayItem, lores.toArray(String[] :: new), false);
+		ItemUtils.SetLores(_displayItem, lores.toArray(String[] :: new), false);
 	}
 	
 	public static BaseUpgrade GetNewUpgrade(UpgradeType type) 

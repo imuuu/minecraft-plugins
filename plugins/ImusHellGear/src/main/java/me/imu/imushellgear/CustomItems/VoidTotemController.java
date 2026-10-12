@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.awt.Color;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import me.imu.imushellgear.Events.VoidTotemEvents;
 import me.imu.imushellgear.ImusHellGear;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import net.md_5.bungee.api.ChatColor;
 
 public class VoidTotemController implements Listener 
@@ -134,7 +135,7 @@ public class VoidTotemController implements Listener
         if(first == null || second == null || result == null) return;
         if(!IsVoidTotem(result)) return;
 
-        Metods._ins.InventoryAddItemOrDrop(event.getCurrentItem(), (Player)event.getWhoClicked());
+        Methods._ins.InventoryAddItemOrDrop(event.getCurrentItem(), (Player)event.getWhoClicked());
         event.setCurrentItem(null);
         inv.setItem(0, null);
         inv.setItem(1, null);
@@ -142,7 +143,7 @@ public class VoidTotemController implements Listener
 
     public static boolean IsVoidTotem(ItemStack item)
     {
-        return "void".equals(Metods._ins.getPersistenData(item, "totemtype", PersistentDataType.STRING));
+        return "void".equals(Methods._ins.getPersistentData(item, "totemtype", PersistentDataType.STRING));
     }
 
     public static ItemStack GetVoidtotemItem()
@@ -155,8 +156,8 @@ public class VoidTotemController implements Listener
         meta.setLore(List.of("Why do we fall?", "So we can learn to pick ourselves up."));
         //meta.getPersistentDataContainer().set(new NamespacedKey(ImusHellGear.Instance, "totemtype"), PersistentDataType.STRING, "void");
         item.setItemMeta(meta);
-        Metods._ins.setPersistenData(item, "totemtype", PersistentDataType.STRING, "void");
-        Metods._ins.AddGlow(item);
+        Methods._ins.setPersistentData(item, "totemtype", PersistentDataType.STRING, "void");
+        ItemUtils.AddGlow(item);
         return item;
     }
 

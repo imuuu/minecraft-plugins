@@ -1,5 +1,7 @@
 package imu.imusSpawners.Events;
 
+import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -92,7 +94,7 @@ public class SpawnerEvents implements Listener
 			return;
 
 		ItemStack stack = e.getItemInHand();
-		String str_entityType = ImusAPI._metods.getPersistenData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING);
+		String str_entityType = Methods._ins.getPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING);
 		
 		if (str_entityType == null)
 		{
@@ -125,7 +127,7 @@ public class SpawnerEvents implements Listener
 		boolean playerSpawner = Manager_Spawners.Instance.HasSpawner(e.getBlock().getLocation());
 
 		Player player = e.getPlayer();
-		if (!ImusAPI._metods.HasEnchant(player.getInventory().getItemInMainHand(), Enchantment.SILK_TOUCH))
+		if (!ItemUtils.HasEnchant(player.getInventory().getItemInMainHand(), Enchantment.SILK_TOUCH))
 		{
 			Manager_Spawners.Instance.RemoveSpawner(block.getLocation());
 			return;

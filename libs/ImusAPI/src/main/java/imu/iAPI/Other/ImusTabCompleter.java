@@ -141,7 +141,7 @@ public class ImusTabCompleter implements TabCompleter
 			if(_rules.containsKey(args.length))
 			{
 				//System.out.println("rule found at index: "+args.length);
-				String test_rule = ("/"+label+" "+ ImusAPI._metods.CombineArrayToOneString(args, " ")).toLowerCase();
+				String test_rule = ("/"+label+" "+ Methods._ins.CombineArrayToOneString(args, " ")).toLowerCase();
 				
 				for(Rule rule : _rules.get(args.length))
 				{

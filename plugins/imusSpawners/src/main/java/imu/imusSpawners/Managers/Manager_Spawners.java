@@ -1,5 +1,7 @@
 package imu.imusSpawners.Managers;
 
+import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.HashMap;
 
 import org.bukkit.Location;
@@ -83,8 +85,8 @@ public class Manager_Spawners
 //	public ItemStack GetSpawner(EntityType type)
 //	{
 //		ItemStack stack = new ItemStack(Material.SPAWNER);
-//		Metods.setDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + type.toString());
-//		ImusAPI._metods.setPersistenData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
+//		ItemUtils.SetDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + type.toString());
+//		Methods._ins.setPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
 //		return stack;
 //	}
 	public void SaveAll()

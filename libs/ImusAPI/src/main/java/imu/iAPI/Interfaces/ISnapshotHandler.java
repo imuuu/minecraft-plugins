@@ -8,6 +8,6 @@ public interface ISnapshotHandler
     public void restoreSnapshot(String snapshotName);
     public boolean hasSnapshot(String snapshotName);
     public void removeSnapshot(String snapshotName);
-    public IBUTTONN getButtonFromSnapshot(String snapshotName, int slotId);
+    public IMenuButton getButtonFromSnapshot(String snapshotName, int slotId);
     public Set<String> listSnapshots();
 }

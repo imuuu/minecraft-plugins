@@ -5,7 +5,7 @@ import imu.GS.menu.Icons;
 import imu.GS.prices.UniqueItems;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -85,7 +85,7 @@ public class UniquesMenu extends AdminMenu
     }
 
     @Override
-    public IBUTTONN onDropItemSet(ItemStack stack, int slot)
+    public IMenuButton onDropItemSet(ItemStack stack, int slot)
     {
         return null;
     }

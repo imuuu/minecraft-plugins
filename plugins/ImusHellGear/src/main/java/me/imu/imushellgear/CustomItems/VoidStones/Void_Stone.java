@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems.VoidStones;
 
+import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -7,7 +8,7 @@ import me.imu.imushellgear.CustomItems.CustomItem;
 import me.imu.imushellgear.Enums.VOID_STONE_TIER;
 import me.imu.imushellgear.Enums.VOID_STONE_TYPE;
 import me.imu.imushellgear.Managers.Manager_VoidStones;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public abstract class Void_Stone extends CustomItem
 {
@@ -29,7 +30,7 @@ public abstract class Void_Stone extends CustomItem
 		ItemStack stack = super.GetItemStack();
 		
 		Manager_VoidStones.SetVoidStoneData(stack, _type, _tier);
-		Metods._ins.AddGlow(stack);
+		ItemUtils.AddGlow(stack);
 		return stack;
 	}
 	public abstract ItemStack GetVoidStoneWithTier(VOID_STONE_TIER tier);

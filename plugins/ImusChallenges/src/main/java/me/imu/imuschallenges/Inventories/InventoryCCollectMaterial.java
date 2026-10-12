@@ -3,9 +3,9 @@ package me.imu.imuschallenges.Inventories;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Buttons.GridButton;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imuschallenges.Database.Tables.TableCollected_materials;
 import me.imu.imuschallenges.ImusChallenges;
@@ -58,7 +58,7 @@ public class InventoryCCollectMaterial extends CustomInventory
         ItemStack empty = ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.ORANGE_STAINED_GLASS_PANE));
         for (int i = 46; i < 53; i++)
         {
-            IBUTTONN button = new Button(i, empty);
+            IMenuButton button = new Button(i, empty);
             button.setStatic(true);
             addButton(button);
             updateButton(button);
@@ -66,7 +66,7 @@ public class InventoryCCollectMaterial extends CustomInventory
 
         ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
         ItemUtils.SetDisplayName(stack, "&eCollected Materials");
-        IBUTTONN button = new Button(47, stack, inventoryClickEvent ->
+        IMenuButton button = new Button(47, stack, inventoryClickEvent ->
         {
             switchInv();
             onButtonPlayerCollectedMaterials(getPlayer());
@@ -130,7 +130,7 @@ public class InventoryCCollectMaterial extends CustomInventory
                 List<TableCollected_materials> playerCollectedMaterials = _managerCollectMaterial.getPlayerCollectedMaterials(player);
                 Collections.sort(playerCollectedMaterials, Comparator.comparing(TableCollected_materials::getCollection_time).reversed());
 
-                List<IBUTTONN> buttonsCollected = new ArrayList<>();
+                List<IMenuButton> buttonsCollected = new ArrayList<>();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm dd/MM/yyyy");
 
                 int index = playerCollectedMaterials.size();
@@ -161,7 +161,7 @@ public class InventoryCCollectMaterial extends CustomInventory
 
                             if (!inventoryClickEvent.isRightClick()) return;
 
-                            IBUTTONN exludedButton = getButton(uuid);
+                            IMenuButton exludedButton = getButton(uuid);
                             exludedButton.setEnableAction(false);
                             ItemStack exStack = exludedButton.getItemStack();
                             ItemUtils.AddGlow(exStack);
@@ -202,7 +202,7 @@ public class InventoryCCollectMaterial extends CustomInventory
             {
                 Set<Material> unknownMaterials = _managerCollectMaterial.getUncollectedMaterials();
 
-                List<IBUTTONN> unknownButtons = new ArrayList<>();
+                List<IMenuButton> unknownButtons = new ArrayList<>();
                 int index = unknownMaterials.size();
                 for (Material material : unknownMaterials)
                 {
@@ -231,7 +231,7 @@ public class InventoryCCollectMaterial extends CustomInventory
 
                             if (!inventoryClickEvent.isRightClick()) return;
 
-                            IBUTTONN exludedButton = getButton(uuid);
+                            IMenuButton exludedButton = getButton(uuid);
                             exludedButton.setEnableAction(false);
                             ItemStack exStack = exludedButton.getItemStack();
                             ItemUtils.AddGlow(exStack);
@@ -242,7 +242,7 @@ public class InventoryCCollectMaterial extends CustomInventory
 
                             _managerCollectMaterial.addExcludedMaterialSQL_async(material, () ->
                             {
-                                getPlayer().sendMessage(Metods.msgC("&9Added &6" + material.name() + " &9to excluded database!"));
+                                getPlayer().sendMessage(Methods.msgC("&9Added &6" + material.name() + " &9to excluded database!"));
                             });
                         });
                     }
@@ -275,7 +275,7 @@ public class InventoryCCollectMaterial extends CustomInventory
         {
 
             HashMap<UUID, Integer> collectedMaterialsCount = _managerCollectMaterial.getPlayerCollectedCount();
-            ArrayList<IBUTTONN> buttons = new ArrayList<>();
+            ArrayList<IMenuButton> buttons = new ArrayList<>();
 
             for (Player player : Bukkit.getServer().getOnlinePlayers())
             {
@@ -287,7 +287,7 @@ public class InventoryCCollectMaterial extends CustomInventory
                 ItemUtils.AddLore(stack, "    ", true);
                 ItemUtils.AddLore(stack, "    ", true);
                 ItemUtils.AddLore(stack, "&9(&eClick&9) To See More", true);
-                IBUTTONN button = new Button(0, stack, inventoryClickEvent ->
+                IMenuButton button = new Button(0, stack, inventoryClickEvent ->
                 {
                     onButtonPlayerCollectedMaterials(player);
                 });

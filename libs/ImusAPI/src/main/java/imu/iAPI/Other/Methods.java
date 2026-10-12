@@ -1,5 +1,7 @@
 package imu.iAPI.Other;
 
+import imu.iAPI.Utilities.ItemUtils;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,11 +31,7 @@ import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.Conversation.ConversationState;
 import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.conversations.StringPrompt;
-//import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
-//import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 
-//import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-//import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
@@ -68,12 +66,12 @@ import imu.iAPI.Utilities.ItemUtilToolsArmors;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class Metods 
+public class Methods 
 {
-	public static Metods _ins;
+	public static Methods _ins;
 	Plugin _main = null;
 	
-	public Metods(Plugin main) 
+	public Methods(Plugin main) 
 	{
 		_ins = this;
 		_main = main;
@@ -96,160 +94,51 @@ public class Metods
 	    String str =String.format("&4%02dh &e: &3%02dm &e: &7%02ds", secs / 3600, (secs % 3600) / 60, secs % 60);
 	    return msgC(str);
 	}
+	/** @deprecated the same as {@link ItemUtils#AddLore} */
+	@Deprecated
 	public ItemStack addLore(ItemStack stack, String lore, boolean addLast)
 	{
-		
-    	if(stack != null && stack.getType() != Material.AIR)
-    	{
-    		lore = msgC(lore);
-			ItemMeta meta = stack.getItemMeta();
-    		ArrayList<String> lores = new ArrayList<String>();
-    		if(meta.hasLore())
-    		{
-    			lores.addAll(meta.getLore());
-    		}
-    		
-    		if(addLast)
-    		{
-    			lores.add(lore);
-    		}else
-    		{
-    			lores.add(0, lore);
-    		}
-    		
-    		meta.setLore(lores);
-    		stack.setItemMeta(meta);
-
-			
-    	}
-    	return stack;
+		return ItemUtils.AddLore(stack, lore, addLast);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#AddLore} */
+	@Deprecated
 	public ItemStack addLore(ItemStack stack, String[] lores)
 	{
-
-    	if(stack != null && stack.getType() != Material.AIR)
-    	{
-			ItemMeta meta = stack.getItemMeta();
-    		ArrayList<String> read_lores = new ArrayList<String>();
-    		if(meta.hasLore())
-    		{
-    			read_lores.addAll(meta.getLore());
-    		}
-    		
-    		int idx = 0;
-			for(String l : lores)
-			{
-				read_lores.add(idx++, msgC(l));
-			}
-    		
-    		meta.setLore(read_lores);
-    		stack.setItemMeta(meta);
-
-			
-    	}
-    	return stack;
+		return ItemUtils.AddLore(stack, lores);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#RemoveLores} */
+	@Deprecated
 	public ItemStack RemoveLores(ItemStack stack)
 	{
-    	if(stack != null && stack.getType() != Material.AIR)
-    	{
-			ItemMeta meta = stack.getItemMeta();
-    		meta.setLore(new ArrayList<>());
-    		stack.setItemMeta(meta);
-    	}
-    	return stack;
+		return ItemUtils.RemoveLores(stack);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#AddLore} */
+	@Deprecated
 	public ItemStack addLore(ItemStack stack, Iterable<String> lores)
 	{
-    	if(stack != null && stack.getType() != Material.AIR)
-    	{
-			ItemMeta meta = stack.getItemMeta();
-    		ArrayList<String> read_lores = new ArrayList<String>();
-    		if(meta.hasLore())
-    		{
-    			read_lores.addAll(meta.getLore());
-    		}
-    		
-    		int idx = 0;
-			for(String l : lores)
-			{
-				read_lores.add(idx++, msgC(l));
-			}
-    		
-    		meta.setLore(read_lores);
-    		stack.setItemMeta(meta);
-
-			
-    	}
-    	return stack;
+		return ItemUtils.AddLore(stack, lores);
 	}
+	/** @deprecated the same as {@link ItemUtils#SetLores} */
+	@Deprecated
 	public ItemStack SetLores(ItemStack stack, String[] lores, boolean removeEmpty)
 	{
-		return SetLores(stack, Arrays.asList(lores), removeEmpty);
+		return ItemUtils.SetLores(stack, lores, removeEmpty);
 	}
+	/** @deprecated the same as {@link ItemUtils#SetLores} */
+	@Deprecated
 	public ItemStack SetLores(ItemStack stack, Iterable<String> lores, boolean removeEmpty)
 	{
-
-    	if(stack != null && stack.getType() != Material.AIR)
-    	{
-			ItemMeta meta = stack.getItemMeta();
-			ArrayList<String> metaLores = new ArrayList<>();
-
-    		for(String lore : lores)
-    		{
-    			metaLores.add(msgC(lore));
-    		}
-    		if(removeEmpty)
-    		{
-    			//System.out.println("Removing empty");
-    			for(int i = metaLores.size()-1; i >= 0 ; i--)
-    			{
-    				//System.out.println("==> empty? "+metaLores.get(i)+ "is it? "+Strings.isNullOrEmpty(metaLores.get(i)));
-    				if(IsStringNullOrEmpty(metaLores.get(i)))
-    				{
-    					metaLores.remove(i);
-    				}
-    			}
-    		}
-    		
-    		meta.setLore(metaLores);
-    		
-    		stack.setItemMeta(meta);
-
-    	}
-    	return stack;
+		return ItemUtils.SetLores(stack, lores, removeEmpty);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#reSetLore} */
+	@Deprecated
 	public ItemStack reSetLore(ItemStack stack, String lore, int index)
 	{
-
-		ItemMeta meta = stack.getItemMeta();
-		if(!meta.hasLore())
-		{
-			meta.setLore(new ArrayList<>());			
-		}
-		
-		ArrayList<String> metaLores = (ArrayList<String>)meta.getLore();
-		int size = metaLores.size();
-		if(size <= index)
-		{
-			//System.out.println("add more lines: "+(index-size));
-
-			while(metaLores.size() < index+1)
-			{
-				metaLores.add("");
-				//System.out.println("line => added");
-			}
-		}
-		metaLores.set(index, lore);
-		meta.setLore(metaLores);
-		
-		stack.setItemMeta(meta);
-
-		return stack;
+		return ItemUtils.reSetLore(stack, lore, index);
 	}
 	
 	public ItemStack hideAttributes(ItemStack stack)
@@ -308,87 +197,46 @@ public class Metods
 		return lores;
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#GetEnchants} */
+	@Deprecated
 	public Set<Enchantment> GetEnchants(ItemStack stack)
 	{
-		//if(stack.getType() == Material.ENCHANTED_BOOK) return ((EnchantmentStorageMeta)stack.getItemMeta()).getStoredEnchants().keySet();
-		if(stack.getType() != Material.ENCHANTED_BOOK) return stack.getEnchantments().keySet();
-		
-		Set<Enchantment> enchs = new HashSet<>();
-		enchs.addAll(stack.getEnchantments().keySet());
-		enchs.addAll(((EnchantmentStorageMeta)stack.getItemMeta()).getStoredEnchants().keySet());
-		
-
-		return enchs;
+		return ItemUtils.GetEnchants(stack);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#HasEnchant} */
+	@Deprecated
 	public boolean HasEnchant(ItemStack stack, Enchantment ench)
 	{
-		if(stack == null || stack.getType() == Material.AIR) return false;
-		
-		if(!stack.hasItemMeta()) return false;
-		
-		ItemMeta meta = stack.getItemMeta();
-		
-		if(meta.hasEnchant(ench)) return true;
-		
-		return false;
+		return ItemUtils.HasEnchant(stack, ench);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#GetEnchantLevel} */
+	@Deprecated
 	public int GetEnchantLevel(ItemStack stack, Enchantment ench)
 	{
-		if(stack == null || stack.getType() == Material.AIR) return 0;
-		
-		if(!stack.hasItemMeta()) return 0;
-		
-		ItemMeta meta = stack.getItemMeta();
-		
-		if(meta.hasEnchant(ench)) 
-		{
-			return meta.getEnchantLevel(ench);
-		}
-		
-		return 0;
+		return ItemUtils.GetEnchantLevel(stack, ench);
 	}
 	
 	@SuppressWarnings("unused")
+	/** @deprecated the same as {@link ItemUtils#GetEnchantsWithLevels} */
+	@Deprecated
 	public HashMap<Enchantment, Integer> GetEnchantsWithLevels(ItemStack stack)
 	{
-		HashMap<Enchantment, Integer> map = new HashMap<>();
-		for(Enchantment ench : GetEnchants(stack))
-		{
-			
-			if(stack.getType() != Material.ENCHANTED_BOOK)
-			{
-				map.put(ench, stack.getEnchantmentLevel(ench));
-				continue;
-			}
-			
-			Integer bookLvl = ((EnchantmentStorageMeta)stack.getItemMeta()).getStoredEnchantLevel(ench);
-			Integer stackLvl = stack.getEnchantmentLevel(ench);
-			if(bookLvl == null) 
-				bookLvl = 0;
-			if(stackLvl == null) 
-				stackLvl = 0;
-			
-			if(bookLvl > stackLvl)
-			{
-				map.put(ench, bookLvl);
-				continue;
-			}
-			map.put(ench, stackLvl);
-				
-		}
-		return map;
+		return ItemUtils.GetEnchantsWithLevels(stack);
 	}
 	
-	public static void CloneEnchantments(ItemStack item1, ItemStack item2) {
-
-	    item2.getEnchantments().keySet().forEach(enchantment -> item2.removeEnchantment(enchantment));
-	    item1.getEnchantments().forEach((enchantment, level) -> item2.addUnsafeEnchantment(enchantment, level));
+	/** @deprecated the same as {@link ItemUtils#CloneEnchantments} */
+	@Deprecated
+	public static void CloneEnchantments(ItemStack item1, ItemStack item2)
+	{
+		ItemUtils.CloneEnchantments(item1, item2);
 	}
-	public static void RemoveEnchantments(ItemStack stack) {
-
-		stack.getEnchantments().keySet().forEach(enchantment -> stack.removeEnchantment(enchantment));
+	/** @deprecated the same as {@link ItemUtils#RemoveEnchantments} */
+	@Deprecated
+	public static void RemoveEnchantments(ItemStack stack)
+	{
+		ItemUtils.RemoveEnchantments(stack);
 	}
 	
 	public ItemStack removeLore(ItemStack stack, String lore)
@@ -521,31 +369,18 @@ public class Metods
 		}
 		return "";
 	}
+	/** @deprecated the same as {@link ItemUtils#RemoveDisplayName} */
+	@Deprecated
 	public ItemStack removeDisplayName(ItemStack stack, String name)
 	{
-		if(stack != null && stack.getType() != Material.AIR)
-		{
-			ItemMeta meta = stack.getItemMeta();
-			
-			String dName=getDisplayName(stack);
-			dName = dName.replace(name, "");
-			meta.setDisplayName(dName);
-			stack.setItemMeta(meta);
-			
-		}
-		return stack;
+		return ItemUtils.RemoveDisplayName(stack, name);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#SetDisplayName} */
+	@Deprecated
 	public static ItemStack setDisplayName(ItemStack stack, String name)
 	{
-		if(stack != null && stack.getType() != Material.AIR)
-		{
-			ItemMeta meta = stack.getItemMeta();
-			meta.setDisplayName(msgC(name));
-			stack.setItemMeta(meta);
-			return stack;
-		}
-		return stack;
+		return ItemUtils.SetDisplayName(stack, name);
 	}
 	
 	
@@ -621,62 +456,34 @@ public class Metods
 		return false;
 		
 	}
-//	public boolean isArmor(ItemStack stack)
-//	{
-//		
-//		if(CraftItemStack.asNMSCopy(stack).c() instanceof ItemArmor || CraftItemStack.asNMSCopy(stack).c() instanceof ItemElytra)
-//		{
-//			return true;
-//		}
-//		return false;
-//	}
 	
-	public boolean isArmor(ItemStack stack) 
-	{ 
-		return ItemUtilToolsArmors.IsArmor(stack);
+	/** @deprecated the same as {@link ItemUtils#IsArmor} */
+	@Deprecated
+	public boolean isArmor(ItemStack stack)
+	{
+		return ItemUtils.IsArmor(stack);
 	}
 
+	/** @deprecated the same as {@link ItemUtils#IsShulkerBox} */
+	@Deprecated
 	public boolean isShulkerBox(ItemStack stack)
 	{
-		if(stack == null) return false;
-		
-		if(stack.getItemMeta() instanceof BlockStateMeta )
-		{
-			BlockStateMeta im = (BlockStateMeta)stack.getItemMeta();
-            if(im.getBlockState() instanceof ShulkerBox){
-            	return true;
-            }
-			
-		}
-		return false;
+		return ItemUtils.IsShulkerBox(stack);
 	}
 	
-//	public boolean isShield(ItemStack stack)
-//	{
-//		if(CraftItemStack.asNMSCopy(stack).c() instanceof ItemShield)
-//		{
-//			return true;
-//		}
-//		return false;
-//	}
-//	
-//	public boolean IsPotion(ItemStack stack)
-//	{
-//		if(CraftItemStack.asNMSCopy(stack).c() instanceof ItemPotion) return true;
-//		return false;
-//		
-//	}
 	
 	
 	
-	public boolean isTool(ItemStack stack) 
+	/** @deprecated the same as {@link ItemUtils#IsTool} */
+	@Deprecated
+	public boolean isTool(ItemStack stack)
 	{
-		return ItemUtilToolsArmors.IsTool(stack);	
+		return ItemUtils.IsTool(stack);
 	}
 	
 	
 	
-	public ItemStack removePersistenData(ItemStack stack, String keyName)
+	public ItemStack removePersistentData(ItemStack stack, String keyName)
 	{
 		if(stack.getType() == Material.AIR)
 			return stack;
@@ -689,7 +496,7 @@ public class Metods
 		return stack;
 	}
 	
-	public <T> ItemStack setPersistenData(ItemStack stack, String keyName, PersistentDataType<T, T> type, T data)
+	public <T> ItemStack setPersistentData(ItemStack stack, String keyName, PersistentDataType<T, T> type, T data)
 	{
 		if(stack == null || stack.getType() == Material.AIR)
 			return stack;
@@ -702,7 +509,7 @@ public class Metods
 		
 	}
 	
-	public <T> T getPersistenData(ItemStack stack, String keyName, PersistentDataType<T, T> type)
+	public <T> T getPersistentData(ItemStack stack, String keyName, PersistentDataType<T, T> type)
 	{
 		T value = null;
 		if(stack != null && stack.getType() != Material.AIR)
@@ -725,7 +532,7 @@ public class Metods
 	//    Banner, Barrel, Beacon, Bed, Beehive, Bell, BlastFurnace, BrewingStand, Campfire, Chest, CommandBlock, 
 	//Comparator, Conduit, Container, CreatureSpawner, DaylightDetector, Dispenser, Dropper, EnchantingTable, EnderChest, EndGateway, EntityBlockStorage<T>, 
 	//Furnace, Hopper, Jigsaw, Jukebox, Lectern, SculkSensor, ShulkerBox, Sign, Skull, Smoker, Structure
-	public <T> Block setPersistenData(Block block, String keyName, PersistentDataType<T, T> type, T data)
+	public <T> Block setPersistentData(Block block, String keyName, PersistentDataType<T, T> type, T data)
 	{
 		if(block == null || !(block.getState() instanceof TileState)) return null;
 		
@@ -737,7 +544,7 @@ public class Metods
 		return block;
 	}
 	
-	public <T> T getPersistenData(Block block, String keyName, PersistentDataType<T, T> type)
+	public <T> T getPersistentData(Block block, String keyName, PersistentDataType<T, T> type)
 	{
 		T value = null;
 		if(block == null || !(block.getState() instanceof TileState)) return value;
@@ -753,7 +560,7 @@ public class Metods
 		return value;
 	}
 	
-	public <T> Entity setPersistenData(Entity entity, String keyName, PersistentDataType<T, T> type, T data)
+	public <T> Entity setPersistentData(Entity entity, String keyName, PersistentDataType<T, T> type, T data)
 	{
 		if(entity == null) return null;
 		NamespacedKey key = new NamespacedKey(_main, keyName);
@@ -762,7 +569,7 @@ public class Metods
 		return entity;
 	}
 	
-	public <T> T getPersistenData(Entity entity, String keyName, PersistentDataType<T, T> type)
+	public <T> T getPersistentData(Entity entity, String keyName, PersistentDataType<T, T> type)
 	{
 		T value = null;
 		if(entity == null) return value;
@@ -808,15 +615,6 @@ public class Metods
 		}
 		
 		PlayerInventory inv = player.getInventory();
-//
-//		int invSlot = inv.firstEmpty();
-//		if(invSlot < 0)
-//		{
-//			dropItem(stack, player, true);
-//			return slots.toArray(new Integer[slots.size()]);
-//		}
-//		inv.setItem(invSlot, stack);
-//		
 		
 		int amount = stack.getAmount();
 		//System.out.println("max stack size: "+stack.getMaxStackSize());
@@ -948,45 +746,6 @@ public class Metods
 
 	}
 	
-//	public void moveItemFirstFreeSpaceInv(ItemStack stack, Player player, boolean includeHotbar)
-//	{
-//		if(stack == null || stack.getType() == Material.AIR)
-//		{
-//			return;
-//		}
-//		ItemStack copy = new ItemStack(stack);
-//		stack.setAmount(0);
-//		int dropAmount = 1;
-//		if(copy.getAmount() > copy.getMaxStackSize())
-//		{
-//			dropAmount = copy.getAmount();
-//			copy.setAmount(1);
-//		}
-//		PlayerInventory inv = player.getInventory();
-//		
-//		for(int i = 0; i < dropAmount ; ++i)
-//		{
-//			int invSlot;
-//			if(includeHotbar)
-//			{
-//				invSlot = inv.firstEmpty();
-//			}else
-//			{
-//				invSlot = getFirstEmpty(inv.getContents()); // no need I think
-//			}
-//
-//			if( invSlot != -1)
-//			{
-//
-//				//inv.addItem(copy);
-//				inv.setItem(invSlot, copy);
-//				
-//			}else
-//			{
-//				player.sendMessage(ChatColor.RED + "You don't have space!");
-//				dropItem(copy,player,true);			
-//			}
-//		}
 		
 		
 //	}
@@ -1109,96 +868,26 @@ public class Metods
 		return name;
 	}
 	
-//	public String addColor(String str) {
-//        String coloredString = str;
-//        coloredString = coloredString.replace("{{BLACK}}", ChatColor.BLACK.toString());
-//        coloredString = coloredString.replace("{{DARK_BLUE}}", ChatColor.DARK_BLUE.toString());
-//        coloredString = coloredString.replace("{{DARK_GREEN}}", ChatColor.DARK_GREEN.toString());
-//        coloredString = coloredString.replace("{{GREEN}}", ChatColor.GREEN.toString());
-//        coloredString = coloredString.replace("{{DARK_CYAN}}", ChatColor.DARK_AQUA.toString());
-//        coloredString = coloredString.replace("{{DARK_RED}}", ChatColor.DARK_RED.toString());
-//        coloredString = coloredString.replace("{{PURPLE}}", ChatColor.DARK_PURPLE.toString());
-//        coloredString = coloredString.replace("{{GOLD}}", ChatColor.GOLD.toString());
-//        coloredString = coloredString.replace("{{GRAY}}", ChatColor.GRAY.toString());
-//        coloredString = coloredString.replace("{{DARK_GRAY}}", ChatColor.DARK_GRAY.toString());
-//        coloredString = coloredString.replace("{{BLUE}}", ChatColor.BLUE.toString());
-//        coloredString = coloredString.replace("{{BRIGHT_GREEN}}", ChatColor.GREEN.toString());
-//        coloredString = coloredString.replace("{{CYAN}}", ChatColor.AQUA.toString());
-//        coloredString = coloredString.replace("{{RED}}", ChatColor.RED.toString());
-//        coloredString = coloredString.replace("{{PINK}}", ChatColor.LIGHT_PURPLE.toString());
-//        coloredString = coloredString.replace("{{YELLOW}}", ChatColor.YELLOW.toString());
-//        coloredString = coloredString.replace("{{WHITE}}", ChatColor.WHITE.toString());
-//        coloredString = coloredString.replace("{{OBFUSCATED}}", ChatColor.MAGIC.toString());
-//        coloredString = coloredString.replace("{{BOLD}}", ChatColor.BOLD.toString());
-//        coloredString = coloredString.replace("{{STRIKETHROUGH}}", ChatColor.STRIKETHROUGH.toString());
-//        coloredString = coloredString.replace("{{UNDERLINE}}", ChatColor.UNDERLINE.toString());
-//        coloredString = coloredString.replace("{{ITALIC}}", ChatColor.ITALIC.toString());
-//        coloredString = coloredString.replace("{{RESET}}", ChatColor.RESET.toString());
-//        coloredString = ChatColor.translateAlternateColorCodes('&', coloredString);
-//        return coloredString;
-//    }
 	
+	/** @deprecated the same as {@link ItemUtils#GiveDamage} */
+	@Deprecated
 	public boolean giveDamage(ItemStack stack,int dmg, boolean destroyItem)
 	{
-		if(stack != null && stack.getType() != Material.AIR && stack.getType().getMaxDurability() > 0)
-		{
-			if(stack.getItemMeta() instanceof Damageable)
-			{
-				Damageable meta = (Damageable) stack.getItemMeta();
-				int maxDur=stack.getType().getMaxDurability();
-				int givenDamage = meta.getDamage() + dmg;
-					
-				if(givenDamage >= maxDur)
-				{
-					meta.setDamage(maxDur);
-					if(destroyItem)
-					{
-						stack.setAmount(0);
-					}
-				}else
-				{
-					meta.setDamage(givenDamage);
-				}
-				
-				stack.setItemMeta((ItemMeta)meta);
-				return true;
-			}
-			
-		}
-		return false;
+		return ItemUtils.GiveDamage(stack, dmg, destroyItem);
 	}
 	
-	public double getDurabilityProsent(ItemStack stack)
+	/** @deprecated the same as {@link ItemUtils#GetDurabilityPercent} */
+	@Deprecated
+	public double getDurabilityPercent(ItemStack stack)
 	{
-		if(stack != null && stack.getType() != Material.AIR && stack.getType().getMaxDurability() > 0)
-		{
-			if(stack.getItemMeta() instanceof Damageable)
-			{
-				Damageable meta = (Damageable) stack.getItemMeta();
-				double maxDur = stack.getType().getMaxDurability();
-				double getDmg = meta.getDamage();
-				double prosent = 1-getDmg/maxDur;
-				
-				if(prosent > 1.0)
-				{
-					prosent = 1.0;
-				}
-				return prosent;
-			}
-			
-		}
-		return 1.0;
+		return ItemUtils.GetDurabilityPercent(stack);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#SetDamage} */
+	@Deprecated
 	public void setDamage(ItemStack stack,int dmg)
 	{
-		if(stack != null && stack.getType() != Material.AIR)
-		{
-			Damageable meta = (Damageable) stack.getItemMeta();
-			meta.setDamage(dmg);								
-			stack.setItemMeta((ItemMeta)meta);
-			
-		}
+		ItemUtils.SetDamage(stack, dmg);
 	}
 	
 	public void sendMessageLater(Player player, DelaySendable ds, String msg)
@@ -1287,21 +976,6 @@ public class Metods
     }
 	
 
-//	@SuppressWarnings("deprecation")
-//	public ItemStack getPlayerHead(Player p) 
-//	{
-//		boolean isNewVersion = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toList()).contains("PLAYER_HEAD");
-//		Material type = Material.matchMaterial(isNewVersion ? "PLAYER_HEAD" : "SKULL_ITEM");
-//		ItemStack item = new ItemStack(type,1);
-//		
-//		if(!isNewVersion)
-//			item.setDurability((short) 3);
-//		
-//		SkullMeta meta = (SkullMeta) item.getItemMeta();
-//		meta.setOwner(p.getName());
-//		item.setItemMeta(meta);
-//		return item;
-//	}
 	
 	public static String msgC(String s)
 	{
@@ -1315,42 +989,18 @@ public class Metods
 	}
 	
 	
+	/** @deprecated the same as {@link ItemUtils#EncodeItemStack} */
+	@Deprecated
 	public String EncodeItemStack(ItemStack stack)
 	{
-		String encodedObj= null;
-		
-		try
-		{
-			ByteArrayOutputStream io = new ByteArrayOutputStream();
-			BukkitObjectOutputStream os = new BukkitObjectOutputStream(io);
-			os.writeObject(stack);
-			os.flush();
-			byte[] serializedObj = io.toByteArray();			
-			encodedObj = java.util.Base64.getEncoder().encodeToString(serializedObj);
-		}
-		catch(IOException ex)
-		{
-			ex.printStackTrace();
-		}
-		
-		return encodedObj;
+		return ItemUtils.EncodeItemStack(stack);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#DecodeItemStack} */
+	@Deprecated
 	public ItemStack DecodeItemStack(String endcodedSTR)
 	{
-		byte[] serializedObj = java.util.Base64.getDecoder().decode(endcodedSTR);
-		ItemStack stack = null;
-		ByteArrayInputStream in = new ByteArrayInputStream(serializedObj);
-		try 
-		{
-			BukkitObjectInputStream is = new BukkitObjectInputStream(in);
-			stack = (ItemStack) is.readObject();
-		} 
-		catch (IOException | ClassNotFoundException e) 
-		{
-			e.printStackTrace();
-		}
-		return stack;
+		return ItemUtils.DecodeItemStack(endcodedSTR);
 	}
 	
 	public String GetItemDisplayName(ItemStack stack)
@@ -1390,54 +1040,14 @@ public class Metods
 		return str;
 	}
 	
-//	ItemStack AddGlow(ItemStack stack)
-//	{
-//		//NOT WORKING
-//		//org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack nmsStack = (CraftItemStack) getField(stack, "handle");
-//		net.minecraft.world.item.ItemStack s = CraftItemStack.asNMSCopy(stack);
-//		NBTTagCompound compound = s.getTag();
-//        
-//        // Initialize the compound if we need to
-//        if (compound == null) {
-//            compound = new NBTTagCompound();            
-//        }
-//     
-//        // Empty enchanting compound
-//
-//        compound.set("Enchantments", new NBTTagCompound());
-//        s.setTag(compound);
-//        
-//        //stack.setItemMeta(.getItemMeta());
-//        return CraftItemStack.asBukkitCopy(s);
-//	}
 	
-//	private Object getField(Object obj, String name) {
-//  try {
-//      Field field = obj.getClass().getDeclaredField(name);
-//      field.setAccessible(true);
-//
-//      return field.get(obj);
-//  } catch (Exception e) {
-//      // We don't care
-//      throw new RuntimeException("Unable to retrieve field content.", e);
-//  }
-//}
 
 	
+	/** @deprecated the same as {@link ItemUtils#AddGlow} */
+	@Deprecated
 	public ItemStack AddGlow(ItemStack stack)
 	{
-		ItemMeta meta = stack.getItemMeta();
-		
-		if(stack.getType() == Material.BOW)
-		{
-			meta.addEnchant(Enchantment.AQUA_AFFINITY, 1, true);
-		}else
-		{
-			meta.addEnchant(Enchantment.INFINITY, 1, true);
-		}		
-		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-		stack.setItemMeta(meta);
-		return stack;
+		return ItemUtils.AddGlow(stack);
 	}
 	
 	public void ConversationWithPlayer(Player player, StringPrompt conv)
@@ -1479,46 +1089,25 @@ public class Metods
 		return source instanceof TileState;
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#GetShulkerBoxContent} */
+	@Deprecated
 	public ItemStack[] GetShulkerBoxContent(ItemStack stack)
 	{
-		if(!isShulkerBox(stack)) return null;
-		BlockStateMeta bsm = (BlockStateMeta)stack.getItemMeta();
-		if(bsm.getBlockState() instanceof ShulkerBox)
-		{
-			return ((ShulkerBox)bsm.getBlockState()).getInventory().getContents();
-		}
-		return null;
+		return ItemUtils.GetShulkerBoxContent(stack);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#SetShulkerBoxContent} */
+	@Deprecated
 	public boolean SetShulkerBoxContent(ItemStack stack, ItemStack[] content)
 	{
-		if(!isShulkerBox(stack)) return false;
-		BlockStateMeta bsm = (BlockStateMeta)stack.getItemMeta();
-		if(bsm.getBlockState() instanceof ShulkerBox)
-		{
-			ShulkerBox shulker = (ShulkerBox)bsm.getBlockState();
-			shulker.getInventory().setContents(content);
-			bsm.setBlockState(shulker);
-			stack.setItemMeta(bsm);
-			return true;
-		}
-		return false;
+		return ItemUtils.SetShulkerBoxContent(stack, content);
 	}
 	
+	/** @deprecated the same as {@link ItemUtils#AddItemShulkerBoxContent} */
+	@Deprecated
 	public HashMap<Integer, ItemStack> AddItemShulkerBoxContent(ItemStack stack, ItemStack addedItem)
 	{
-		if(!isShulkerBox(stack)) return null;
-
-		BlockStateMeta bsm = (BlockStateMeta)stack.getItemMeta();
-		if(bsm.getBlockState() instanceof ShulkerBox)
-		{
-			ShulkerBox shulker = (ShulkerBox)bsm.getBlockState();
-			HashMap<Integer, ItemStack> hash = shulker.getInventory().addItem(addedItem);
-			bsm.setBlockState(shulker);
-			stack.setItemMeta(bsm);
-			return hash;
-		}
-		return null;
+		return ItemUtils.AddItemShulkerBoxContent(stack, addedItem);
 	}
 	
 	public int GetItemStackEnchantCount(ItemStack stack, Enchantment searchEnch)
@@ -1548,13 +1137,6 @@ public class Metods
 		value += GetItemStackEnchantCount(boots, searchEnch);
 		value += GetItemStackEnchantCount(player.getInventory().getItemInOffHand(), searchEnch);
 
-//		for(int i = player.getInventory().getContents().length - 6 ; i < player.getInventory().getContents().length; i++)
-//		{
-//			ItemStack stack = player.getInventory().getContents()[i];
-//			//if(stack == null || stack.getType() == Material.AIR) continue;
-//			
-//			value += GetItemStackEnchantCount(stack, searchEnch);
-//		}
 		
 		return value;
 	}

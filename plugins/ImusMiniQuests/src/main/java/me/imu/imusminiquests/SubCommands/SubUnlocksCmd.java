@@ -1,7 +1,7 @@
 package me.imu.imusminiquests.SubCommands;
 
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.CONSTANTS;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerUnlocks;
@@ -46,11 +46,11 @@ public class SubUnlocksCmd implements CommandInterface
             }
 
             unlocks.setUnlocked(unlock.name(), unlocked, null);
-            sender.sendMessage(Metods.msgC("&9" + unlock.name() + " is now " + (unlocked ? "&aunlocked" : "&clocked")));
+            sender.sendMessage(Methods.msgC("&9" + unlock.name() + " is now " + (unlocked ? "&aunlocked" : "&clocked")));
             return true;
         }
 
-        sender.sendMessage(Metods.msgC("&6Quest reward unlocks"));
+        sender.sendMessage(Methods.msgC("&6Quest reward unlocks"));
         SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
         for (ManagerUnlocks.Unlock unlock : unlocks.getUnlocks())
         {
@@ -65,7 +65,7 @@ public class SubUnlocksCmd implements CommandInterface
                 state = "&aunlocked &8" + (by != null ? "by " + by + " " : "by an admin ")
                         + "on " + date.format(new Date(unlocks.getUnlockedAt(unlock.name())));
             }
-            sender.sendMessage(Metods.msgC("&e" + unlock.name() + " &7(" + unlock.display() + "&7): " + state));
+            sender.sendMessage(Methods.msgC("&e" + unlock.name() + " &7(" + unlock.display() + "&7): " + state));
         }
         return true;
     }

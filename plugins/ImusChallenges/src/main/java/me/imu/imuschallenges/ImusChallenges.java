@@ -5,7 +5,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.zaxxer.hikari.HikariDataSource;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Config.ConfigMenu;
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Main.ImusAPI;
 import me.imu.imuschallenges.Shop.ChallengeShopNpcAction;
 import imu.iAPI.Other.ImusTabCompleter;

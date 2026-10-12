@@ -1,6 +1,6 @@
 package me.imu.imusenchants.CustomEnchants;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
@@ -24,7 +24,7 @@ public class CustomEnchantData
 	{
 		Map<CustomEnchant, Integer> enchants = new LinkedHashMap<>();
 
-		String data = ItemUtils.GetPersistenData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING);
+		String data = ItemUtils.GetPersistentData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING);
 		if (data == null || data.isEmpty())
 			return enchants;
 
@@ -72,7 +72,7 @@ public class CustomEnchantData
 
 	public static boolean HasAny(ItemStack stack)
 	{
-		String data = ItemUtils.GetPersistenData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING);
+		String data = ItemUtils.GetPersistentData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING);
 		return data != null && !data.isEmpty();
 	}
 
@@ -86,7 +86,7 @@ public class CustomEnchantData
 
 		if (enchants.isEmpty())
 		{
-			ItemUtils.RemovePersistenData(stack, PD_CUSTOM_ENCHANTS);
+			ItemUtils.RemovePersistentData(stack, PD_CUSTOM_ENCHANTS);
 			return;
 		}
 
@@ -97,7 +97,7 @@ public class CustomEnchantData
 				sb.append(",");
 			sb.append(entry.getKey().GetKey()).append(":").append(entry.getValue());
 		}
-		ItemUtils.SetPersistenData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING, sb.toString());
+		ItemUtils.SetPersistentData(stack, PD_CUSTOM_ENCHANTS, PersistentDataType.STRING, sb.toString());
 
 		AddLore(stack);
 	}
@@ -123,7 +123,7 @@ public class CustomEnchantData
 		for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet())
 		{
 			String color = entry.getKey().IsCurse() ? CURSE_COLOR : LORE_COLOR;
-			enchantLines.add(Metods.msgC(color + entry.getKey().GetDisplayName(entry.getValue())));
+			enchantLines.add(Methods.msgC(color + entry.getKey().GetDisplayName(entry.getValue())));
 		}
 
 		lore.addAll(0, enchantLines);

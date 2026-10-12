@@ -9,8 +9,8 @@ import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Interfaces.IMenuButton;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -90,7 +90,7 @@ public class CustomPriceEditorMenu extends AdminMenu
                     if (text.isBlank())
                         return "Write a name";
                     CustomPriceDraft.saved(getPlayer().getUniqueId()).put(text.trim(), _draft.copy());
-                    getPlayer().sendMessage(Metods.msgC("&6Custom Price saved with name: &9" + text.trim()));
+                    getPlayer().sendMessage(Methods.msgC("&6Custom Price saved with name: &9" + text.trim()));
                     return null;
                 })));
         addButton(new Button(49, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of(
@@ -113,7 +113,7 @@ public class CustomPriceEditorMenu extends AdminMenu
         {
             if (_draft.items.isEmpty() && _draft.money <= 0)
             {
-                getPlayer().sendMessage(Metods.msgC("&cAdd items or money to the price first"));
+                getPlayer().sendMessage(Methods.msgC("&cAdd items or money to the price first"));
                 return;
             }
             _listingDraft.price = _draft.toPrice();
@@ -140,7 +140,7 @@ public class CustomPriceEditorMenu extends AdminMenu
     }
 
     @Override
-    public IBUTTONN onDropItemSet(ItemStack stack, int slot)
+    public IMenuButton onDropItemSet(ItemStack stack, int slot)
     {
         return null;
     }

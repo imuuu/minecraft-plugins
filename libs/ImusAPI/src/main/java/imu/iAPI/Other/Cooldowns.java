@@ -51,7 +51,7 @@ public class Cooldowns
 
     public String GetCdInReadableTime(String cd_name)
     {
-        return Metods.FormatTime((long) (GetCdInSeconds(cd_name) * 1000));
+        return Methods.FormatTime((long) (GetCdInSeconds(cd_name) * 1000));
     }
 
     public String formatTime(long timeInMillis)

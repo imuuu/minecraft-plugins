@@ -1,6 +1,6 @@
 package me.imu.imusminiquests.Quests;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusminiquests.Hooks.ImusEnchantsHook;
 import me.imu.imusminiquests.ImusMiniQuests;
@@ -102,8 +102,8 @@ public class QuestReward
     {
         if (_money == null || _hasDisplay) return _description;
 
-        String money = Metods.msgC("&6" + _money.describe());
-        return _description == null ? money : _description + Metods.msgC(" &7+ ") + money;
+        String money = Methods.msgC("&6" + _money.describe());
+        return _description == null ? money : _description + Methods.msgC(" &7+ ") + money;
     }
 
     /**
@@ -332,7 +332,7 @@ public class QuestReward
             return null;
         }
         return new QuestReward(item, min, max, commands, message,
-                description == null ? null : Metods.msgC("&f" + description), hasDisplay, money, weight,
+                description == null ? null : Methods.msgC("&f" + description), hasDisplay, money, weight,
                 money != null || !commands.isEmpty() ? () -> true : available);
     }
 
@@ -468,11 +468,11 @@ public class QuestReward
         if (!section.isString("name") && !section.isList("lore")) return;
 
         ItemMeta meta = stack.getItemMeta();
-        if (section.isString("name")) meta.setDisplayName(Metods.msgC(section.getString("name")));
+        if (section.isString("name")) meta.setDisplayName(Methods.msgC(section.getString("name")));
         if (section.isList("lore"))
         {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-            section.getStringList("lore").forEach(line -> lore.add(Metods.msgC(line)));
+            section.getStringList("lore").forEach(line -> lore.add(Methods.msgC(line)));
             meta.setLore(lore);
         }
         stack.setItemMeta(meta);
@@ -550,7 +550,7 @@ public class QuestReward
             ManagerEconomy.deposit(player, money);
             player.sendMessage(ImusMiniQuests.getInstance().getMessage("money")
                     .replace("%money%", ManagerEconomy.format(money)));
-            given.add(Metods.msgC("&6" + ManagerEconomy.format(money)));
+            given.add(Methods.msgC("&6" + ManagerEconomy.format(money)));
         }
 
         for (String command : _commands)
@@ -559,8 +559,8 @@ public class QuestReward
         }
         if (given.isEmpty() && _hasDisplay) given.add(_description);
 
-        if (_message != null) player.sendMessage(Metods.msgC(_message));
-        return String.join(Metods.msgC("&7, &f"), given);
+        if (_message != null) player.sendMessage(Methods.msgC(_message));
+        return String.join(Methods.msgC("&7, &f"), given);
     }
 
     /** The item's custom name, or its material written out: DIAMOND_PICKAXE -> Diamond Pickaxe */
@@ -568,6 +568,6 @@ public class QuestReward
     {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
-        return Metods.msgC("&f") + prettyName(stack.getType().name());
+        return Methods.msgC("&f") + prettyName(stack.getType().name());
     }
 }

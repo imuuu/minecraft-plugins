@@ -1,5 +1,6 @@
 package imu.GS.prices;
 
+import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Main.ImusAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -45,7 +46,7 @@ public enum GearTier
             default:
                 break;
         }
-        if (!ImusAPI._metods.isArmor(stack) && !ImusAPI._metods.isTool(stack))
+        if (!ItemUtils.IsArmor(stack) && !ItemUtils.IsTool(stack))
             return null;
 
         String name = type.name();

@@ -35,7 +35,7 @@ import imu.GS.prices.ServerPriceRules;
 import imu.GS.prices.UniqueItems;
 import imu.GS.prices.profile.PriceProfiles;
 import imu.GS.prices.profile.ProfileCalculator;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.MySQL;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -353,7 +353,7 @@ public class GsService implements Listener
      */
     public static String plainName(String displayName)
     {
-        return ChatColor.stripColor(Metods.msgC(displayName)).trim();
+        return ChatColor.stripColor(Methods.msgC(displayName)).trim();
     }
 
     /**
@@ -496,10 +496,10 @@ public class GsService implements Listener
         if (profitable.isEmpty())
             return;
         Listing example = profitable.getFirst();
-        admin.sendMessage(Metods.msgC("&c&lWarning: &e" + profitable.size() + " &citem(s) of " + shop.getName()
+        admin.sendMessage(Methods.msgC("&c&lWarning: &e" + profitable.size() + " &citem(s) of " + shop.getName()
                 + " &csell back for more than they cost, e.g. &e" + ItemKeys.template(example.getItem()).getType()
-                + "&c: buy &e" + Metods.Round(_prices.buyUnitPrice(shop, example)) + "&c, sells back for &e"
-                + Metods.Round(_prices.sellUnitPrice(shop, example.getItem())) + "&c. Players can make money from nothing."));
+                + "&c: buy &e" + Methods.Round(_prices.buyUnitPrice(shop, example)) + "&c, sells back for &e"
+                + Methods.Round(_prices.sellUnitPrice(shop, example.getItem())) + "&c. Players can make money from nothing."));
     }
 
     /**

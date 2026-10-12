@@ -1,6 +1,6 @@
 package imu.iAPI.Buttons;
 
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Interfaces.IGrid;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,7 +16,7 @@ public class GridButtonPart extends Button
         super(position, stack, onClickAction);
     }
 
-    public GridButtonPart(IBUTTONN button, IGrid grid)
+    public GridButtonPart(IMenuButton button, IGrid grid)
     {
         super(button);
         _grid = grid;

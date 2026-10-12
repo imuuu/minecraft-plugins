@@ -2,9 +2,9 @@ package me.imu.imusenchants.Inventories;
 
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
 import me.imu.imusenchants.CONSTANTS;
@@ -197,7 +197,7 @@ public class InventoryEnchanting extends CustomInventory
     }
 
     @Override
-    public IBUTTONN onDragItemSet(ItemStack stack, int slot)
+    public IMenuButton onDragItemSet(ItemStack stack, int slot)
     {
         return onDropItemSet(stack, slot);
     }
@@ -210,13 +210,13 @@ public class InventoryEnchanting extends CustomInventory
         {
             if (CONSTANTS.SLOT_CORE_MODE && !EnchantedItem.HasSlots(stack))
             {
-                getPlayer().sendMessage(Metods.msgC("&cUse a &dSlot Core &con the item first!"));
+                getPlayer().sendMessage(Methods.msgC("&cUse a &dSlot Core &con the item first!"));
                 return false;
             }
 
             if (!ManagerEnchants.IsValidToEnchant(stack))
             {
-                getPlayer().sendMessage(Metods.msgC("&cNot valid item to enchant!"));
+                getPlayer().sendMessage(Methods.msgC("&cNot valid item to enchant!"));
                 return false;
             }
 
@@ -234,7 +234,7 @@ public class InventoryEnchanting extends CustomInventory
     }
 
     @Override
-    public IBUTTONN onDropItemSet(ItemStack stack, int slot)
+    public IMenuButton onDropItemSet(ItemStack stack, int slot)
     {
         //System.out.println("DropItemSet: " + stack.getType());
         if (slot == _enchantSlot)
@@ -251,7 +251,7 @@ public class InventoryEnchanting extends CustomInventory
         {
 
             addTouch(slot);
-            IBUTTONN button = loadNode(stack, slot, true);
+            IMenuButton button = loadNode(stack, slot, true);
 
             return button;
         }
@@ -259,7 +259,7 @@ public class InventoryEnchanting extends CustomInventory
         return null;
     }
 
-    private void loadItem(IBUTTONN button, boolean forceReveal)
+    private void loadItem(IMenuButton button, boolean forceReveal)
     {
         ItemStack stack = button.getItemStack();
 
@@ -270,14 +270,14 @@ public class InventoryEnchanting extends CustomInventory
 
     }
 
-    private IBUTTONN loadNode(INode node, boolean insertNode)
+    private IMenuButton loadNode(INode node, boolean insertNode)
     {
         return loadNode(node.GetGUIitemLoad(_enchantedItem), node.GetFlatIndex(), insertNode);
     }
 
-    private IBUTTONN loadNode(ItemStack stack, int slot, boolean insertNode)
+    private IMenuButton loadNode(ItemStack stack, int slot, boolean insertNode)
     {
-        IBUTTONN button = null;
+        IMenuButton button = null;
 
         if (button == null)
         {
@@ -352,7 +352,7 @@ public class InventoryEnchanting extends CustomInventory
             if (!isTouched(node.GetFlatIndex())) continue;
 
 //			Bukkit.getLogger().info("=====> DROP NODE"+node + " is it touched: "+IsTouched(node.GetFlatIndex()));	
-            IBUTTONN button = getButton(node.GetFlatIndex());
+            IMenuButton button = getButton(node.GetFlatIndex());
 
             if (button == null) continue;
 
@@ -367,7 +367,7 @@ public class InventoryEnchanting extends CustomInventory
 
     @SuppressWarnings("unused")
     @Override
-    public boolean onPickupAll(IBUTTONN button, int slot)
+    public boolean onPickupAll(IMenuButton button, int slot)
     {
 
         if (slot == _enchantSlot)
@@ -409,7 +409,7 @@ public class InventoryEnchanting extends CustomInventory
                     // since the last Enchant would still be handed back on close
                     if (hasPendingPieces())
                     {
-                        getPlayer().sendMessage(Metods.msgC("&cPress &eEnchant &cor take your pieces out first!"));
+                        getPlayer().sendMessage(Methods.msgC("&cPress &eEnchant &cor take your pieces out first!"));
                         return false;
                     }
 
@@ -464,7 +464,7 @@ public class InventoryEnchanting extends CustomInventory
         return false;
     }
 
-    private void removeNode(IBUTTONN button)
+    private void removeNode(IMenuButton button)
     {
 
         _enchantedItem.removeNode(button.getPosition());
@@ -475,7 +475,7 @@ public class InventoryEnchanting extends CustomInventory
         updateButton(button.getPosition());
     }
 
-    private void lockingButto(IBUTTONN button)
+    private void lockingButto(IMenuButton button)
     {
         if (button == null)
             return;
@@ -491,7 +491,7 @@ public class InventoryEnchanting extends CustomInventory
         button.setLockPosition(true);
     }
 
-    private IBUTTONN loadGUIButton(INode node, ItemStack stack, int slot, boolean insertNode)
+    private IMenuButton loadGUIButton(INode node, ItemStack stack, int slot, boolean insertNode)
     {
         ItemStack loadedStack = node.GetGUIitemLoad(_enchantedItem);
 
@@ -508,7 +508,7 @@ public class InventoryEnchanting extends CustomInventory
         return button;
     }
 
-//	private IBUTTONN LoadSwapper(ItemStack stack, int slot)
+//	private IMenuButton LoadSwapper(ItemStack stack, int slot)
 //	{
 //		NodeEnchant nodeEnchant = new NodeEnchant(stack);	
 //		_enchantedItem.SetNode(nodeEnchant, slot);
@@ -519,7 +519,7 @@ public class InventoryEnchanting extends CustomInventory
 //		return button;
 //	}
 //	
-//	private IBUTTONN LoadEnchant(ItemStack stack, int slot)
+//	private IMenuButton LoadEnchant(ItemStack stack, int slot)
 //	{
 //		NodeEnchant nodeEnchant = new NodeEnchant(stack);
 //		_enchantedItem.SetNode(nodeEnchant, slot);
@@ -530,7 +530,7 @@ public class InventoryEnchanting extends CustomInventory
 //		return button;
 //	}
 
-//	private IBUTTONN LoadBooster(ItemStack stack, int slot)
+//	private IMenuButton LoadBooster(ItemStack stack, int slot)
 //	{
 //		NodeBooster nodeBooster = new NodeBooster();
 //		_enchantedItem.SetNode(nodeBooster, slot);
@@ -564,11 +564,11 @@ public class InventoryEnchanting extends CustomInventory
             ItemUtils.SetDisplayNameEmpty(redMark);
             final int swappedSlot = Node.GetFlatIndex(swapped.GetX(), swapped.GetY());
 
-            IBUTTONN swappedButton = getButton(swappedSlot);
+            IMenuButton swappedButton = getButton(swappedSlot);
             ItemStack originalItem = null;
             if (swappedButton == null)
             {
-                IBUTTONN b = new Button(swappedSlot, redMark);
+                IMenuButton b = new Button(swappedSlot, redMark);
                 originalItem = new ItemStack(Material.AIR);
                 addButton(b);
                 updateButton(b);
@@ -589,7 +589,7 @@ public class InventoryEnchanting extends CustomInventory
                     return;
                 }
 
-                IBUTTONN swapButton = getButton(swappedSlot);
+                IMenuButton swapButton = getButton(swappedSlot);
                 swapButton.setItemStack(org);
 
                 updateButton(swapButton);
@@ -606,7 +606,7 @@ public class InventoryEnchanting extends CustomInventory
         if (_enchantedItem == null)
             return;
 
-        IBUTTONN enchantItemButton = getButton(_enchantSlot);
+        IMenuButton enchantItemButton = getButton(_enchantSlot);
         removeButton(_enchantSlot);
         Button newButton = new Button(_enchantSlot, enchantItemButton.getItemStack());
         newButton.setLockPosition(false);
@@ -632,7 +632,7 @@ public class InventoryEnchanting extends CustomInventory
         if (getEnchantItem() == null || getEnchantItem().getType().isAir())
             return;
 
-        IBUTTONN b = getButton(_enchantSlot);
+        IMenuButton b = getButton(_enchantSlot);
 
         if (applyEnchants)
         {

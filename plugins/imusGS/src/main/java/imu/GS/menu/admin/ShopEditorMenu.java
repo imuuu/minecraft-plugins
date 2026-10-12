@@ -8,7 +8,7 @@ import imu.GS.engine.shop.Restrictions;
 import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -75,7 +75,7 @@ public class ShopEditorMenu extends AdminMenu
                     _shop.removeListing(listing);
             }
             _shop.compact(true);
-            getPlayer().sendMessage(Metods.msgC("&3Shop &2cleared &3from normal items!"));
+            getPlayer().sendMessage(Methods.msgC("&3Shop &2cleared &3from normal items!"));
             refresh();
         }));
         addButton(new Button(45, Icons.icon(Material.BIRCH_SIGN, "&b<<"), e ->
@@ -92,7 +92,7 @@ public class ShopEditorMenu extends AdminMenu
                 "&9Shops save on their own after changes", "&9and on shutdown; this saves right now"), e ->
         {
             _service.saveNow(_shop);
-            getPlayer().sendMessage(Metods.msgC("&6(Shop) " + _shop.getDisplayName() + " &6has been saved!"));
+            getPlayer().sendMessage(Methods.msgC("&6(Shop) " + _shop.getDisplayName() + " &6has been saved!"));
             closeNext();
         }));
         addButton(new Button(49, Icons.icon(Material.BEACON, "&bChange shop data", "&9Name, multipliers, lock..."),

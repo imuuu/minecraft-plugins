@@ -36,7 +36,7 @@ public class AnvilEvents implements Listener
             {
                 ItemStack newItem = itemToRepair.clone();
                 ItemUtils.SetDamage(newItem, 0);
-                ItemUtils.SetPersistenData(newItem, "ie_repairCount", PersistentDataType.INTEGER, getNextRepairCount(repairCount));
+                ItemUtils.SetPersistentData(newItem, "ie_repairCount", PersistentDataType.INTEGER, getNextRepairCount(repairCount));
 
                 event.setResult(newItem);
             }
@@ -76,7 +76,7 @@ public class AnvilEvents implements Listener
 
     private int getRepairCount(ItemStack item)
     {
-        Integer repairCount = ItemUtils.GetPersistenData(item, "ie_repairCount", PersistentDataType.INTEGER);
+        Integer repairCount = ItemUtils.GetPersistentData(item, "ie_repairCount", PersistentDataType.INTEGER);
         return repairCount == null ? 0 : repairCount;
     }
 

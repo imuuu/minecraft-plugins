@@ -1,5 +1,6 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Utilities.ItemUtils;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.pricing.PriceRule;
@@ -9,7 +10,7 @@ import imu.GS.engine.shop.StockRules;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
@@ -275,7 +276,7 @@ public class ItemGeneratorMenu extends AdminMenu
 
             Generated generated = new Generated();
             generated.item = new ItemStack(MATERIALS[random.nextInt(MATERIALS.length)]);
-            if (_enchantAmount > 0 && (ImusAPI._metods.isTool(generated.item) || ImusAPI._metods.isArmor(generated.item)))
+            if (_enchantAmount > 0 && (ItemUtils.IsTool(generated.item) || ItemUtils.IsArmor(generated.item)))
                 enchant(generated.item, random);
             generated.price = _priceMin < 0 ? null : Math.round(random.nextDouble(_priceMin, _priceMax + 1e-9) * 100) / 100.0;
             generated.maxStock = random.nextInt(_stackMin, _stackMax + 1);
@@ -321,7 +322,7 @@ public class ItemGeneratorMenu extends AdminMenu
             _shop.setStock(listing, new StockRules(generated.maxStock, generated.fillAmount, generated.fillDelay));
             count++;
         }
-        getPlayer().sendMessage(Metods.msgC("&9" + count + " &aitems added to the shop"));
+        getPlayer().sendMessage(Methods.msgC("&9" + count + " &aitems added to the shop"));
         _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         openNext(new ShopEditorMenu(_service, _shop));
     }

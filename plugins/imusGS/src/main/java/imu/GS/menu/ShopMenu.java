@@ -20,7 +20,7 @@ import imu.GS.engine.trade.TradeResult;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -467,8 +467,8 @@ public class ShopMenu extends CustomInventory implements ShopListener
         TradeResult result = _service.getTrades().buy(_shop, _customer, listing, amount);
         switch (result.status())
         {
-            case SUCCESS -> Messages.send(player, "shop.bought", "price", Metods.Round(result.price()), "balance", Metods.Round(balance()));
-            case NOT_ENOUGH_MONEY -> Messages.send(player, "shop.not-enough-money", "price", Metods.Round(price), "balance", Metods.Round(balance()));
+            case SUCCESS -> Messages.send(player, "shop.bought", "price", Methods.Round(result.price()), "balance", Methods.Round(balance()));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "shop.not-enough-money", "price", Methods.Round(price), "balance", Methods.Round(balance()));
             case PAYMENT_FAILED -> Messages.send(player, "shop.buy-payment-failed");
             default ->
             {
@@ -504,7 +504,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         Player player = getPlayer();
         switch (result.status())
         {
-            case SUCCESS -> Messages.send(player, "shop.sold", "price", Metods.Round(result.price()), "balance", Metods.Round(balance()));
+            case SUCCESS -> Messages.send(player, "shop.sold", "price", Methods.Round(result.price()), "balance", Methods.Round(balance()));
             case NOT_ENOUGH_ITEMS -> Messages.send(player, "shop.inventory-changed");
             case PAYMENT_FAILED -> Messages.send(player, "shop.sell-payment-failed");
             default ->

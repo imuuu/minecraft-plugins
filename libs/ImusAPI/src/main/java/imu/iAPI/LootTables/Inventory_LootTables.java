@@ -5,7 +5,7 @@ import imu.iAPI.Buttons.ButtonWithSelector;
 import imu.iAPI.Buttons.GridButton;
 import imu.iAPI.Buttons.SelectorString;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Utilities.ItemUtils;
@@ -61,7 +61,7 @@ public class Inventory_LootTables extends CustomInventory
         List<String> keys = new ArrayList<>(_lootTables.keySet());
         List<ImusLootTable> values = new ArrayList<>(_lootTables.values());
 
-        List<IBUTTONN> buttons = new ArrayList<>();
+        List<IMenuButton> buttons = new ArrayList<>();
 
         for (int i = 0; i < keys.size(); i++)
         {
@@ -96,7 +96,7 @@ public class Inventory_LootTables extends CustomInventory
             System.out.println("table is null");
             return;
         }
-        List<IBUTTONN> buttons = new ArrayList<>();
+        List<IMenuButton> buttons = new ArrayList<>();
 
         for (int i = 0; i < table.getItems().size(); i++)
         {
@@ -113,7 +113,7 @@ public class Inventory_LootTables extends CustomInventory
     }
 
     @SuppressWarnings("rawtypes")
-    private IBUTTONN createDisplayItemButton(ILootTableItem item)
+    private IMenuButton createDisplayItemButton(ILootTableItem item)
     {
         int weight = item.get_weight();
         int maxAmount = item.get_maxAmount();

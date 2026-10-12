@@ -1,5 +1,6 @@
 package me.imu.imushellgear.Managers;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import me.imu.imushellgear.CustomItems.VoidTotemController;
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import imu.iAPI.FastInventory.Fast_Inventory;
 import imu.iAPI.FastInventory.Manager_FastInventories;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public class Manager_LegendaryUpgrades
 {
@@ -58,13 +59,13 @@ public class Manager_LegendaryUpgrades
 	}
 	public ItemStack AddSyntax(ItemStack s)
 	{
-		Metods._ins.addDisplayName(s, ChatColor.AQUA+"UPGRADE &5for ", true);
+		Methods._ins.addDisplayName(s, ChatColor.AQUA+"UPGRADE &5for ", true);
 		ItemStack stack = new ItemStack(s.getType(),1);
-		Metods.setDisplayName(stack, s.getItemMeta().getDisplayName());
+		ItemUtils.SetDisplayName(stack, s.getItemMeta().getDisplayName());
 		
 		stack = Manager_HellArmor.Instance.RemoveArmorData(stack);
 		
-		Metods._ins.RemoveLores(stack);
+		ItemUtils.RemoveLores(stack);
 		List<String> lores = new ArrayList<>();
 		
 		lores.add(" ");
@@ -81,7 +82,7 @@ public class Manager_LegendaryUpgrades
 //		meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, new AttributeModifier(UUID.randomUUID(), "generic.armor_toughness",0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.FEET));
 //
 //		stack.setItemMeta(meta);
-		stack = Metods._ins.addLore(stack, lores);
+		stack = ItemUtils.AddLore(stack, lores);
 		
 		
 		return stack;
@@ -90,7 +91,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellArmor.Instance.CreateHellHelmet(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_HELMET, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_HELMET, PersistentDataType.INTEGER, 1);
 		
 		stack.setType(Material.GOLDEN_HELMET);
 		return stack;
@@ -100,7 +101,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellArmor.Instance.CreateHellChestplate(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_CHEST, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_CHEST, PersistentDataType.INTEGER, 1);
 		
 		stack.setType(Material.GOLDEN_CHESTPLATE);
 		return stack;
@@ -110,7 +111,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellArmor.Instance.CreateHellLeggins(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_LEGG, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_LEGG, PersistentDataType.INTEGER, 1);
 		
 		stack.setType(Material.GOLDEN_LEGGINGS);
 		return stack;
@@ -120,7 +121,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellArmor.Instance.CreateHellBoots(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_BOOTS, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_BOOTS, PersistentDataType.INTEGER, 1);
 		
 		stack.setType(Material.GOLDEN_BOOTS);
 		return stack;
@@ -132,7 +133,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellTools.Instance.CreateHellHoe(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_HOE, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_HOE, PersistentDataType.INTEGER, 1);
 		stack = Manager_HellTools.Instance.HellHoe_Controller.RemoveHellHoe(stack);
 		stack.setType(Material.GOLDEN_HOE);
 		return stack;
@@ -142,7 +143,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellTools.Instance.CreateHellPickaxe(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_PICKAXE, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_PICKAXE, PersistentDataType.INTEGER, 1);
 		stack = Manager_HellTools.Instance.HellPickController.RemoveHellPickaxe(stack);
 		stack.setType(Material.GOLDEN_PICKAXE);
 		return stack;
@@ -152,7 +153,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellTools.Instance.CreateHellTripleSword(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_SWORD, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_SWORD, PersistentDataType.INTEGER, 1);
 		stack = Manager_HellTools.Instance.HellSword_Controller.RemoveHellSword(stack);
 		stack.setType(Material.GOLDEN_SWORD);
 		return stack;
@@ -162,7 +163,7 @@ public class Manager_LegendaryUpgrades
 	{
 		ItemStack stack = Manager_HellTools.Instance.CreateHellDoubleAxe(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_AXE, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_AXE, PersistentDataType.INTEGER, 1);
 		stack = Manager_HellTools.Instance.HellAxe_Controller.RemoveHellAxe(stack);
 		stack.setType(Material.GOLDEN_AXE);
 		return stack;
@@ -173,7 +174,7 @@ public class Manager_LegendaryUpgrades
 		//ItemStack stack = Manager_HellArmor.Instance.CreateHellReflectShield(ITEM_RARITY.Legendary);
 		ItemStack stack = Manager_HellTools.Instance.CreateHellReflectShield(ITEM_RARITY.Legendary);
 		stack = AddSyntax(stack);
-		Metods._ins.setPersistenData(stack, PD_HELL_SHIELD, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(stack, PD_HELL_SHIELD, PersistentDataType.INTEGER, 1);
 		stack = Manager_HellTools.Instance.Hell_ReflectShield_Controller.RemoveShield(stack);
 		stack.setType(Material.SHIELD);
 		return stack;
@@ -188,46 +189,46 @@ public class Manager_LegendaryUpgrades
 	
 	public boolean IsUpgradeHellHelmet(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, PD_HELL_HELMET, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, PD_HELL_HELMET, PersistentDataType.INTEGER) != null;
 	}
 	public boolean IsUpgradeHellChest(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_CHEST, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_CHEST, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellLegg(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_LEGG, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_LEGG, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellBoots(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_BOOTS, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_BOOTS, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellHoe(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_HOE, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_HOE, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellPickaxe(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellSword(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_SWORD, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_SWORD, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellAxe(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_AXE, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_AXE, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsUpgradeHellShield(ItemStack stack)
 	{
-	    return Metods._ins.getPersistenData(stack, PD_HELL_SHIELD, PersistentDataType.INTEGER) != null;
+	    return Methods._ins.getPersistentData(stack, PD_HELL_SHIELD, PersistentDataType.INTEGER) != null;
 	}
 	
 

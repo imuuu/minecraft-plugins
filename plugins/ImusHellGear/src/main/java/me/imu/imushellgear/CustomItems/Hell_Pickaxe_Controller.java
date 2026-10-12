@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -29,7 +30,7 @@ import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public final class Hell_Pickaxe_Controller
 {
@@ -120,29 +121,29 @@ public final class Hell_Pickaxe_Controller
 		lores.add("&7devil himself, as a tool to reshape");
 		lores.add("&7the underworld to his will'");
 
-		Metods._ins.SetLores(stack, lores.toArray(new String[lores.size()]), false);
+		ItemUtils.SetLores(stack, lores.toArray(new String[lores.size()]), false);
 
 		ItemMeta meta = stack.getItemMeta();
 
 		stack.setItemMeta(meta);
 
-		Metods._ins.setPersistenData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER, rarity.GetIndex());
+		Methods._ins.setPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER, rarity.GetIndex());
 
 		return stack;
 	}
 
 	public boolean IsHellPickaxe(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Metods._ins.getPersistenData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER));
 	}
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER);
+		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER);
 		if(i == null ) return false;
 		
 		if(i == tier.GetIndex()) return true;
@@ -152,7 +153,7 @@ public final class Hell_Pickaxe_Controller
 	
 	public Hell_Pickaxe GetPickaxe(ItemStack stack)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER)-(_hellPickaxes.length-1);
+		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER)-(_hellPickaxes.length-1);
 
 		if(i == null || i < 0) return null;
 		
@@ -160,7 +161,7 @@ public final class Hell_Pickaxe_Controller
 	}
 	public ItemStack RemoveHellPickaxe(ItemStack stack)
 	{
-		return Metods._ins.removePersistenData(stack, _PD_HELL_PICKAXE);
+		return Methods._ins.removePersistentData(stack, _PD_HELL_PICKAXE);
 	}
 
 	private boolean BreakTheBlock(Player player, Block b, int fortune)
@@ -188,7 +189,7 @@ public final class Hell_Pickaxe_Controller
 		{
 			for (ItemStack stack : b.getDrops())
 			{
-				ItemStack newStack = Metods._ins.FortuneSimulation(stack, fortune);
+				ItemStack newStack = Methods._ins.FortuneSimulation(stack, fortune);
 				b.getWorld().dropItemNaturally(b.getLocation(), newStack);
 			}
 
@@ -232,7 +233,7 @@ public final class Hell_Pickaxe_Controller
 		}
 
 		b.setType(Material.COBBLESTONE);
-		Metods._ins.giveDamage(pick, -hellPick.GetDurabilityHealedByLava(), false);
+		ItemUtils.GiveDamage(pick, -hellPick.GetDurabilityHealedByLava(), false);
 		
 		if (!_cds.isCooldownReady("LavaSound"))
 			return b;
@@ -316,7 +317,7 @@ public final class Hell_Pickaxe_Controller
 		if (stack.containsEnchantment(Enchantment.SILK_TOUCH))
 			stack.removeEnchantment(Enchantment.SILK_TOUCH);
 
-		int fortuneLevel = Metods._ins.GetEnchantLevel(stack, Enchantment.FORTUNE);
+		int fortuneLevel = ItemUtils.GetEnchantLevel(stack, Enchantment.FORTUNE);
 		Hell_Pickaxe hellPickAxe = GetPickaxe(stack);
 		
 		PlaceLavaBlocks(player, hellPickAxe,stack, minedBlock);
@@ -335,7 +336,7 @@ public final class Hell_Pickaxe_Controller
 		if (dir == MINE_DIRECTION.HORIZONTA)
 		{
 			
-			Metods._ins.giveDamage(stack, hellPickAxe.GetDurabilityLost(), false);
+			ItemUtils.GiveDamage(stack, hellPickAxe.GetDurabilityLost(), false);
 			OnHorizontalMine(player, fortuneLevel, minedBlock, hellPickAxe, stack);
 			_playerMineDir.put(player.getUniqueId(), dir); // remeber this to be last!
 			return;
@@ -343,7 +344,7 @@ public final class Hell_Pickaxe_Controller
 		
 		if (hellPickAxe.Rarity == ITEM_RARITY.Void &&(dir == MINE_DIRECTION.DOWN || dir == MINE_DIRECTION.UP) )
 		{
-			Metods._ins.giveDamage(stack, hellPickAxe.GetDurabilityLost(), false);
+			ItemUtils.GiveDamage(stack, hellPickAxe.GetDurabilityLost(), false);
 			OnUpDownMine(player, fortuneLevel, minedBlock, hellPickAxe, stack);
 			_playerMineDir.put(player.getUniqueId(), dir); // remeber this to be last!
 			return;

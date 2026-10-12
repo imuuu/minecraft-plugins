@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 
 public final class Hell_ReflectShieldController implements Listener
@@ -167,14 +168,14 @@ public final class Hell_ReflectShieldController implements Listener
 		lores.add("&7their arrows right back at them, much");
 		lores.add("&7to their surprise (and sometimes, horror!)'");
 
-		Metods._ins.SetLores(stack, lores.toArray(new String[lores.size()]), false);
+		ItemUtils.SetLores(stack, lores.toArray(new String[lores.size()]), false);
 
 		ItemMeta meta = stack.getItemMeta();
 
 		stack.setItemMeta(meta);
 
-		Metods._ins.setPersistenData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER, rarity.GetIndex());
-		Metods._ins.setPersistenData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		Methods._ins.setPersistentData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER, rarity.GetIndex());
+		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
 		return stack;
 	}
 
@@ -199,13 +200,13 @@ public final class Hell_ReflectShieldController implements Listener
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Metods._ins.getPersistenData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER));
 	}
 	
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
 		// HELL_TIER is stored as the rarity name (STRING), see CreateItem
-		String str = Metods._ins.getPersistenData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
+		String str = Methods._ins.getPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
 		if(str == null ) return false;
 
 		return str.equals(tier.toString());
@@ -213,7 +214,7 @@ public final class Hell_ReflectShieldController implements Listener
 
 	public Hell_ReflectShield GetShield(ItemStack stack)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER);
+		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER);
 		if(i == null ) return null;
 
 		// stored value is the rarity index (Epic = 3 ..), not an array index
@@ -257,7 +258,7 @@ public final class Hell_ReflectShieldController implements Listener
 		OnHellShieldReflect(entity, arrow.getShooter(), arrow, refShield.Rarity);
 
 		int durMulti = refShield.GetUseDurabilityLost();//6 - rarity.GetIndex();
-		Metods._ins.giveDamage(shield, Manager_HellArmor.Instance.ReflectShieldDurabilityLost * durMulti, true);
+		ItemUtils.GiveDamage(shield, Manager_HellArmor.Instance.ReflectShieldDurabilityLost * durMulti, true);
 		e.setCancelled(true);
 
 		return;
@@ -271,18 +272,18 @@ public final class Hell_ReflectShieldController implements Listener
 
 	public boolean IsHellReflectShield(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, _PD_HELL_REFLECT_SHIELD, PersistentDataType.INTEGER) != null;
 	}
 
 	public ItemStack RemoveShield(ItemStack stack)
 	{
-		return Metods._ins.removePersistenData(stack, _PD_HELL_REFLECT_SHIELD);
+		return Methods._ins.removePersistentData(stack, _PD_HELL_REFLECT_SHIELD);
 
 	}
 
 	public void AddArrow(Arrow arrow, ITEM_RARITY rarity)
 	{
-		Metods._ins.setPersistenData(arrow, _PD_REFLECTED_ARROW, PersistentDataType.INTEGER, 1);
+		Methods._ins.setPersistentData(arrow, _PD_REFLECTED_ARROW, PersistentDataType.INTEGER, 1);
 		_reflected_arrows.add(new ArrowReflect(arrow, rarity));
 	}
 

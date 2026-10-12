@@ -71,7 +71,7 @@ public class InventoryReaderStack
 	public InventoryReaderStack(Inventory inv)
 	{
 		LoadInv(inv);
-		//Metods._ins.printHashMap(_info);
+		//Methods._ins.printHashMap(_info);
 	}
 	
 	public boolean Reduce(ItemStack stack, int amount)

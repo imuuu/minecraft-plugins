@@ -23,20 +23,6 @@ public class ParticleAnimations {
 		_animLoc = loc;
 	}
 	
-//	public boolean canTeleport()
-//	{
-//		if(_player == null)
-//			return false;
-//		
-//		boolean canTele=true;
-//		
-//		if(_player.getLocation().distance(_startLoc) > 1)
-//		{
-//			canTele=false;
-//		}
-//
-//		return canTele;
-//	}
 	
 	
 	void DrawCircleHurrican(Particle particle,int particle_count, double radius , double t_delta, double y_deltaM, double tick)

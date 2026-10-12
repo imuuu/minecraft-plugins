@@ -23,7 +23,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -66,9 +66,9 @@ public class ElytraGenerationEvents implements Listener
 	}
 	@EventHandler
 	public void initPersistence(PlayerJoinEvent e) {
-		Integer data = Metods._ins.getPersistenData(e.getPlayer(), "hasTotemInfo", PersistentDataType.INTEGER);
+		Integer data = Methods._ins.getPersistentData(e.getPlayer(), "hasTotemInfo", PersistentDataType.INTEGER);
 		if(data == null) {
-			Metods._ins.setPersistenData(e.getPlayer(), "hasTotemInfo", PersistentDataType.INTEGER, 0);
+			Methods._ins.setPersistentData(e.getPlayer(), "hasTotemInfo", PersistentDataType.INTEGER, 0);
 		}
 	}
 	@EventHandler
@@ -76,14 +76,14 @@ public class ElytraGenerationEvents implements Listener
 		if(e.getEntity() instanceof Player) {
 			Player player = (Player) e.getEntity();
 			if(e.getItem().getItemStack().getType() == Material.ELYTRA) {
-				int first = Metods._ins.getPersistenData(player, "hasTotemInfo", PersistentDataType.INTEGER);
+				int first = Methods._ins.getPersistentData(player, "hasTotemInfo", PersistentDataType.INTEGER);
 				if(first == 0) {
 					World world = player.getWorld();
 					if(world.getEnvironment() != World.Environment.THE_END) return;
 					if(!player.getInventory().addItem(getInfoBook()).isEmpty()) {
 						world.dropItemNaturally(player.getLocation(), getInfoBook());
 					}
-					Metods._ins.setPersistenData(player, "hasTotemInfo", PersistentDataType.INTEGER, 1);
+					Methods._ins.setPersistentData(player, "hasTotemInfo", PersistentDataType.INTEGER, 1);
 					// ? player.sendMessage("");
 				}
 			}

@@ -1,6 +1,6 @@
 package imu.iAPI.Buttons;
 
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Interfaces.IButtonHandler;
 import imu.iAPI.Interfaces.IGrid;
 import imu.iAPI.Utilities.ItemUtils;
@@ -18,9 +18,9 @@ public class GridButton implements IGrid
 {
     private int _startPosition;
     private final int _lineLenght;
-    private List<IBUTTONN> _parts;
+    private List<IMenuButton> _parts;
     private List<ItemStack> _items;
-    private List<IBUTTONN> _buttons;
+    private List<IMenuButton> _buttons;
     private int _pageID = 0;
     private IButtonHandler _buttonHandler;
     private ItemStack _emptyStack;
@@ -38,7 +38,7 @@ public class GridButton implements IGrid
         convertItemsToButtons(items);
     }
 
-    public GridButton(List<IBUTTONN> buttons, int startPosition, int lineLenght, int height)
+    public GridButton(List<IMenuButton> buttons, int startPosition, int lineLenght, int height)
     {
         _startPosition = startPosition;
         _lineLenght = lineLenght;
@@ -85,7 +85,7 @@ public class GridButton implements IGrid
             int row = (i / getLength()) % _height;
             int column = i % getLength();
             int slot = _startPosition + (row * 9) + column;
-            IBUTTONN button = createPlaceholderButton(slot);
+            IMenuButton button = createPlaceholderButton(slot);
             _buttonHandler.addButton(button);
             _buttonHandler.updateButton(button);
         }*/
@@ -112,10 +112,10 @@ public class GridButton implements IGrid
         return ItemUtils.HasTag(item, "empty");
     }
 
-    private void loadButtons(List<IBUTTONN> buttons)
+    private void loadButtons(List<IMenuButton> buttons)
     {
         ArrayList<ItemStack> stacks = new ArrayList<>();
-        for(IBUTTONN button : buttons)
+        for(IMenuButton button : buttons)
         {
             stacks.add(button.getItemStack());
         }
@@ -128,7 +128,7 @@ public class GridButton implements IGrid
         {
             int row = (i / getLength()) % _height;
             int column = i % getLength();
-            IBUTTONN button = i < buttons.size() ? buttons.get(i) : createPlaceholderButton(0);
+            IMenuButton button = i < buttons.size() ? buttons.get(i) : createPlaceholderButton(0);
 
             loadButton(column, row, button);
         }
@@ -141,13 +141,13 @@ public class GridButton implements IGrid
             int row = (i / getLength()) % _height;
             int column = i % getLength();
             int slot = _startPosition + (row * 9) + column;
-            IBUTTONN button = createPlaceholderButton(slot);
+            IMenuButton button = createPlaceholderButton(slot);
             _buttonHandler.addButton(button);
             _buttonHandler.updateButton(button);
         }
     }
 
-    private void loadButton(int column, int row, IBUTTONN button)
+    private void loadButton(int column, int row, IMenuButton button)
     {
         int slot = _startPosition + (row * 9) + column;
         //GridButtonPart buttonPart = new GridButtonPart(button, this);
@@ -163,7 +163,7 @@ public class GridButton implements IGrid
         _parts.add(buttonPart);
     }*/
 
-    private IBUTTONN createPlaceholderButton(int slot)
+    private IMenuButton createPlaceholderButton(int slot)
     {
         //return new GridButtonPart(slot,getEmptyStack(), this);
         return new Button(slot, getEmptyStack());
@@ -222,20 +222,20 @@ public class GridButton implements IGrid
         if (offset == 1)
         {
             // Shift left - move the last item to the front
-            IBUTTONN lastPart = _parts.remove(_parts.size() - 1);
+            IMenuButton lastPart = _parts.remove(_parts.size() - 1);
             _parts.add(0, lastPart);
         }
         else if (offset == -1)
         {
             // Shift right - move the first item to the end
-            IBUTTONN firstPart = _parts.remove(0);
+            IMenuButton firstPart = _parts.remove(0);
             _parts.add(firstPart);
         }
 
         // Update positions of parts considering _startPosition
         for (int i = 0; i < _parts.size(); i++)
         {
-            IBUTTONN part = _parts.get(i);
+            IMenuButton part = _parts.get(i);
             int newPosition = calculateNewPosition(i); // calculateNewPosition accounts for _startPosition
             part.setPosition(newPosition);
         }
@@ -293,7 +293,7 @@ public class GridButton implements IGrid
                 break;
             }
 
-            IBUTTONN buttonPart = _parts.get(index);
+            IMenuButton buttonPart = _parts.get(index);
             int slot = buttonPart.getPosition();
 
             if (slot < 0 || slot > 53)
@@ -309,10 +309,10 @@ public class GridButton implements IGrid
 
     public void generateLeftRightButtons(int leftSlot, int rightSlot)
     {
-        IBUTTONN leftButton = getPreviousButton();
+        IMenuButton leftButton = getPreviousButton();
         leftButton.setPosition(leftSlot);
 
-        IBUTTONN rightButton = getNextButton();
+        IMenuButton rightButton = getNextButton();
         rightButton.setPosition(rightSlot);
 
         _buttonHandler.addButton(leftButton);
@@ -320,7 +320,7 @@ public class GridButton implements IGrid
         _buttonHandler.updateButton(leftButton);
         _buttonHandler.updateButton(rightButton);
     }
-    public IBUTTONN getPreviousButton()
+    public IMenuButton getPreviousButton()
     {
         ItemStack stack = new ItemStack(Material.BIRCH_SIGN);
         ItemUtils.SetDisplayName(stack, "&b<< Page");
@@ -331,7 +331,7 @@ public class GridButton implements IGrid
         });
     }
 
-    public IBUTTONN getNextButton()
+    public IMenuButton getNextButton()
     {
         ItemStack stack = new ItemStack(Material.BIRCH_SIGN);
         ItemUtils.SetDisplayName(stack, "&bPage >>");
@@ -342,7 +342,7 @@ public class GridButton implements IGrid
         });
     }
 
-    public IBUTTONN getPreviousSlotButton()
+    public IMenuButton getPreviousSlotButton()
     {
         ItemStack stack = new ItemStack(Material.BIRCH_SIGN);
         ItemUtils.SetDisplayName(stack, "&b<< Scroll");
@@ -353,7 +353,7 @@ public class GridButton implements IGrid
         });
     }
 
-    public IBUTTONN getNextSlotButton()
+    public IMenuButton getNextSlotButton()
     {
         ItemStack stack = new ItemStack(Material.BIRCH_SIGN);
         ItemUtils.SetDisplayName(stack, "&bScroll >>");

@@ -13,7 +13,7 @@ import imu.GS.engine.trade.TradeResult;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -146,7 +146,7 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
         lore.add(" ");
         lore.add(Messages.get("flash.price", "price", Icons.money(offer.getUnitPrice())));
         if (normal > offer.getUnitPrice())
-            lore.add(Messages.get("flash.normally", "normal", Metods.Round(normal), "percent", Math.round((1 - offer.getUnitPrice() / normal) * 100)));
+            lore.add(Messages.get("flash.normally", "normal", Methods.Round(normal), "percent", Math.round((1 - offer.getUnitPrice() / normal) * 100)));
         lore.add(left <= 0 ? Messages.get("flash.sold-out") : Messages.get("flash.left", "amount", left));
         lore.add(Messages.get("flash.can-buy", "amount", canBuy, "limit", offer.getPerPlayerLimit()));
         if (!_peek && canBuy > 0)
@@ -185,9 +185,9 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
         TradeResult result = _service.getTrades().buyFlash(_shop, _customer, _service.getLive().getDeals(), offer.getId(), amount, now);
         switch (result.status())
         {
-            case SUCCESS -> Messages.send(player, "flash.bought", "price", Metods.Round(result.price()),
-                    "balance", Metods.Round(_service.getWallet().balance(player.getUniqueId())));
-            case NOT_ENOUGH_MONEY -> Messages.send(player, "flash.not-enough-money", "price", Metods.Round(offer.getUnitPrice() * amount));
+            case SUCCESS -> Messages.send(player, "flash.bought", "price", Methods.Round(result.price()),
+                    "balance", Methods.Round(_service.getWallet().balance(player.getUniqueId())));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "flash.not-enough-money", "price", Methods.Round(offer.getUnitPrice() * amount));
             case DEAL_OVER -> Messages.send(player, "flash.ended");
             case PAYMENT_FAILED -> Messages.send(player, "flash.payment-failed");
             default ->

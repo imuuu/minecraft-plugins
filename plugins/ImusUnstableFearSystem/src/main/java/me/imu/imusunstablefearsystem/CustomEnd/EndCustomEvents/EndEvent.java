@@ -15,7 +15,7 @@ import org.bukkit.event.Listener;
 import me.imu.imusunstablefearsystem.CustomEnd.EndEvents;
 import me.imu.imusunstablefearsystem.CustomEnd.UnstableEnd;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import net.md_5.bungee.api.ChatColor;
 
 public abstract class EndEvent implements Listener
@@ -112,10 +112,10 @@ public abstract class EndEvent implements Listener
 		player.sendMessage("");
 		player.sendMessage(ChatColor.BLUE+"======================");
 		
-		if(GetEventName() != null) 		player.sendMessage(Metods.msgC("&3Name &2"+GetEventName()));
-		if(_duration >= 0) 		   		player.sendMessage(Metods.msgC("&4Duration: &2"+(int)_duration+" seconds"));
-		if(GetRewardInfo() != null)		player.sendMessage(Metods.msgC("&aReward: &e"+GetRewardInfo()));
-		if(GetDescription() != null) 	player.sendMessage(Metods.msgC("&3Description: &e"+GetDescription())); 
+		if(GetEventName() != null) 		player.sendMessage(Methods.msgC("&3Name &2"+GetEventName()));
+		if(_duration >= 0) 		   		player.sendMessage(Methods.msgC("&4Duration: &2"+(int)_duration+" seconds"));
+		if(GetRewardInfo() != null)		player.sendMessage(Methods.msgC("&aReward: &e"+GetRewardInfo()));
+		if(GetDescription() != null) 	player.sendMessage(Methods.msgC("&3Description: &e"+GetDescription())); 
 		
 		player.sendMessage(ChatColor.BLUE+"======================");
 	}
@@ -143,7 +143,7 @@ public abstract class EndEvent implements Listener
 		if(GetRewardInfo() != null) 
 		{
 			//player.sendMessage(ChatColor.GREEN + "During the event: " + ChatColor.YELLOW + GetRewardInfo());
-			player.sendMessage(Metods.msgC("&After the event: &e"+GetRewardInfo()));
+			player.sendMessage(Methods.msgC("&After the event: &e"+GetRewardInfo()));
 		}
 		/*if(GetDescription() != null) {
 			player.sendMessage();

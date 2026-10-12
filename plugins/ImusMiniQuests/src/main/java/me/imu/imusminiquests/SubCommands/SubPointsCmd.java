@@ -1,7 +1,7 @@
 package me.imu.imusminiquests.SubCommands;
 
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.CONSTANTS;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerQuestPoints;
@@ -54,11 +54,11 @@ public class SubPointsCmd implements CommandInterface
 
         int points = questPoints.getPoints(target);
         String who = target == sender ? "Your" : target.getName() + "'s";
-        sender.sendMessage(Metods.msgC("&6" + who + " quest points: &e" + points
+        sender.sendMessage(Methods.msgC("&6" + who + " quest points: &e" + points
                 + " &8(luck " + ManagerQuestPoints.formatLuck(questPoints.getLuck(points))
                 + ", most " + ManagerQuestPoints.formatLuck(questPoints.getMaxLuck()) + ")"));
-        sender.sendMessage(Metods.msgC("&7Every quest you open gives a point. Luck makes rare rewards,"));
-        sender.sendMessage(Metods.msgC("&7bigger amounts and better tool tiers come up more often."));
+        sender.sendMessage(Methods.msgC("&7Every quest you open gives a point. Luck makes rare rewards,"));
+        sender.sendMessage(Methods.msgC("&7bigger amounts and better tool tiers come up more often."));
         return true;
     }
 

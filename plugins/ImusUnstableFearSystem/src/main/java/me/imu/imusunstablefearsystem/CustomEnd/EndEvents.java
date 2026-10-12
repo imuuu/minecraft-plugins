@@ -53,7 +53,7 @@ import me.imu.imusunstablefearsystem.Events.NetherEvents;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.ExplosionResult;
 
@@ -439,7 +439,7 @@ public class EndEvents implements Listener
 				{
 					Player player = (Player)edbe.getDamager();
 					ItemStack stack = player.getInventory().getItemInMainHand();
-					looting = Metods._ins.GetItemStackEnchantCount(stack, Enchantment.LOOTING);
+					looting = Methods._ins.GetItemStackEnchantCount(stack, Enchantment.LOOTING);
 				}
 				
 			}
@@ -517,7 +517,7 @@ public class EndEvents implements Listener
 	    {
 	       
 	        player.setGliding(false);
-	        player.sendMessage(Metods.msgC("&9Elytra &3flying &cis not allowed during &5EVENTS!"));
+	        player.sendMessage(Methods.msgC("&9Elytra &3flying &cis not allowed during &5EVENTS!"));
 	    }
 	}
 

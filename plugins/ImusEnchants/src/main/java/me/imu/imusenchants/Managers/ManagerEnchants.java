@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Utilities.ItemUtilToolsArmors;
 import imu.iAPI.Utilities.ItemUtilToolsArmors.ArmorMaterial;
 import imu.iAPI.Utilities.ItemUtilToolsArmors.ToolMaterial;
@@ -118,7 +118,7 @@ public class ManagerEnchants
 		if(nodeClass.isInstance(NodeSwapper.class)) return new NodeSwapper();
 		return null;
 	}
-	public boolean IsValidGUIitem(TOUCH_TYPE touchType, EnchantedItem enchantedItem, IBUTTONN button)
+	public boolean IsValidGUIitem(TOUCH_TYPE touchType, EnchantedItem enchantedItem, IMenuButton button)
 	{
 		return IsValidGUIitem(touchType, enchantedItem, button.getItemStack());
 	}
@@ -164,7 +164,7 @@ public class ManagerEnchants
 	//Void stone support from imusVoidStones
 	private static boolean IsVoidUnenchantable(ItemStack stack)
 	{	
-		return ItemUtils.GetPersistenData(stack, "VOID_UNENCHANTABLE", PersistentDataType.INTEGER) != null;
+		return ItemUtils.GetPersistentData(stack, "VOID_UNENCHANTABLE", PersistentDataType.INTEGER) != null;
 	}
 
 	@SuppressWarnings("incomplete-switch")

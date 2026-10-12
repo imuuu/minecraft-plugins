@@ -15,21 +15,6 @@ public class DateParser
 //			new SimpleDateFormat("dd.MM.yyyy"),
 //			new SimpleDateFormat("dd-MM-yyyy"));
 
-//	public static Date ParseDate(String dateString) throws ParseException
-//	{
-//		for (SimpleDateFormat format : DATE_FORMATS)
-//		{
-//			format.setLenient(false);
-//			try
-//			{
-//				return format.parse(dateString);
-//			} catch (ParseException ignored)
-//			{
-//
-//			}
-//		}
-//		throw new ParseException("Invalid date format", 0);
-//	}
 	
 	public static Date ParseDate(String dateString) 
 	{

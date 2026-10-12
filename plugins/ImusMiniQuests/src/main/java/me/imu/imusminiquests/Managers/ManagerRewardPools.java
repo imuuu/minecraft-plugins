@@ -1,6 +1,6 @@
 package me.imu.imusminiquests.Managers;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Quests.Luck;
 import me.imu.imusminiquests.Quests.QuestReward;
@@ -63,7 +63,7 @@ public class ManagerRewardPools
                 continue;
             }
 
-            _tiers.add(new RewardTier(name, Metods.msgC(section.getString("display", name)), weight,
+            _tiers.add(new RewardTier(name, Methods.msgC(section.getString("display", name)), weight,
                     section.getBoolean("announce", false), rewards));
         }
     }
@@ -103,7 +103,7 @@ public class ManagerRewardPools
         sorted.sort((a, b) -> Integer.compare(b.weight(), a.weight()));
         return sorted.size() == 1
                 ? sorted.getFirst().display()
-                : sorted.getFirst().display() + Metods.msgC(" &8to ") + sorted.getLast().display();
+                : sorted.getFirst().display() + Methods.msgC(" &8to ") + sorted.getLast().display();
     }
 
     /** Chance of a tier in percent at the given luck, for the reward list in /imq menu. */

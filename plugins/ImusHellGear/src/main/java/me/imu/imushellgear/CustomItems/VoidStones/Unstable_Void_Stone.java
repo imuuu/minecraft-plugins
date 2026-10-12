@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems.VoidStones;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ import me.imu.imushellgear.CustomItems.CustomItem;
 import me.imu.imushellgear.Enums.VOID_STONE_TIER;
 import me.imu.imushellgear.Enums.VOID_STONE_TYPE;
 import me.imu.imushellgear.Managers.Manager_VoidStones;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 
 public class Unstable_Void_Stone extends Void_Stone
@@ -62,7 +63,7 @@ public class Unstable_Void_Stone extends Void_Stone
 		lores.add("");
 		lores.add("&9After use the item will be");
 		lores.add("&4unenchantable &9and &4Anvil'able");
-		Metods._ins.addLore(stack, lores);
+		ItemUtils.AddLore(stack, lores);
 		return stack;
 
 	}
@@ -71,7 +72,7 @@ public class Unstable_Void_Stone extends Void_Stone
 		Set_tier(VOID_STONE_TIER.NORMAL);
 		ItemStack stack = GetItemStack();
 		stack = SetBaseLore(stack, 1);
-		Metods._ins.AddGlow(stack);
+		ItemUtils.AddGlow(stack);
 
 		return stack;
 	}
@@ -82,7 +83,7 @@ public class Unstable_Void_Stone extends Void_Stone
 		ItemStack stack =  GetItemStack();
 
 		stack = SetBaseLore(stack, 2);
-		Metods._ins.AddGlow(stack);
+		ItemUtils.AddGlow(stack);
 		return stack;
 	}
 	
@@ -99,7 +100,7 @@ public class Unstable_Void_Stone extends Void_Stone
 		}
 		
 		boolean positive = ThreadLocalRandom.current().nextInt(100) < 50;
-		HashMap<Enchantment, Integer> data = Metods._ins.GetEnchantsWithLevels(stack);
+		HashMap<Enchantment, Integer> data = ItemUtils.GetEnchantsWithLevels(stack);
 		
 		Enchantment[] ench = new Enchantment[data.size()];
 		

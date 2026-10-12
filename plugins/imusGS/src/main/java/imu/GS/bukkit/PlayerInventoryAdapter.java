@@ -1,5 +1,6 @@
 package imu.GS.bukkit;
 
+import imu.iAPI.Utilities.ItemUtils;
 import imu.GS.engine.ItemCategory;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.customer.CustomerInventory;
@@ -69,9 +70,9 @@ public class PlayerInventoryAdapter implements CustomerInventory
 
     public static ItemCategory category(ItemStack stack)
     {
-        if (ImusAPI._metods.isShulkerBox(stack))
+        if (ItemUtils.IsShulkerBox(stack))
             return ItemCategory.SHULKER_BOX;
-        if (ImusAPI._metods.isArmor(stack) || ImusAPI._metods.isTool(stack))
+        if (ItemUtils.IsArmor(stack) || ItemUtils.IsTool(stack))
             return ItemCategory.GEAR;
         return ItemCategory.BLOCKS;
     }

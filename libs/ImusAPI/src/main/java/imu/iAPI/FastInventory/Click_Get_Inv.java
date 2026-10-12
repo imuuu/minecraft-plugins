@@ -1,9 +1,10 @@
 package imu.iAPI.FastInventory;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -14,6 +15,10 @@ import org.bukkit.inventory.ItemStack;
 import imu.iAPI.Interfaces.IButton;
 import imu.iAPI.Main.ImusAPI;
 
+/**
+ * @deprecated the old inventory system; new menus use {@link imu.iAPI.InvUtil.CustomInventory}
+ */
+@Deprecated
 public class Click_Get_Inv extends CustomInvLayout
 {
 	public ArrayList<ItemStack> _stacks;
@@ -56,10 +61,10 @@ public class Click_Get_Inv extends CustomInvLayout
 			int amount = 1;
 			
 			if(		e.getClick() == ClickType.RIGHT 
-					&& !Metods._ins.isArmor(stack)
-					&& !Metods._ins.isTool(stack)) amount = 64;
+					&& !ItemUtils.IsArmor(stack)
+					&& !ItemUtils.IsTool(stack)) amount = 64;
 			
-			Metods._ins.InventoryAddItemOrDrop(stack, _player, amount);
+			Methods._ins.InventoryAddItemOrDrop(stack, _player, amount);
 			return;
 
 		case NONE:
@@ -99,7 +104,7 @@ public class Click_Get_Inv extends CustomInvLayout
 	@Override
 	public void setupButtons()
 	{
-		ItemStack empty = Metods.setDisplayName(new ItemStack(Material.PURPLE_STAINED_GLASS_PANE), " ");
+		ItemStack empty = ItemUtils.SetDisplayName(new ItemStack(Material.PURPLE_STAINED_GLASS_PANE), " ");
 		boolean needPages = _stacks.size() >= 6*9-9 && _stacks.size() > 9;
 		int theSize = needPages ? 6*9-9 : _size;
 		for (int i = 0; i < theSize; i++)
@@ -118,7 +123,7 @@ public class Click_Get_Inv extends CustomInvLayout
 		
 		if(!needPages) return;
 		
-		ItemStack redLine = Metods.setDisplayName(new ItemStack(Material.RED_STAINED_GLASS_PANE), " ");
+		ItemStack redLine = ItemUtils.SetDisplayName(new ItemStack(Material.RED_STAINED_GLASS_PANE), " ");
 		for(int i = 0 ; i < 9; i++)
 		{
 			
@@ -128,8 +133,8 @@ public class Click_Get_Inv extends CustomInvLayout
 		
 		int indicator = _currentPage % (9-2);
 		setupButton(BUTTON.NONE, Material.END_CRYSTAL, " ", _size-8+indicator);
-		setupButton(BUTTON.GO_LEFT, Material.DARK_OAK_SIGN, Metods.msgC("&9<< Next"), _size-9);
-		setupButton(BUTTON.GO_RIGHT, Material.DARK_OAK_SIGN, Metods.msgC("&9Next >>"), _size-1);
+		setupButton(BUTTON.GO_LEFT, Material.DARK_OAK_SIGN, Methods.msgC("&9<< Next"), _size-9);
+		setupButton(BUTTON.GO_RIGHT, Material.DARK_OAK_SIGN, Methods.msgC("&9Next >>"), _size-1);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package imu.imusSpawners.Other;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
@@ -12,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.imusSpawners.Managers.Manager_Spawners;
 
 public class CustomSpawner
@@ -62,10 +63,10 @@ public class CustomSpawner
 	public ItemStack GetSpawnerItemStack()
 	{
 		ItemStack stack = new ItemStack(Material.SPAWNER);
-		Metods.setDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + _entityType.toString());
-		ImusAPI._metods.setPersistenData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING, _entityType.toString());
+		ItemUtils.SetDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + _entityType.toString());
+		Methods._ins.setPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING, _entityType.toString());
 		
-		if(_uuid != null) ImusAPI._metods.setPersistenData(stack, PD_OWNER_UUID, PersistentDataType.STRING, _uuid.toString());
+		if(_uuid != null) Methods._ins.setPersistentData(stack, PD_OWNER_UUID, PersistentDataType.STRING, _uuid.toString());
 		
 		return stack;
 	}

@@ -4,7 +4,7 @@ package imu.imusSpawners.main;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.imusSpawners.Commands.ExampleCmd;
 import imu.imusSpawners.Events.SpawnerEvents;
 import imu.imusSpawners.Managers.Manager_Spawners;

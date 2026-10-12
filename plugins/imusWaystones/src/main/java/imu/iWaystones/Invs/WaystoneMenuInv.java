@@ -1,5 +1,6 @@
 package imu.iWaystones.Invs;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import imu.iAPI.Interfaces.IButton;
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 import imu.iWaystone.Upgrades.PlayerUpgradePanel;
 import imu.iWaystone.Waystones.Waystone;
@@ -50,19 +51,19 @@ public class WaystoneMenuInv extends CustomInvLayout {
 		
 		if(!_waystone.IsEnable())
 		{
-			_player.sendMessage(Metods.msgC("&cWaystone is Disabled!"));
+			_player.sendMessage(Methods.msgC("&cWaystone is Disabled!"));
 			return;
 		}
 		
 		if(_waystone.GetVisibilityType() == VISIBILITY_TYPE.TO_ALL_ONE_WAY)
 		{
-			_player.sendMessage(Metods.msgC("&eThis Waystone is unable to teleport other Waystones"));
+			_player.sendMessage(Methods.msgC("&eThis Waystone is unable to teleport other Waystones"));
 			return;
 		}
 		
 		if(_waystone.IsCooldown(_player)) 
 		{
-			_player.sendMessage(Metods.msgC("&eYou have cooldown => "+_waystone.GetCooldown(_player)));
+			_player.sendMessage(Methods.msgC("&eYou have cooldown => "+_waystone.GetCooldown(_player)));
 			return;
 		}
 		
@@ -231,7 +232,7 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	{
 		if(!_wManager.IsValid(_wManager.GetWaystone(_waystone.GetUUID())))
 		{
-			_player.sendMessage(Metods.msgC("&cThe waystone isn't valid!"));
+			_player.sendMessage(Methods.msgC("&cThe waystone isn't valid!"));
 			_wManager.RemoveWaystone(_waystone.GetUUID());
 			_player.closeInventory();
 			return false;
@@ -241,24 +242,24 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	
 	private void Teleporting(ItemStack currentItem) 
 	{
-		UUID uuid_ws = UUID.fromString(Metods._ins.getPersistenData(currentItem, "iwm", PersistentDataType.STRING));
+		UUID uuid_ws = UUID.fromString(Methods._ins.getPersistentData(currentItem, "iwm", PersistentDataType.STRING));
 		Waystone ws = _wManager.GetWaystone(uuid_ws);
 		
 		if(ws == null)
 		{
-			_player.sendMessage(Metods.msgC("&cTarget waystone doesn't exist!"));
+			_player.sendMessage(Methods.msgC("&cTarget waystone doesn't exist!"));
 			return;
 		}
 		
 		if(!_wManager.IsValid(ws))
 		{
-			_player.sendMessage(Metods.msgC("&3Target Waystone &4isn't Valid!"));
+			_player.sendMessage(Methods.msgC("&3Target Waystone &4isn't Valid!"));
 			return;
 		}
 		
 		if(!_waystone.HasEnoughExpToTeleport(_player))
 		{
-			_player.sendMessage(Metods.msgC("&3You don't have enough &2xp &3to teleport"));
+			_player.sendMessage(Methods.msgC("&3You don't have enough &2xp &3to teleport"));
 			return;
 		}
 		
@@ -303,41 +304,41 @@ public class WaystoneMenuInv extends CustomInvLayout {
 			 setupButton(BUTTON.REMOVE, Material.LAVA_BUCKET, "&eRemove This Waystone", _size-3);
 			 
 			 ItemStack stack = new ItemStack(Material.SPYGLASS);
-			 Metods.setDisplayName(stack, "&eModify Visibility");
+			 ItemUtils.SetDisplayName(stack, "&eModify Visibility");
 			 ArrayList<String> lores = new ArrayList<String>();
 			 lores.add(" ");
 			 lores.add("&9Current: &2"+_waystone.GetVisibilityType().toString());
-			 _metods.addLore(stack, lores);
+			 ItemUtils.AddLore(stack, lores);
 			 
 			 SetButton(stack, BUTTON.VISIBILITY_TYPE);
 			 SetITEM(_size-7, stack);
 			 
 			 stack = new ItemStack(Material.BEDROCK);
-			 Metods.setDisplayName(stack, "&eUnbreakable");
+			 ItemUtils.SetDisplayName(stack, "&eUnbreakable");
 			 lores = new ArrayList<String>();
 			 lores.add(" ");
 			 lores.add("&9Current: &2"+_waystone.IsUnbreakable());
-			 _metods.addLore(stack, lores);
+			 ItemUtils.AddLore(stack, lores);
 			 
 			 SetButton(stack, BUTTON.UNBREAKABLE);
 			 SetITEM(_size-8, stack);
 			 
 			 stack = new ItemStack(Material.NETHER_STAR);
-			 Metods.setDisplayName(stack, "&eMax out");
+			 ItemUtils.SetDisplayName(stack, "&eMax out");
 			 lores = new ArrayList<String>();
 			 lores.add(" ");
 			 lores.add("&9Current: &2"+_waystone.IsMaxOut());
-			 _metods.addLore(stack, lores);
+			 ItemUtils.AddLore(stack, lores);
 			 
 			 SetButton(stack, BUTTON.MAX_OUT);
 			 SetITEM(_size-6, stack);
 			 
 			 stack = new ItemStack(Material.BARRIER);
-			 Metods.setDisplayName(stack, "&eEnable");
+			 ItemUtils.SetDisplayName(stack, "&eEnable");
 			 lores = new ArrayList<String>();
 			 lores.add(" ");
 			 lores.add("&9Current: &2"+_waystone.IsEnable());
-			 _metods.addLore(stack, lores);
+			 ItemUtils.AddLore(stack, lores);
 			 
 			 SetButton(stack, BUTTON.SET_ENABLE);
 			 SetITEM(_size-2, stack);
@@ -348,7 +349,7 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	
 	Waystone GetWaystoneFromButton(ItemStack stack)
 	{
-		return _wManager.GetWaystone(UUID.fromString(Metods._ins.getPersistenData(stack, "iwm" ,PersistentDataType.STRING)));
+		return _wManager.GetWaystone(UUID.fromString(Methods._ins.getPersistentData(stack, "iwm" ,PersistentDataType.STRING)));
 	}
 	
 	void LoadWaystonesAsync()
@@ -365,9 +366,9 @@ public class WaystoneMenuInv extends CustomInvLayout {
 					Waystone ws = _discoveredWaystones.get(idx);
 
 					ItemStack stack = ws.GetDisplayItem().clone();
-					Metods.setDisplayName(stack, ws.GetName());
-					Metods._ins.SetLores(stack, new String[] {"&7(&eClick&7)&2 to start &bTeleporting"}, false);
-					Metods._ins.setPersistenData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
+					ItemUtils.SetDisplayName(stack, ws.GetName());
+					ItemUtils.SetLores(stack, new String[] {"&7(&eClick&7)&2 to start &bTeleporting"}, false);
+					Methods._ins.setPersistentData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
 					SetButton(stack, BUTTON.WAYSTONE);
 					_inv.setItem(i, stack);
 				}

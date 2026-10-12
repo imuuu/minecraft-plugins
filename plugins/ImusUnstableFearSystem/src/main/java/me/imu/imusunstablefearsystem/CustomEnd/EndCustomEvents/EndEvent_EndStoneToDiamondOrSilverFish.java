@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
 import me.imu.imusunstablefearsystem.CustomEnd.EndEvents;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public class EndEvent_EndStoneToDiamondOrSilverFish extends EndEvent
 {
@@ -34,7 +34,7 @@ public class EndEvent_EndStoneToDiamondOrSilverFish extends EndEvent
 		
 		for(Player p : GetPlayers())
 		{	
-			Metods._ins.InventoryAddItemOrDrop(stack.clone(), p);
+			Methods._ins.InventoryAddItemOrDrop(stack.clone(), p);
 		}
 	}
 

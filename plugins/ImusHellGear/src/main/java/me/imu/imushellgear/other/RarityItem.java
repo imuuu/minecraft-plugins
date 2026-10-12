@@ -1,5 +1,6 @@
 package me.imu.imushellgear.other;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 
 import org.bukkit.ChatColor;
@@ -11,7 +12,7 @@ import me.imu.imushellgear.Enums.CATEGORY;
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import imu.iAPI.FastInventory.Fast_Inventory;
 import imu.iAPI.FastInventory.Manager_FastInventories;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public class RarityItem extends CustomItem
 {
@@ -33,8 +34,8 @@ public class RarityItem extends CustomItem
 	public ItemStack GetItemStack()
 	{
 		ItemStack stack = Get_stack().clone();
-		Metods.setDisplayName(stack, GetColor(Rarity)+" "+Get_displayName());
-		Metods._ins.setPersistenData(stack, _PD_HELL_TIER, PersistentDataType.STRING, Rarity.toString());
+		ItemUtils.SetDisplayName(stack, GetColor(Rarity)+" "+Get_displayName());
+		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, Rarity.toString());
 		return stack;
 	}
 	
@@ -59,7 +60,7 @@ public class RarityItem extends CustomItem
 	
 	public static ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		String data  = Metods._ins.getPersistenData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
+		String data  = Methods._ins.getPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
 		
 		if(data == null) return ITEM_RARITY.Common;
 		

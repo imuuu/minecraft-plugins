@@ -69,12 +69,12 @@ public class XpUtil
 		player.setExp(0);
 		
 		double fullLevel = Math.floor(level);
-		double leftProsent = level - fullLevel;
+		double leftPercent = level - fullLevel;
 
 		int xpToNextLevel = GetExpToNext((int)fullLevel);
 
 		player.setLevel((int)fullLevel);
 		
-		player.giveExp((int)(xpToNextLevel * leftProsent));
+		player.giveExp((int)(xpToNextLevel * leftPercent));
 	}
 }

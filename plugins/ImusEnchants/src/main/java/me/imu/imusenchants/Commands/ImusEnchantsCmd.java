@@ -1,6 +1,6 @@
 package me.imu.imusenchants.Commands;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.ImusEnchants;
@@ -195,9 +195,9 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		if (args[0].equalsIgnoreCase("config"))
 		{
 			if (!sender.hasPermission(PERMISSION_ADMIN))
-				sender.sendMessage(Metods.msgC("&cNo permission!"));
+				sender.sendMessage(Methods.msgC("&cNo permission!"));
 			else if (!(sender instanceof Player))
-				sender.sendMessage(Metods.msgC("&cOnly players can open the settings, use &e/" + label + " reload &cafter editing config.yml"));
+				sender.sendMessage(Methods.msgC("&cOnly players can open the settings, use &e/" + label + " reload &cafter editing config.yml"));
 			else
 				ImusEnchants.Instance.GetSettingsMenu().open((Player) sender);
 			return true;
@@ -207,20 +207,20 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		{
 			if (!sender.hasPermission(PERMISSION_ADMIN))
 			{
-				sender.sendMessage(Metods.msgC("&cNo permission!"));
+				sender.sendMessage(Methods.msgC("&cNo permission!"));
 				return true;
 			}
 			ImusEnchants.Instance.ReloadConfig();
-			sender.sendMessage(Metods.msgC("&aImusEnchants config.yml reloaded"));
+			sender.sendMessage(Methods.msgC("&aImusEnchants config.yml reloaded"));
 			return true;
 		}
 
 		if (args[0].equalsIgnoreCase("admin"))
 		{
 			if (!sender.hasPermission(PERMISSION_ADMIN))
-				sender.sendMessage(Metods.msgC("&cNo permission!"));
+				sender.sendMessage(Methods.msgC("&cNo permission!"));
 			else if (!(sender instanceof Player))
-				sender.sendMessage(Metods.msgC("&cOnly players can open the admin menu"));
+				sender.sendMessage(Methods.msgC("&cOnly players can open the admin menu"));
 			else
 				new InventoryEnchantAdmin().open((Player) sender);
 			return true;
@@ -232,7 +232,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
-		sender.sendMessage(Metods.msgC("&cUnknown command. Use &e/" + label + " help"));
+		sender.sendMessage(Methods.msgC("&cUnknown command. Use &e/" + label + " help"));
 		return true;
 	}
 
@@ -273,13 +273,13 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 
 	private void SendOverview(CommandSender sender, String label)
 	{
-		sender.sendMessage(Metods.msgC(String.format(HEADER, "Help")));
-		sender.sendMessage(Metods.msgC("&7Give your gear &6enchant slots &7and build enchants"));
-		sender.sendMessage(Metods.msgC("&7from books and boosters on a grid."));
-		sender.sendMessage(Metods.msgC("&dQuick start: &7find a &dSlot Core &8→ &7click it on a tool"));
-		sender.sendMessage(Metods.msgC("&8→ &7right-click an &eenchanting table &7while holding the tool."));
+		sender.sendMessage(Methods.msgC(String.format(HEADER, "Help")));
+		sender.sendMessage(Methods.msgC("&7Give your gear &6enchant slots &7and build enchants"));
+		sender.sendMessage(Methods.msgC("&7from books and boosters on a grid."));
+		sender.sendMessage(Methods.msgC("&dQuick start: &7find a &dSlot Core &8→ &7click it on a tool"));
+		sender.sendMessage(Methods.msgC("&8→ &7right-click an &eenchanting table &7while holding the tool."));
 		sender.sendMessage("");
-		sender.sendMessage(Metods.msgC("&7Topics &8(&7click or type &e/" + label + " help <topic>&8)&7:"));
+		sender.sendMessage(Methods.msgC("&7Topics &8(&7click or type &e/" + label + " help <topic>&8)&7:"));
 
 		for (Map.Entry<String, HelpTopic> entry : _topics.entrySet())
 		{
@@ -292,13 +292,13 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		if (sender.hasPermission(PERMISSION_ADMIN))
 		{
 			sender.sendMessage("");
-			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
-			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
-			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " admin &8- &7switch enchants on/off server wide"));
-			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " config &8- &7change settings"));
-			sender.sendMessage(Metods.msgC("&cAdmin: &e/" + label + " reload &8- &7re-read config.yml"));
+			sender.sendMessage(Methods.msgC("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
+			sender.sendMessage(Methods.msgC("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
+			sender.sendMessage(Methods.msgC("&cAdmin: &e/" + label + " admin &8- &7switch enchants on/off server wide"));
+			sender.sendMessage(Methods.msgC("&cAdmin: &e/" + label + " config &8- &7change settings"));
+			sender.sendMessage(Methods.msgC("&cAdmin: &e/" + label + " reload &8- &7re-read config.yml"));
 		}
-		sender.sendMessage(Metods.msgC(FOOTER));
+		sender.sendMessage(Methods.msgC(FOOTER));
 	}
 
 	private void SendTopic(CommandSender sender, String label, String key)
@@ -306,34 +306,34 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		HelpTopic topic = _topics.get(key);
 		if (topic == null)
 		{
-			sender.sendMessage(Metods.msgC("&cUnknown topic &e" + key + "&c. Topics: &e" + String.join(", ", _topics.keySet())));
+			sender.sendMessage(Methods.msgC("&cUnknown topic &e" + key + "&c. Topics: &e" + String.join(", ", _topics.keySet())));
 			return;
 		}
 
-		sender.sendMessage(Metods.msgC(String.format(HEADER, topic.Title)));
+		sender.sendMessage(Methods.msgC(String.format(HEADER, topic.Title)));
 		for (String line : topic.Lines)
 		{
-			sender.sendMessage(Metods.msgC(line));
+			sender.sendMessage(Methods.msgC(line));
 		}
 
 		if (key.equals("custom"))
 			SendCustomEnchantList(sender, label);
 
 		SendClickable(sender, "&8« &7Back to all topics", "/" + label + " help", "&7Show all topics");
-		sender.sendMessage(Metods.msgC(FOOTER));
+		sender.sendMessage(Methods.msgC(FOOTER));
 	}
 
 	private void SendClickable(CommandSender sender, String text, String command, String hover)
 	{
 		if (!(sender instanceof Player))
 		{
-			sender.sendMessage(Metods.msgC(text));
+			sender.sendMessage(Methods.msgC(text));
 			return;
 		}
 
-		TextComponent component = new TextComponent(TextComponent.fromLegacyText(Metods.msgC(text)));
+		TextComponent component = new TextComponent(TextComponent.fromLegacyText(Methods.msgC(text)));
 		component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
-		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Metods.msgC(hover))));
+		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Methods.msgC(hover))));
 		((Player) sender).spigot().sendMessage(component);
 	}
 
@@ -341,7 +341,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 	{
 		if (!sender.hasPermission(PERMISSION_ADMIN))
 		{
-			sender.sendMessage(Metods.msgC("&cNo permission!"));
+			sender.sendMessage(Methods.msgC("&cNo permission!"));
 			return;
 		}
 
@@ -351,7 +351,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			target = Bukkit.getPlayerExact(args[1]);
 			if (target == null)
 			{
-				sender.sendMessage(Metods.msgC("&cPlayer not found: " + args[1]));
+				sender.sendMessage(Methods.msgC("&cPlayer not found: " + args[1]));
 				return;
 			}
 		}
@@ -361,7 +361,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		}
 		else
 		{
-			sender.sendMessage(Metods.msgC("&e/" + label + " core <player> [amount]"));
+			sender.sendMessage(Methods.msgC("&e/" + label + " core <player> [amount]"));
 			return;
 		}
 
@@ -374,26 +374,26 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			}
 			catch (NumberFormatException e)
 			{
-				sender.sendMessage(Metods.msgC("&cInvalid amount: " + args[2]));
+				sender.sendMessage(Methods.msgC("&cInvalid amount: " + args[2]));
 				return;
 			}
 		}
 
 		InvUtil.AddItemToInventoryOrDrop(target, SlotCore.Create(amount));
-		sender.sendMessage(Metods.msgC("&dGave &6" + amount + " &dSlot Core(s) to &e" + target.getName()));
+		sender.sendMessage(Methods.msgC("&dGave &6" + amount + " &dSlot Core(s) to &e" + target.getName()));
 	}
 
 	private void GiveBook(CommandSender sender, String label, String[] args)
 	{
 		if (!sender.hasPermission(PERMISSION_ADMIN))
 		{
-			sender.sendMessage(Metods.msgC("&cNo permission!"));
+			sender.sendMessage(Methods.msgC("&cNo permission!"));
 			return;
 		}
 
 		if (args.length < 2)
 		{
-			sender.sendMessage(Metods.msgC("&e/" + label + " book <enchant> [level] [player]"));
+			sender.sendMessage(Methods.msgC("&e/" + label + " book <enchant> [level] [player]"));
 			return;
 		}
 
@@ -402,7 +402,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		{
 			List<String> keys = new ArrayList<>();
 			CustomEnchantRegistry.GetAll().forEach(e -> keys.add(e.GetKey()));
-			sender.sendMessage(Metods.msgC("&cUnknown enchant &e" + args[1] + "&c. Enchants: &e" + String.join(", ", keys)));
+			sender.sendMessage(Methods.msgC("&cUnknown enchant &e" + args[1] + "&c. Enchants: &e" + String.join(", ", keys)));
 			return;
 		}
 
@@ -415,7 +415,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			}
 			catch (NumberFormatException e)
 			{
-				sender.sendMessage(Metods.msgC("&cInvalid level: " + args[2]));
+				sender.sendMessage(Methods.msgC("&cInvalid level: " + args[2]));
 				return;
 			}
 		}
@@ -426,7 +426,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			target = Bukkit.getPlayerExact(args[3]);
 			if (target == null)
 			{
-				sender.sendMessage(Metods.msgC("&cPlayer not found: " + args[3]));
+				sender.sendMessage(Methods.msgC("&cPlayer not found: " + args[3]));
 				return;
 			}
 		}
@@ -436,12 +436,12 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		}
 		else
 		{
-			sender.sendMessage(Metods.msgC("&e/" + label + " book <enchant> <level> <player>"));
+			sender.sendMessage(Methods.msgC("&e/" + label + " book <enchant> <level> <player>"));
 			return;
 		}
 
 		InvUtil.AddItemToInventoryOrDrop(target, CustomEnchantBook.Create(enchant, level));
-		sender.sendMessage(Metods.msgC("&dGave &e" + enchant.GetDisplayName(level) + " &dbook to &e" + target.getName()));
+		sender.sendMessage(Methods.msgC("&dGave &e" + enchant.GetDisplayName(level) + " &dbook to &e" + target.getName()));
 	}
 
 	private static String SlotRange(String name, MATERIAL_SLOT_RANGE range)

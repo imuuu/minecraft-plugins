@@ -1,12 +1,13 @@
 package me.imu.imushellgear.CustomItems.RarityItems;
 
 
+import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public class Hell_Boots extends RarityItem
 {
@@ -43,11 +44,11 @@ public class Hell_Boots extends RarityItem
 		
 		if(Rarity == ITEM_RARITY.Void)
 		{
-			Metods.setDisplayName(stack, "&0"+Rarity.toString()+"&4 Boots");
+			ItemUtils.SetDisplayName(stack, "&0"+Rarity.toString()+"&4 Boots");
 		}
 		else
 		{
-			Metods.setDisplayName(stack, "&4"+Rarity.toString()+"&4 Boots");
+			ItemUtils.SetDisplayName(stack, "&4"+Rarity.toString()+"&4 Boots");
 		}
 		
 		return stack;

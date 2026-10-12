@@ -9,7 +9,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
@@ -77,7 +77,7 @@ public class NodeEnchant extends Node
 				if (!enchant.canEnchantItem(new ItemStack(enchantedItem.GetItemStack().getType())))
 				{
 					if (enchantedItem.GetPlayer() != null)
-						enchantedItem.GetPlayer().sendMessage(Metods.msgC("&cThis enchant doesn't work on this item!"));
+						enchantedItem.GetPlayer().sendMessage(Methods.msgC("&cThis enchant doesn't work on this item!"));
 					return false;
 				}
 

@@ -5,7 +5,7 @@ import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.StringPrompt;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Interfaces.IModDataInv;
 import imu.iWaystone.Interfaces.IModDataValues;
 import imu.iWaystones.Enums.ConvUpgradeModData;
@@ -50,7 +50,7 @@ public class ConvUpgrade extends StringPrompt
 
 	@Override
 	public String getPromptText(ConversationContext arg0) {
-		return Metods.msgC(_question);
+		return Methods.msgC(_question);
 	}
 
 }

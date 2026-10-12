@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public final class Hell_ThrowingAxe_Controller
 {
@@ -138,26 +139,26 @@ public final class Hell_ThrowingAxe_Controller
 		lores.add("&7of demonic armor, making it a fearsome weapon");
 		lores.add("&7for any adventurer daring enough to wield it'");
 
-		Metods._ins.SetLores(stack, lores.toArray(new String[lores.size()]), false);
+		ItemUtils.SetLores(stack, lores.toArray(new String[lores.size()]), false);
 
-		Metods._ins.setPersistenData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex());
+		Methods._ins.setPersistentData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex());
 
 		return stack;
 	}
 
 	public boolean IsHellAxe(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Metods._ins.getPersistenData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER));
 	}
 	
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER);
+		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_AXE, PersistentDataType.INTEGER);
 		if(i == null ) return false;
 		
 		if(i == tier.GetIndex()) return true;
@@ -167,7 +168,7 @@ public final class Hell_ThrowingAxe_Controller
 	
 	public ItemStack RemoveHellAxe(ItemStack stack)
 	{
-		return Metods._ins.removePersistenData(stack, _PD_HELL_AXE);
+		return Methods._ins.removePersistentData(stack, _PD_HELL_AXE);
 	}
 	
 	private void RemoveThrowable(Throwable_Axe td)
@@ -267,7 +268,7 @@ public final class Hell_ThrowingAxe_Controller
 		
 		ITEM_RARITY rarity = RarityItem.GetRarity(stack);
 		Hell_Double_Axe axe = (Hell_Double_Axe)GetRarityItem(rarity);
-		Metods._ins.setPersistenData(armorStand, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex() );
+		Methods._ins.setPersistentData(armorStand, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex() );
 		
 		double throwForce = axe.GetThrowForce();
 		Location endLoc = player.getLocation().add(player.getLocation().getDirection().normalize().multiply(throwForce));
@@ -281,7 +282,7 @@ public final class Hell_ThrowingAxe_Controller
 	   
 		projectile.setVelocity(dir.clone().multiply(throwForce));
 
-		Metods._ins.setPersistenData(projectile, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex() );
+		Methods._ins.setPersistentData(projectile, _PD_HELL_AXE, PersistentDataType.INTEGER, rarity.GetIndex() );
 		Projectile extra = LaunchExtraSnowball(player, throwForce);
 		
 		td.Projectile_AxePos = extra;
@@ -336,7 +337,7 @@ public final class Hell_ThrowingAxe_Controller
 		Projectile prot = e.getEntity();
 		if(!(prot instanceof Snowball)) return;
 		
-		Integer rarityIndex = Metods._ins.getPersistenData(prot, _PD_HELL_AXE, PersistentDataType.INTEGER);
+		Integer rarityIndex = Methods._ins.getPersistentData(prot, _PD_HELL_AXE, PersistentDataType.INTEGER);
 		if(rarityIndex == null) return;
 		
 		

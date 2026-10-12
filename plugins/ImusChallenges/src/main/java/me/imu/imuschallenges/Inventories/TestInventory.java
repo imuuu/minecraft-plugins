@@ -3,7 +3,7 @@ package me.imu.imuschallenges.Inventories;
 
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Enums.LINE_DIRECTION;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
 import me.imu.imuschallenges.ImusChallenges;
 import org.bukkit.Material;
@@ -84,30 +84,30 @@ public class TestInventory extends CustomInventory
        /* LineButton lineButton = new LineButton(getButtonHandler(), 1, 6, items, LINE_DIRECTION.VERTICAL);
         lineButton.update();
 
-        IBUTTONN nextButton = lineButton.getNextSlotButton();
+        IMenuButton nextButton = lineButton.getNextSlotButton();
         nextButton.setPosition(53);
         addButton(nextButton);
 
-        IBUTTONN prevButton = lineButton.getPreviousSlotButton();
+        IMenuButton prevButton = lineButton.getPreviousSlotButton();
         prevButton.setPosition(45);
         addButton(prevButton);*/
 
         /*LineButton lineButton2 = new LineButton(getButtonHandler(), 1, 1, 6,items);
         lineButton2.update();
 
-        IBUTTONN nextButton2 = lineButton2.getNextButton();
+        IMenuButton nextButton2 = lineButton2.getNextButton();
         nextButton2.setPosition(53);
         addButton(nextButton2);
 
-        IBUTTONN prevButton2 = lineButton2.getPreviousButton();
+        IMenuButton prevButton2 = lineButton2.getPreviousButton();
         prevButton2.setPosition(45);
         addButton(prevButton2);
 
-        IBUTTONN nextButton = lineButton2.getNextSlotButton();
+        IMenuButton nextButton = lineButton2.getNextSlotButton();
         nextButton.setPosition(53-9);
         addButton(nextButton);
 
-        IBUTTONN prevButton = lineButton2.getPreviousSlotButton();
+        IMenuButton prevButton = lineButton2.getPreviousSlotButton();
         prevButton.setPosition(45-9);
         addButton(prevButton);*/
 

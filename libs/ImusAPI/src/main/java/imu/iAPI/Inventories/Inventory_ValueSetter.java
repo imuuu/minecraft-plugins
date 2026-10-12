@@ -3,7 +3,7 @@ package imu.iAPI.Inventories;
 import imu.iAPI.Buttons.ButtonWithSelector;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Enums.VALUE_TYPE;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Interfaces.IButtonHandler;
 import imu.iAPI.Interfaces.ICustomInventory;
 import imu.iAPI.InvUtil.CustomInventory;
@@ -75,7 +75,7 @@ public class Inventory_ValueSetter extends CustomInventory
             Button button = new Button(index, stack);
             button.setAction(event ->
             {
-                IBUTTONN thisButton = getButton(button.getUUID());
+                IMenuButton thisButton = getButton(button.getUUID());
                 String name2 = getButtonValueName(value);
                 ItemUtils.SetDisplayName(thisButton.getItemStack(), name2);
                 if(event.isLeftClick())
@@ -96,7 +96,7 @@ public class Inventory_ValueSetter extends CustomInventory
                 {
                     add(value);
                     String name2 = getButtonValueName(value);
-                    IBUTTONN newButton = getButton(index);
+                    IMenuButton newButton = getButton(index);
                     ItemUtils.SetDisplayName(newButton.getItemStack(), name2);
                     newButton.onUpdate();
 
@@ -105,7 +105,7 @@ public class Inventory_ValueSetter extends CustomInventory
                 {
                     add(-value);
                     String name2 = getButtonValueName(value);
-                    IBUTTONN newButton = getButton(index);
+                    IMenuButton newButton = getButton(index);
                     ItemUtils.SetDisplayName(newButton.getItemStack(), name2);
                     newButton.onUpdate();
                 }

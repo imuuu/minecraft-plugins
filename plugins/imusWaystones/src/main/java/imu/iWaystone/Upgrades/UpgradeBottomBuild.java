@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Enums.UpgradeType;
 import imu.iWaystones.Main.ImusWaystones;
@@ -100,7 +100,7 @@ public class UpgradeBottomBuild extends BaseUpgrade
 			@Override
 			public void run() {
 				b.getWorld().getBlockAt(b.getLocation()).setType(_tiers[tierBeforeUpgrade]._cost[0].getType());
-				Metods._ins.dropItem(_tiers[tierBeforeUpgrade-1]._cost[0].clone(), player, false);
+				Methods._ins.dropItem(_tiers[tierBeforeUpgrade-1]._cost[0].clone(), player, false);
 			}
 		}.runTask(ImusWaystones._instance);
 		

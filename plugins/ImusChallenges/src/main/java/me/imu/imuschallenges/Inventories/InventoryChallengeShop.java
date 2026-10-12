@@ -3,10 +3,10 @@ package me.imu.imuschallenges.Inventories;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Buttons.GridButton;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Managers.Manager_Vault;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imuschallenges.CONSTANTS;
 import me.imu.imuschallenges.Database.Tables.TablePlayerShopStats;
@@ -67,23 +67,23 @@ public class InventoryChallengeShop extends CustomInventory
     {
         for (int i = 0; i < getSize(); i++)
         {
-            IBUTTONN button = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
+            IMenuButton button = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
             addButton(button);
         }
 
         ShopTier special = _managerChallengeShop.getSpecial();
-        IBUTTONN button = getEmptyButton(1, Material.BLUE_STAINED_GLASS_PANE);
-        ItemUtils.SetDisplayName(button.getItemStack(), Metods.msgC("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
+        IMenuButton button = getEmptyButton(1, Material.BLUE_STAINED_GLASS_PANE);
+        ItemUtils.SetDisplayName(button.getItemStack(), Methods.msgC("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
         addButton(button);
 
         button = getEmptyButton(1+9*5, Material.BLUE_STAINED_GLASS_PANE);
-        ItemUtils.SetDisplayName(button.getItemStack(), Metods.msgC("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
+        ItemUtils.SetDisplayName(button.getItemStack(), Methods.msgC("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
         addButton(button);
 
         updateButtons(false);
 
         ItemStack stack = getEmptyButton(-1, Material.BLUE_STAINED_GLASS_PANE).getItemStack();
-        ItemUtils.SetDisplayName(stack, Metods.msgC("&9&lResets in &c&l" + _managerChallengeShop.timeLeft(_managerChallengeShop.getNormal())));
+        ItemUtils.SetDisplayName(stack, Methods.msgC("&9&lResets in &c&l" + _managerChallengeShop.timeLeft(_managerChallengeShop.getNormal())));
         ArrayList<ItemStack> items = new ArrayList<>();
         for (int i = 0; i < 4; i++)
         {
@@ -122,7 +122,7 @@ public class InventoryChallengeShop extends CustomInventory
         }
 
         String tierName = tier.isSpecial() ? "&6Special" : "&2Normal";
-        ArrayList<IBUTTONN> buttons = new ArrayList<>();
+        ArrayList<IMenuButton> buttons = new ArrayList<>();
         int boughtSlots = tier.getBoughtSlots(shopStats);
         final int nextSlot = boughtSlots - tier.getDefaultSlots();
 
@@ -132,8 +132,8 @@ public class InventoryChallengeShop extends CustomInventory
             if (i < boughtSlots)
             {
                 ItemStack stack = tier.getItems().get(i).clone();
-                ItemUtils.AddLore(stack, Metods.msgC(" "), true);
-                ItemUtils.AddLore(stack, Metods.msgC("&a&lCost: " + tier.getCosts().get(i) + " &4Challenge points"), true);
+                ItemUtils.AddLore(stack, Methods.msgC(" "), true);
+                ItemUtils.AddLore(stack, Methods.msgC("&a&lCost: " + tier.getCosts().get(i) + " &4Challenge points"), true);
                 Button button = new Button(i, stack, inventoryClickEvent ->
                 {
                     onBuyItem(tier, index);
@@ -143,14 +143,14 @@ public class InventoryChallengeShop extends CustomInventory
             }
 
             ItemStack stack = getEmptyButton(i, Material.PURPLE_STAINED_GLASS_PANE).getItemStack();
-            String displayName = Metods.msgC("&c&lBuy " + tierName + " &9slot");
+            String displayName = Methods.msgC("&c&lBuy " + tierName + " &9slot");
             ItemUtils.SetDisplayName(stack, displayName);
-            ItemUtils.AddLore(stack, Metods.msgC(" "), true);
-            ItemUtils.AddLore(stack, Metods.msgC("&aCost: " + tier.getSlotPrice(nextSlot) + " &2$"), true);
+            ItemUtils.AddLore(stack, Methods.msgC(" "), true);
+            ItemUtils.AddLore(stack, Methods.msgC("&aCost: " + tier.getSlotPrice(nextSlot) + " &2$"), true);
             Button button = new Button(i, stack);
             button.setAction(inventoryClickEvent ->
             {
-                IBUTTONN thisButton = getButton(button.getUUID());
+                IMenuButton thisButton = getButton(button.getUUID());
                 if (inventoryClickEvent.isLeftClick())
                 {
                     ItemUtils.SetDisplayName(thisButton.getItemStack(), displayName + " &6&k#&r &e(Confirm by &bM2)");
@@ -187,7 +187,7 @@ public class InventoryChallengeShop extends CustomInventory
         int cost = tier.getCosts().get(index);
         if (!_managerChallengeShop.canDeliver(item))
         {
-            player.sendMessage(Metods.msgC("&cThis item can't be bought right now!"));
+            player.sendMessage(Methods.msgC("&cThis item can't be bought right now!"));
             return;
         }
 
@@ -202,7 +202,7 @@ public class InventoryChallengeShop extends CustomInventory
             {
                 if (tier.getGeneration() == generation)
                     tier.setBought(uuid, false);
-                player.sendMessage(Metods.msgC("&cYou don't have enough points!"));
+                player.sendMessage(Methods.msgC("&cYou don't have enough points!"));
                 return;
             }
 
@@ -216,7 +216,7 @@ public class InventoryChallengeShop extends CustomInventory
                 return;
             }
             _managerChallengeShop.onGiveItemStack(player, item);
-            player.sendMessage(Metods.msgC("&9You bought an item(s) with &2" + cost + " &6challenge points!"));
+            player.sendMessage(Methods.msgC("&9You bought an item(s) with &2" + cost + " &6challenge points!"));
         });
     }
 
@@ -226,12 +226,12 @@ public class InventoryChallengeShop extends CustomInventory
         int price = tier.getSlotPrice(slotNumber);
         if (!Manager_Vault.takeMoney(player, price))
         {
-            player.sendMessage(Metods.msgC("&cYou don't have enough money!"));
+            player.sendMessage(Methods.msgC("&cYou don't have enough money!"));
             return;
         }
 
         _managerChallengeShop.addSlotsToPlayerShopAsync(player, 1, tier);
         player.closeInventory();
-        player.sendMessage(Metods.msgC("&aYou bought a slot! &9Cost: &2" + price));
+        player.sendMessage(Methods.msgC("&aYou bought a slot! &9Cost: &2" + price));
     }
 }

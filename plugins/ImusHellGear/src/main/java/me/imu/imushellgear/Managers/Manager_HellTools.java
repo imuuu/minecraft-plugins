@@ -1,5 +1,6 @@
 package me.imu.imushellgear.Managers;
 
+import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,7 +25,7 @@ import me.imu.imushellgear.CustomItems.Hell_Sword_Controller;
 import me.imu.imushellgear.CustomItems.Hell_ThrowingAxe_Controller;
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.ImusHellGear;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 
 public class Manager_HellTools implements Listener
@@ -249,7 +250,7 @@ public class Manager_HellTools implements Listener
 			newStack = CreateHellDoubleAxe(now_rarity);
 		}
 		
-		Metods.CloneEnchantments(stack, newStack);
+		ItemUtils.CloneEnchantments(stack, newStack);
 		return newStack;
 	}
 	
@@ -267,7 +268,7 @@ public class Manager_HellTools implements Listener
 		if(IsTier_Axe(stack1,ITEM_RARITY.Legendary) && Manager_LegendaryUpgrades.Instance.IsUpgradeHellAxe(stack2))
 		{
 			result = CreateHellDoubleAxe(ITEM_RARITY.Void);
-			Metods.CloneEnchantments(stack1, result);
+			ItemUtils.CloneEnchantments(stack1, result);
 			e.setResult(result);
 			return;
 		}
@@ -275,7 +276,7 @@ public class Manager_HellTools implements Listener
 		if(IsTier_Hoe(stack1, ITEM_RARITY.Legendary) && Manager_LegendaryUpgrades.Instance.IsUpgradeHellHoe(stack2))
 		{
 			result = CreateHellHoe(ITEM_RARITY.Void);
-			Metods.CloneEnchantments(stack1, result);
+			ItemUtils.CloneEnchantments(stack1, result);
 			e.setResult(result);
 			return;
 		}
@@ -283,7 +284,7 @@ public class Manager_HellTools implements Listener
 		if(IsTier_Pickaxe(stack1, ITEM_RARITY.Legendary) && Manager_LegendaryUpgrades.Instance.IsUpgradeHellPickaxe(stack2))
 		{
 			result = CreateHellPickaxe(ITEM_RARITY.Void);
-			Metods.CloneEnchantments(stack1, result);
+			ItemUtils.CloneEnchantments(stack1, result);
 			e.setResult(result);
 			return;
 		}
@@ -291,7 +292,7 @@ public class Manager_HellTools implements Listener
 		if(IsTier_Shield(stack1, ITEM_RARITY.Legendary) && Manager_LegendaryUpgrades.Instance.IsUpgradeHellShield(stack2))
 		{
 			result = CreateHellReflectShield(ITEM_RARITY.Void);
-			Metods.CloneEnchantments(stack1, result);
+			ItemUtils.CloneEnchantments(stack1, result);
 			e.setResult(result);
 			return;
 		}
@@ -299,7 +300,7 @@ public class Manager_HellTools implements Listener
 		if(IsTier_Sword(stack1, ITEM_RARITY.Legendary) && Manager_LegendaryUpgrades.Instance.IsUpgradeHellSword(stack2))
 		{
 			result = CreateHellTripleSword(ITEM_RARITY.Void);
-			Metods.CloneEnchantments(stack1, result);
+			ItemUtils.CloneEnchantments(stack1, result);
 			e.setResult(result);
 			return;
 		}
@@ -310,8 +311,8 @@ public class Manager_HellTools implements Listener
 	
 	private void GiveVoidTool(Player player, ItemStack baseStack,ItemStack stack)
 	{
-		Metods.CloneEnchantments(baseStack, stack);
-		Metods._ins.InventoryAddItemOrDrop(stack, player );
+		ItemUtils.CloneEnchantments(baseStack, stack);
+		Methods._ins.InventoryAddItemOrDrop(stack, player );
 	}
 	
 	@EventHandler

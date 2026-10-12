@@ -1,6 +1,6 @@
 package imu.GS.command;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -14,7 +14,7 @@ final class CommandText
 
     static void send(CommandSender sender, String message)
     {
-        sender.sendMessage(Metods.msgC(message));
+        sender.sendMessage(Methods.msgC(message));
     }
 
     /**

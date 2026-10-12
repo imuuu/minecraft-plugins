@@ -2,12 +2,12 @@ package imu.iAPI.InvUtil;
 
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Handelers.ButtonHandler;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Handlers.ButtonHandler;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Interfaces.ICustomInventory;
 import imu.iAPI.Interfaces.IGrid;
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -35,7 +35,7 @@ public abstract class CustomInventory implements ICustomInventory
         _plugin = main;
         _size = adjustSize(size);
 
-        _name = Metods.msgC(name);
+        _name = Methods.msgC(name);
         _buttonHandler = new ButtonHandler(_plugin, this);
         _inv = _plugin.getServer().createInventory(null, _size, _name);
     }
@@ -75,7 +75,7 @@ public abstract class CustomInventory implements ICustomInventory
         return _inv;
     }
 
-    public IBUTTONN getEmptyButton(int slot, Material material)
+    public IMenuButton getEmptyButton(int slot, Material material)
     {
         return new Button(slot, ItemUtils.SetDisplayNameEmpty(new ItemStack(material)));
     }
@@ -136,7 +136,7 @@ public abstract class CustomInventory implements ICustomInventory
     }
 
     @Override
-    public IBUTTONN onDropItemSet(ItemStack stack, int slot)
+    public IMenuButton onDropItemSet(ItemStack stack, int slot)
     {
         return null;
     }
@@ -153,20 +153,20 @@ public abstract class CustomInventory implements ICustomInventory
     }
 
     @Override
-    public IBUTTONN onDragItemSet(ItemStack stack, int slot)
+    public IMenuButton onDragItemSet(ItemStack stack, int slot)
     {
         return null;
     }
 
     @Override
-    public boolean onPickupAll(IBUTTONN button, int slot)
+    public boolean onPickupAll(IMenuButton button, int slot)
     {
         return false;
     }
 
-    protected IBUTTONN SetButton(ItemStack stack, int slot)
+    protected IMenuButton SetButton(ItemStack stack, int slot)
     {
-        IBUTTONN button = new Button(slot, stack.clone());
+        IMenuButton button = new Button(slot, stack.clone());
         _buttonHandler.addButton(button);
         updateButton(slot);
         return button;
@@ -224,27 +224,27 @@ public abstract class CustomInventory implements ICustomInventory
     //<<<< Page System
 
     //BUTTON HANDLING
-    protected void addButton(IBUTTONN button)
+    protected void addButton(IMenuButton button)
     {
         _buttonHandler.addButton(button);
     }
 
-    protected IBUTTONN getButton(int position)
+    protected IMenuButton getButton(int position)
     {
         return _buttonHandler.getButton(position);
     }
 
-    protected IBUTTONN getButton(UUID uuid)
+    protected IMenuButton getButton(UUID uuid)
     {
         return _buttonHandler.getButton(uuid);
     }
 
-    protected IBUTTONN removeButton(IBUTTONN button)
+    protected IMenuButton removeButton(IMenuButton button)
     {
         return _buttonHandler.removeButton(button.getPosition());
     }
 
-    protected IBUTTONN removeButton(int position)
+    protected IMenuButton removeButton(int position)
     {
         return _buttonHandler.removeButton(position);
     }
@@ -264,7 +264,7 @@ public abstract class CustomInventory implements ICustomInventory
         _buttonHandler.updateButton(position);
     }
 
-    protected void updateButton(IBUTTONN button)
+    protected void updateButton(IMenuButton button)
     {
         _buttonHandler.updateButton(button.getPosition());
     }
@@ -275,7 +275,7 @@ public abstract class CustomInventory implements ICustomInventory
         _buttonHandler.addTouch(position);
     }
 
-    protected void addTouch(IBUTTONN button)
+    protected void addTouch(IMenuButton button)
     {
         _buttonHandler.addTouch(button);
     }
@@ -285,7 +285,7 @@ public abstract class CustomInventory implements ICustomInventory
         _buttonHandler.removeTouch(position);
     }
 
-    protected void removeTouch(IBUTTONN button)
+    protected void removeTouch(IMenuButton button)
     {
         _buttonHandler.removeTouch(button);
     }
@@ -295,7 +295,7 @@ public abstract class CustomInventory implements ICustomInventory
         return _buttonHandler.isTouched(position);
     }
 
-    protected boolean isTouched(IBUTTONN button)
+    protected boolean isTouched(IMenuButton button)
     {
         return _buttonHandler.isTouched(button);
     }
@@ -323,7 +323,7 @@ public abstract class CustomInventory implements ICustomInventory
         _buttonHandler.restoreSnapshot(snapshotName);
     }
 
-    protected IBUTTONN getButtonFromSnapshot(String snapshotName, int slotId)
+    protected IMenuButton getButtonFromSnapshot(String snapshotName, int slotId)
     {
         return _buttonHandler.getButtonFromSnapshot(snapshotName, slotId);
     }
@@ -357,28 +357,6 @@ public abstract class CustomInventory implements ICustomInventory
     {
     	_buttonHandler.clearGrids();
     }
-    //<<<< SnapShot system
-    //EXAMPLE
-//	private void InitButtons()
-//	{
-//		Button button = new Button(0, new ItemStack(Material.SMOOTH_STONE), inventoryClickEvent -> 
-//		{
-//	        ExamplePress((Button)GetButton(0), inventoryClickEvent);
-//	    });
-//		
-    //OR
-//		Button button = new Button(0, new ItemStack(Material.SMOOTH_STONE), this::ExamplePress);
-//		
-//		AddButton(button);
-//		
-//		UpdateButtons(true);
-//	}
-//	
-//	private void ExamplePress(Button button, InventoryClickEvent event)
-//	{
-//		button.GetItemStack();
-//		Player player = (Player) event.getWhoClicked();
-//		player.sendMessage("ExamplePress");
 
     //if want to add tooltip or something
 //      UpdateButton(button);

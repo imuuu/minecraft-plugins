@@ -1,6 +1,6 @@
 package me.imu.imusenchants.Events;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusenchants.Enchants.EnchantedItem;
 import me.imu.imusenchants.Enchants.NodeBooster;
 import me.imu.imusenchants.Items.SlotCore;
@@ -68,13 +68,13 @@ public class SlotCoreEvents implements Listener
 
 		if (EnchantedItem.HasSlots(target))
 		{
-			player.sendMessage(Metods.msgC("&cThis item already has slots!"));
+			player.sendMessage(Methods.msgC("&cThis item already has slots!"));
 			return;
 		}
 
 		if (!SlotCore.CanApply(target))
 		{
-			player.sendMessage(Metods.msgC("&cSlot Core can't be used on this item!"));
+			player.sendMessage(Methods.msgC("&cSlot Core can't be used on this item!"));
 			return;
 		}
 
@@ -84,7 +84,7 @@ public class SlotCoreEvents implements Listener
 		event.getView().setCursor(cursor.getAmount() > 0 ? cursor : null);
 
 		player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1f, 1f);
-		player.sendMessage(Metods.msgC("&dItem has been given &6slots&d! Open it with an &eenchanting table&d."));
+		player.sendMessage(Methods.msgC("&dItem has been given &6slots&d! Open it with an &eenchanting table&d."));
 	}
 
 	// Enchanting table works normally, only a slotted item in the main hand opens the slot GUI

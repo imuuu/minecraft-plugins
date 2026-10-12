@@ -4,7 +4,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.table.TableUtils;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imuschallenges.CONSTANTS;
 import me.imu.imuschallenges.Database.Tables.TablePlayerAchievements;
 import me.imu.imuschallenges.Database.Tables.TablePlayers;
@@ -252,12 +252,12 @@ public class ManagerAchievementChallenges implements Listener
     {
         if (player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST))
         {
-            Bukkit.getServer().broadcast(Metods.msgC("&9" + player.getName() + " &9is &5FIRST &9to complete the &a["+achievement+"]"), CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST);
+            Bukkit.getServer().broadcast(Methods.msgC("&9" + player.getName() + " &9is &5FIRST &9to complete the &a["+achievement+"]"), CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST);
             return;
         }
 
        /* String message;
-        message = Metods.msgC("&9New &6Achievement &9found! The &3" + achievement);
+        message = Methods.msgC("&9New &6Achievement &9found! The &3" + achievement);
 
         player.sendMessage(message);*/
     }

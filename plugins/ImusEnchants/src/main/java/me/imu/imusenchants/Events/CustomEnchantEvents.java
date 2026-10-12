@@ -1,7 +1,7 @@
 package me.imu.imusenchants.Events;
 
 import imu.iAPI.Events.FakeBlockBreakEvent;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantData;
@@ -551,27 +551,27 @@ public class CustomEnchantEvents implements Listener
 
 		if (!EnchantSettings.IsEnabled(enchant))
 		{
-			player.sendMessage(Metods.msgC("&d" + enchant.GetName() + " &cis disabled on this server!"));
+			player.sendMessage(Methods.msgC("&d" + enchant.GetName() + " &cis disabled on this server!"));
 			return;
 		}
 
 		if (EnchantedItem.HasSlots(target))
 		{
-			player.sendMessage(Metods.msgC("&cThis item has slots, put the book in its &eenchanting table &cgrid instead!"));
+			player.sendMessage(Methods.msgC("&cThis item has slots, put the book in its &eenchanting table &cgrid instead!"));
 			return;
 		}
 
 		Map<CustomEnchant, Integer> current = CustomEnchantData.Get(target);
 		if (current.containsKey(enchant))
 		{
-			player.sendMessage(Metods.msgC("&cThis item already has &d" + enchant.GetName() + "&c!"));
+			player.sendMessage(Methods.msgC("&cThis item already has &d" + enchant.GetName() + "&c!"));
 			return;
 		}
 
 		CustomEnchant conflict = CustomEnchantRegistry.FindConflict(enchant, current.keySet());
 		if (conflict != null)
 		{
-			player.sendMessage(Metods.msgC("&d" + enchant.GetName() + " &ccan't be combined with &d" + conflict.GetName() + "&c!"));
+			player.sendMessage(Methods.msgC("&d" + enchant.GetName() + " &ccan't be combined with &d" + conflict.GetName() + "&c!"));
 			return;
 		}
 
@@ -579,7 +579,7 @@ public class CustomEnchantEvents implements Listener
 		{
 			if (enchant.GetVanillaConflicts().contains(vanilla))
 			{
-				player.sendMessage(Metods.msgC("&d" + enchant.GetName() + " &ccan't be combined with &e"
+				player.sendMessage(Methods.msgC("&d" + enchant.GetName() + " &ccan't be combined with &e"
 						+ vanilla.getKey().getKey().replace('_', ' ') + "&c!"));
 				return;
 			}
@@ -598,7 +598,7 @@ public class CustomEnchantEvents implements Listener
 		event.getView().setCursor(cursor.getAmount() > 0 ? cursor : null);
 
 		player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1f);
-		player.sendMessage(Metods.msgC("&dApplied &e" + enchant.GetDisplayName(1) + "&d!"
+		player.sendMessage(Methods.msgC("&dApplied &e" + enchant.GetDisplayName(1) + "&d!"
 				+ (curse != null ? " &cThe book was cursed with &4" + curse.GetName() + "&c!" : "")));
 	}
 }

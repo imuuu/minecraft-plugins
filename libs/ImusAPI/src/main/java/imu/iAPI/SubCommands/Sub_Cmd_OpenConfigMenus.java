@@ -5,7 +5,7 @@ import imu.iAPI.Config.ConfigEntry;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Config.ConfigMenuListInventory;
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,7 +31,7 @@ public class Sub_Cmd_OpenConfigMenus implements CommandInterface
 		ConfigMenu menu = args.length >= 2 ? ConfigMenu.getRegistered(args[1]) : null;
 		if (args.length >= 2 && menu == null)
 		{
-			sender.sendMessage(Metods.msgC("&cNo settings menu for '" + args[1] + "'"));
+			sender.sendMessage(Methods.msgC("&cNo settings menu for '" + args[1] + "'"));
 			return true;
 		}
 
@@ -60,10 +60,10 @@ public class Sub_Cmd_OpenConfigMenus implements CommandInterface
 
 	private static void list(CommandSender sender, ConfigMenu menu)
 	{
-		sender.sendMessage(Metods.msgC("&9Settings of " + menu.getTitle() + ":"));
+		sender.sendMessage(Methods.msgC("&9Settings of " + menu.getTitle() + ":"));
 		for (ConfigEntry entry : menu.getEntries())
 		{
-			sender.sendMessage(Metods.msgC("&7  " + entry.getPath() + " &e" + entry.format(entry.get(menu.getPlugin().getConfig()))
+			sender.sendMessage(Methods.msgC("&7  " + entry.getPath() + " &e" + entry.format(entry.get(menu.getPlugin().getConfig()))
 					+ (entry.hasRange() ? " &7(" + entry.rangeText() + ")" : "")));
 		}
 	}
@@ -72,28 +72,28 @@ public class Sub_Cmd_OpenConfigMenus implements CommandInterface
 	{
 		if (!menu.canEdit(sender))
 		{
-			sender.sendMessage(Metods.msgC("&cYou don't have permission to change these settings!"));
+			sender.sendMessage(Methods.msgC("&cYou don't have permission to change these settings!"));
 			return;
 		}
 		if (args.length < 5)
 		{
-			sender.sendMessage(Metods.msgC("&c/ia config " + args[1] + " set <setting> <value>"));
+			sender.sendMessage(Methods.msgC("&c/ia config " + args[1] + " set <setting> <value>"));
 			return;
 		}
 		ConfigEntry entry = menu.getEntry(args[3]);
 		if (entry == null)
 		{
-			sender.sendMessage(Metods.msgC("&cNo setting '" + args[3] + "', see /ia config " + args[1] + " list"));
+			sender.sendMessage(Methods.msgC("&cNo setting '" + args[3] + "', see /ia config " + args[1] + " list"));
 			return;
 		}
 		try
 		{
 			Object value = entry.parse(String.join(" ", Arrays.copyOfRange(args, 4, args.length)));
 			if (!menu.setValue(sender, entry, value))
-				sender.sendMessage(Metods.msgC("&7" + entry.getPath() + " is already " + entry.format(value)));
+				sender.sendMessage(Methods.msgC("&7" + entry.getPath() + " is already " + entry.format(value)));
 		} catch (IllegalArgumentException e)
 		{
-			sender.sendMessage(Metods.msgC("&c" + e.getMessage()));
+			sender.sendMessage(Methods.msgC("&c" + e.getMessage()));
 		}
 	}
 

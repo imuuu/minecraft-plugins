@@ -7,7 +7,7 @@ import imu.GS.engine.shop.Restrictions;
 import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -83,7 +83,7 @@ public class StockableEditorMenu extends AdminMenu
                 _draft.copy().applyTo(_shop, listing);
                 count++;
             }
-            getPlayer().sendMessage(Metods.msgC("&3Data has been changed total of &2" + count + " &3items"));
+            getPlayer().sendMessage(Methods.msgC("&3Data has been changed total of &2" + count + " &3items"));
             _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         }));
 

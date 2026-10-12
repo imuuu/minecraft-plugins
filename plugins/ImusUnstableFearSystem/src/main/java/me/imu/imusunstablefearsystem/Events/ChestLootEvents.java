@@ -36,7 +36,7 @@ import me.imu.imushellgear.Managers.Manager_HellArmor;
 import me.imu.imushellgear.Managers.Manager_HellTools;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.LootTables.ImusLootTable;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 
 public class ChestLootEvents implements Listener
@@ -402,24 +402,24 @@ public class ChestLootEvents implements Listener
 			if(stack.getAmount() > 16) stack.setAmount(16);
 		}
 		
-		if(Metods._ins.isArmor(stack))
+		if(ItemUtils.IsArmor(stack))
 		{
 			stack.setAmount(1);
 			EnchantArmor(stack,5,2);
 			
-			if(Metods._ins.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
+			if(ItemUtils.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
 			{
 				stack.removeEnchantment(Enchantment.UNBREAKING);
 				stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 4);
 			}
 		}
 		
-		if(Metods._ins.isTool(stack))
+		if(ItemUtils.IsTool(stack))
 		{
 			stack.setAmount(1);
 			EnchantTool(stack,5,2);
 			
-			if(Metods._ins.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
+			if(ItemUtils.HasEnchant(stack, Enchantment.UNBREAKING) && ThreadLocalRandom.current().nextInt(100) < 20)
 			{
 				stack.removeEnchantment(Enchantment.UNBREAKING);
 				stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 4);
@@ -431,7 +431,7 @@ public class ChestLootEvents implements Listener
 			//System.out.println("it was hell arrow");
 			if(stack.getAmount() > 5) stack.setAmount(5);
 			
-			Metods._ins.AddGlow(stack);
+			ItemUtils.AddGlow(stack);
 		}
 		
 		if(stack.getType() == Material.ENCHANTED_GOLDEN_APPLE)

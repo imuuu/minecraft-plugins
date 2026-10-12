@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * @deprecated the old inventory system; new menus use {@link imu.iAPI.InvUtil.CustomInventory}
+ */
+@Deprecated
 public class Fast_Inventory
 {
 	private String ID = "";

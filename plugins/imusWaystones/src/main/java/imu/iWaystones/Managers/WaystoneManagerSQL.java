@@ -1,5 +1,6 @@
 package imu.iWaystones.Managers;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -371,7 +372,7 @@ public class WaystoneManagerSQL
 	        ps.setInt(i++, waystone.GetLoc().getBlockX());
 	        ps.setInt(i++, waystone.GetLoc().getBlockY());
 	        ps.setInt(i++, waystone.GetLoc().getBlockZ());
-	        ps.setString(i++, ImusAPI._metods.EncodeItemStack(waystone.GetDisplayItem()));
+	        ps.setString(i++, ItemUtils.EncodeItemStack(waystone.GetDisplayItem()));
 	        ps.setString(i++, waystone.GetVisibilityType().toString());
 	        ps.setBoolean(i++, waystone.IsMaxOut());
 	        ps.setBoolean(i++, waystone.IsUnbreakable());
@@ -453,7 +454,7 @@ public class WaystoneManagerSQL
 				int x = rs.getInt(i++);
 				int y = rs.getInt(i++);
 				int z = rs.getInt(i++);
-				ItemStack displayItem = ImusAPI._metods.DecodeItemStack(rs.getString(i++));
+				ItemStack displayItem = ItemUtils.DecodeItemStack(rs.getString(i++));
 				String visibilityTypeStr = rs.getString(i++);
 				boolean maxOut = rs.getBoolean(i++);
 		        boolean unbreakable = rs.getBoolean(i++);
@@ -500,7 +501,7 @@ public class WaystoneManagerSQL
 				int x = resultSet.getInt("loc_x");
 				int y = resultSet.getInt("loc_y");
 				int z = resultSet.getInt("loc_z");
-				ItemStack displayItem = ImusAPI._metods.DecodeItemStack(resultSet.getString("display_item"));
+				ItemStack displayItem = ItemUtils.DecodeItemStack(resultSet.getString("display_item"));
 				VISIBILITY_TYPE visibilityType = VISIBILITY_TYPE.valueOf(resultSet.getString("visibility_type"));
 
 				Waystone newWaystone = new Waystone(new Location(world, x, y, z));

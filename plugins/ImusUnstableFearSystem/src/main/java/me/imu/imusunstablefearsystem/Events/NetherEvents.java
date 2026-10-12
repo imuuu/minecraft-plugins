@@ -1,5 +1,6 @@
 package me.imu.imusunstablefearsystem.Events;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,7 +73,7 @@ import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import me.imu.imusunstablefearsystem.other.PlayerFear;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.ExplosionResult;
 import org.bukkit.NamespacedKey;
@@ -287,7 +288,7 @@ public class NetherEvents implements Listener
 		ItemStack newStack = stack.clone();
 		stack.setAmount(0);
 
-		Metods._ins.InventoryAddItemOrDrop(newStack, player);
+		Methods._ins.InventoryAddItemOrDrop(newStack, player);
 
 		player.sendMessage("");
 		player.sendMessage(ChatColor.BLUE+ "Totem of Undying scares nethers darkness!");
@@ -527,7 +528,7 @@ public class NetherEvents implements Listener
 	        //boots.addEnchantment(Enchantment.PROTECTION, 1);
 	        zombie.getEquipment().setBoots(boots,false);
 	        
-	        Metods._ins.setPersistenData(zombie, "SPEED_ZOMBIE", PersistentDataType.INTEGER, 1);
+	        Methods._ins.setPersistentData(zombie, "SPEED_ZOMBIE", PersistentDataType.INTEGER, 1);
 	        
 	        
 	        return;
@@ -623,7 +624,7 @@ public class NetherEvents implements Listener
 	    
 	    //if(!(e.getEntity() instanceof Player)) return;
 	    	    
-	    if(Metods._ins.getPersistenData(e.getDamager(), "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
+	    if(Methods._ins.getPersistentData(e.getDamager(), "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
 	    
 	    if(difficulty == DIFFICULT.NO_FEAR) 
 	    {
@@ -698,7 +699,7 @@ public class NetherEvents implements Listener
 //			 Manager_HellArmor.Instance.OnHellShieldReflect(entity, (Entity)arrow.getShooter(), arrow,rarity);
 //			 
 //			 int durMulti = 6 - rarity.GetIndex();
-//			 Metods._ins.giveDamage(shield, Manager_HellArmor.Instance.ReflectShieldDurabilityLost * durMulti, true);
+//			 ItemUtils.GiveDamage(shield, Manager_HellArmor.Instance.ReflectShieldDurabilityLost * durMulti, true);
 //			 e.setCancelled(true);
 //			 
 //			 return;
@@ -923,7 +924,7 @@ public class NetherEvents implements Listener
 		
 		if(entity instanceof Zombie && _enableSpeedZombie)
 		{	        
-	        if(Metods._ins.getPersistenData(entity, "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
+	        if(Methods._ins.getPersistentData(entity, "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
 	        
 	        if(_rand.nextInt(100) >= _speedZombieDropChance) return;
 	        
@@ -987,7 +988,7 @@ public class NetherEvents implements Listener
         
         int uses = _maxWaterBottleUses;
         
-        Integer us = Metods._ins.getPersistenData(stack, "water_bottle_uses", PersistentDataType.INTEGER);
+        Integer us = Methods._ins.getPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER);
         
         if(us != null) uses = us;
         
@@ -995,14 +996,14 @@ public class NetherEvents implements Listener
         
         stack = player.getInventory().getItemInMainHand();
         
-        Metods.setDisplayName(stack, ChatColor.BLUE+"Water Bottle "+ChatColor.DARK_AQUA+uses +ChatColor.BLUE+" / "+ChatColor.DARK_PURPLE+_maxWaterBottleUses);
+        ItemUtils.SetDisplayName(stack, ChatColor.BLUE+"Water Bottle "+ChatColor.DARK_AQUA+uses +ChatColor.BLUE+" / "+ChatColor.DARK_PURPLE+_maxWaterBottleUses);
         
-        Metods._ins.setPersistenData(stack, "water_bottle_uses", PersistentDataType.INTEGER, uses);
+        Methods._ins.setPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER, uses);
         
         if(uses <= 0) 
         {
         	//stack.setType(Material.POTION);
-        	Metods._ins.removePersistenData(stack, "water_bottle_uses");
+        	Methods._ins.removePersistentData(stack, "water_bottle_uses");
         	return;
         }
 

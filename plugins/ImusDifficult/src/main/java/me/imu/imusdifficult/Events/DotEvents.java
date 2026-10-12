@@ -1,5 +1,6 @@
 package me.imu.imusdifficult.Events;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.Random;
 
 import org.bukkit.ChatColor;
@@ -21,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import me.imu.imusdifficult.ImusDifficult;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.persistence.PersistentDataType;
 
 
@@ -47,8 +48,8 @@ public class DotEvents implements Listener
 	// item's data so this plugin doesn't need ImusHellGear installed.
 	private static boolean HasHellFireProtection(Player player)
 	{
-		return Metods._ins.getPersistenData(player.getInventory().getLeggings(), "HELL_LEGGINS", PersistentDataType.INTEGER) != null
-				&& Metods._ins.getPersistenData(player.getInventory().getChestplate(), "HELL_CHESTPLATE", PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(player.getInventory().getLeggings(), "HELL_LEGGINS", PersistentDataType.INTEGER) != null
+				&& Methods._ins.getPersistentData(player.getInventory().getChestplate(), "HELL_CHESTPLATE", PersistentDataType.INTEGER) != null;
 	}
 	
 
@@ -119,7 +120,7 @@ public class DotEvents implements Listener
 			return;
 		}
 
-		int totalLevel = Metods._ins.GetArmorSlotEnchantCount(player, Enchantment.PROJECTILE_PROTECTION);
+		int totalLevel = Methods._ins.GetArmorSlotEnchantCount(player, Enchantment.PROJECTILE_PROTECTION);
 		int chance = _foodReduceChance -(totalLevel * 3);
 
 		if( _rand.nextInt(100) < chance)
@@ -158,10 +159,10 @@ public class DotEvents implements Listener
 		ItemStack leggings = armors[1];
 		ItemStack boots = armors[0];
 		
-		if(ImusAPI._metods.giveDamage(helmet, durabilityLost, true) && helmet.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
-		if(ImusAPI._metods.giveDamage(chestplate, durabilityLost, true) && chestplate.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
-		if(ImusAPI._metods.giveDamage(leggings, durabilityLost, true) && leggings.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
-		if(ImusAPI._metods.giveDamage(boots, durabilityLost, true) && boots.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
+		if(ItemUtils.GiveDamage(helmet, durabilityLost, true) && helmet.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
+		if(ItemUtils.GiveDamage(chestplate, durabilityLost, true) && chestplate.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
+		if(ItemUtils.GiveDamage(leggings, durabilityLost, true) && leggings.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
+		if(ItemUtils.GiveDamage(boots, durabilityLost, true) && boots.getType() == Material.AIR) player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1, 1);
 
 	}
 	

@@ -1,8 +1,9 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.inventory.ItemStack;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public abstract class CustomItem
 {
@@ -18,7 +19,7 @@ public abstract class CustomItem
 	public ItemStack GetItemStack()
 	{
 		ItemStack stack = _stack.clone();
-		Metods.setDisplayName(stack, _displayName);
+		ItemUtils.SetDisplayName(stack, _displayName);
 		return stack;
 	}
 	

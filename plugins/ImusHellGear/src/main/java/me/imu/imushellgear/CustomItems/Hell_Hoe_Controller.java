@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,7 @@ import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public final class Hell_Hoe_Controller
 {
@@ -112,9 +113,9 @@ public final class Hell_Hoe_Controller
 		lores.add("&7 and a trail of flames'");
 
 
-		Metods._ins.SetLores(stack, lores.toArray(new String[lores.size()]), false);
+		ItemUtils.SetLores(stack, lores.toArray(new String[lores.size()]), false);
 
-		Metods._ins.setPersistenData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER, rarity.GetIndex());
+		Methods._ins.setPersistentData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER, rarity.GetIndex());
 
 		return stack;
 	}
@@ -122,16 +123,16 @@ public final class Hell_Hoe_Controller
 
 	public boolean IsHellHoe(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Metods._ins.getPersistenData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER));
 	}
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Metods._ins.getPersistenData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER);
+		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_HOE, PersistentDataType.INTEGER);
 		
 		if(i == null ) return false;
 		
@@ -142,7 +143,7 @@ public final class Hell_Hoe_Controller
 	
 	public ItemStack RemoveHellHoe(ItemStack stack)
 	{
-		return Metods._ins.removePersistenData(stack, _PD_HELL_HOE);
+		return Methods._ins.removePersistentData(stack, _PD_HELL_HOE);
 	}
 	
 	public void OnDisable()

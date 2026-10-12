@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Upgrades.BuildUpgrade;
 import imu.iWaystone.Upgrades.BuildUpgradeCommon;
 import imu.iWaystone.Upgrades.BuildUpgradeEpic;
@@ -152,7 +152,7 @@ public class WaystoneManager
 		{
 			for(Entity entity : world.getEntities())
 			{
-				if(Metods._ins.getPersistenData(entity, pd_waystoneHolo, PersistentDataType.STRING) != null) entity.remove();
+				if(Methods._ins.getPersistentData(entity, pd_waystoneHolo, PersistentDataType.STRING) != null) entity.remove();
 			}
 		}
 	}
@@ -198,13 +198,13 @@ public class WaystoneManager
 	
 	public ItemStack SetUpgradeItemStackPD(ItemStack stack)
 	{
-		Metods._ins.setPersistenData(stack, PD_Upgrade_Item, PersistentDataType.INTEGER, 0);
+		Methods._ins.setPersistentData(stack, PD_Upgrade_Item, PersistentDataType.INTEGER, 0);
 		return stack;
 	}
 	
 	public boolean IsUpgradeItemStack(ItemStack stack)
 	{
-		return Metods._ins.getPersistenData(stack, PD_Upgrade_Item, PersistentDataType.INTEGER) != null;
+		return Methods._ins.getPersistentData(stack, PD_Upgrade_Item, PersistentDataType.INTEGER) != null;
 	}
 	
 	void SetupValidBlocks()
@@ -361,7 +361,7 @@ public class WaystoneManager
 	{
 		Waystone waystone = _waystones.get(uuid);
 		if(waystone == null) return;
-		//Metods._ins.printHashMap(_location_of_waystones);
+		//Methods._ins.printHashMap(_location_of_waystones);
 		_location_of_waystones.remove(waystone.GetLowBlock().getLocation());
 		_location_of_waystones.remove(waystone.GetMidBlock().getLocation());
 		_location_of_waystones.remove(waystone.GetTopBlock().getLocation());

@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public interface IBUTTONN
+public interface IMenuButton
 {
 	public UUID getUUID();
 

@@ -199,15 +199,6 @@ public  class ImusUtilities
 	}
 	
 	
-//	public static boolean IsPositionBehind(Location currentLoc, Location targetLocation)
-//	{
-////		double distance = targetLocation.distance(currentLoc);
-////		Vector targetRightDir = targetLocation.subtract(currentLoc).toVector().normalize().multiply(distance);
-////		targetLocation = targetRightDir.add(targetRightDir)
-////		Location loc = new Location(targetLocation.getWorld(), targetRightDir.getX(),targetRightDir.getY(),targetRightDir.getZ());
-//		
-//		return IsPositionBehind(currentLoc, targetLocation,targetLocation.clone().subtract(currentLoc).toVector().normalize());
-//	}
 	
 	public static boolean IsPositionBehind(Location currentLoc, Location targetLocation, Vector direction)
 	{		
@@ -344,24 +335,5 @@ public  class ImusUtilities
 	        }
 	
 	
-//	public static LinkedList<Block> CreateSphere(Location center, int radius) 
-//	{
-//		LinkedList<Block> positions = new LinkedList<>();
-//	    int radiusSquared = radius * radius;
-//
-//	    for (int x = -radius; x <= radius; x++) {
-//	        for (int y = -radius; y <= radius; y++) {
-//	            for (int z = -radius; z <= radius; z++) {
-//	                if (x * x + y * y + z * z <= radiusSquared) {
-//	                    Location loc = center.clone().add(x, y, z);
-//
-//	                    positions.add(loc.getBlock());
-//	                }
-//	            }
-//	        }
-//	    }
-//	    
-//	    return positions;
-//	}
 	
 }

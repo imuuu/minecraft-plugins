@@ -5,7 +5,7 @@ import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopSettings;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -172,7 +172,7 @@ public class ShopSettingsMenu extends AdminMenu
             {
                 String name = _shop.getDisplayName();
                 _service.deleteShop(_shop);
-                getPlayer().sendMessage(Metods.msgC("&9Shop named " + name + " &9has been &cremoved"));
+                getPlayer().sendMessage(Methods.msgC("&9Shop named " + name + " &9has been &cremoved"));
                 closeNext();
             }));
         }
@@ -190,7 +190,7 @@ public class ShopSettingsMenu extends AdminMenu
     {
         if (_service.getShop(_shop.getId()) == null)
         {
-            getPlayer().sendMessage(Metods.msgC("&cThe shop doesn't exist any more"));
+            getPlayer().sendMessage(Methods.msgC("&cThe shop doesn't exist any more"));
             closeNext();
             return;
         }
@@ -201,15 +201,15 @@ public class ShopSettingsMenu extends AdminMenu
         {
             Shop other = _service.getShop(_displayName);
             if (other != null && other != _shop)
-                getPlayer().sendMessage(Metods.msgC("&cA shop named " + _displayName + " &calready exists, the name wasn't changed"));
+                getPlayer().sendMessage(Methods.msgC("&cA shop named " + _displayName + " &calready exists, the name wasn't changed"));
             else
             {
-                getPlayer().sendMessage(Metods.msgC("&2Shop name has been changed from " + _shop.getDisplayName() + "&2 to " + _displayName));
+                getPlayer().sendMessage(Methods.msgC("&2Shop name has been changed from " + _shop.getDisplayName() + "&2 to " + _displayName));
                 _service.renameShop(_shop, _displayName);
             }
         }
         _service.saveNow(_shop);
-        getPlayer().sendMessage(Metods.msgC("&eShop data has been saved!"));
+        getPlayer().sendMessage(Methods.msgC("&eShop data has been saved!"));
         _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         openNext(new ShopEditorMenu(_service, _shop));
     }

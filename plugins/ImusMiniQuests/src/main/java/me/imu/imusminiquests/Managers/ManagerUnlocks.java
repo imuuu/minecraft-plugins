@@ -1,6 +1,6 @@
 package me.imu.imusminiquests.Managers;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.CONSTANTS;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Quests.TargetSet;
@@ -211,7 +211,7 @@ public class ManagerUnlocks implements Listener
             // A silent upgrade: only admins hear about it, players just start seeing the rewards
             String message = _plugin.getMessage("unlocked")
                     .replace("%player%", by.getName())
-                    .replace("%unlock%", Metods.msgC(unlock.display()));
+                    .replace("%unlock%", Methods.msgC(unlock.display()));
             Bukkit.broadcast(message, CONSTANTS.PERM_UNLOCKS_ADMIN);
             _plugin.getLogger().info(by.getName() + " unlocked " + unlock.name() + " for quest rewards");
         }

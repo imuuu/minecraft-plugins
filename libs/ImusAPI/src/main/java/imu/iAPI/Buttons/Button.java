@@ -8,9 +8,9 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 
-public class Button implements IBUTTONN
+public class Button implements IMenuButton
 {
 	private UUID _uuid = UUID.randomUUID();
 
@@ -33,7 +33,7 @@ public class Button implements IBUTTONN
 
 	}
 
-	public Button(IBUTTONN button)
+	public Button(IMenuButton button)
 	{
 		_stack = button.getItemStack();
 		_position = button.getPosition();

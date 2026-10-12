@@ -8,7 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
 import imu.iAPI.Other.MySQL;
 import imu.iWaystones.Managers.WaystoneManager;

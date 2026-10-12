@@ -27,12 +27,12 @@ public interface ICustomInventory
 	public Plugin getPlugin();
 	
 	public boolean onDropItem(ItemStack stack, int slot);
-	public IBUTTONN onDropItemSet(ItemStack stack, int slot);
+	public IMenuButton onDropItemSet(ItemStack stack, int slot);
 	
 	public boolean onDragItem(ItemStack stack, int slot);
-	public IBUTTONN onDragItemSet(ItemStack stack, int slot);
+	public IMenuButton onDragItemSet(ItemStack stack, int slot);
 	
-	public boolean onPickupAll(IBUTTONN button, int slot);
+	public boolean onPickupAll(IMenuButton button, int slot);
 	
 	public void back();
 	

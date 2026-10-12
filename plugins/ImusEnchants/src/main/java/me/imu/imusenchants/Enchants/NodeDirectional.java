@@ -67,7 +67,7 @@ public abstract class NodeDirectional extends Node
 	{
 		_directions = DIRECTION.GetSortedDirections(_directions);
 		String serializedDirections = GetSerializedDirections();
-		ItemUtils.SetPersistenData(stack, "node_direction_directions", PersistentDataType.STRING, serializedDirections);
+		ItemUtils.SetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING, serializedDirections);
 		
 		return stack;
 	}
@@ -75,7 +75,7 @@ public abstract class NodeDirectional extends Node
 	public DIRECTION[] GetDirectionsPD(ItemStack stack) 
 	{
 	    String serializedDirections = 
-	    		ItemUtils.GetPersistenData(stack, "node_direction_directions", PersistentDataType.STRING);
+	    		ItemUtils.GetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING);
 	    if (serializedDirections != null && !serializedDirections.isEmpty()) 
 	    {
 	        return GetDeserializedDirections(serializedDirections); 

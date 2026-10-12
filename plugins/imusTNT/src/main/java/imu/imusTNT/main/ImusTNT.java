@@ -9,7 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Commands.ExampleCmd;
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
 import imu.imusTNT.Events.imusTNT_events;
 import imu.imusTNT.SubCommands.SubOpenTNT_InvCmd;

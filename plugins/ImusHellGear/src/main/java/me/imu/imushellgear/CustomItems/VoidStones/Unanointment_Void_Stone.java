@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems.VoidStones;
 
+import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +14,7 @@ import org.bukkit.plugin.Plugin;
 import me.imu.imushellgear.Enums.VOID_STONE_TIER;
 import me.imu.imushellgear.Enums.VOID_STONE_TYPE;
 import me.imu.imushellgear.ImusHellGear;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 
 public class Unanointment_Void_Stone extends Void_Stone
@@ -76,7 +77,7 @@ public class Unanointment_Void_Stone extends Void_Stone
 		lores.add("&9in a &7Anvil");
 		lores.add("");
 
-		Metods._ins.addLore(stack, lores);
+		ItemUtils.AddLore(stack, lores);
 		return stack;
 
 	}

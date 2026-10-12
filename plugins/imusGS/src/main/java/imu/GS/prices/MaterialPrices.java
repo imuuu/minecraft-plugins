@@ -1,5 +1,6 @@
 package imu.GS.prices;
 
+import imu.iAPI.Other.Methods;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.SellLimit;
 import imu.iAPI.Main.ImusAPI;
@@ -114,7 +115,7 @@ public class MaterialPrices
             Map<Material, Double> ingredients = new HashMap<>();
             if (!m.isItem())
                 return ingredients;
-            List<Tuple<ItemStack, Double>> recipe = ImusAPI._metods.GetRecipe(new ItemStack(m));
+            List<Tuple<ItemStack, Double>> recipe = Methods._ins.GetRecipe(new ItemStack(m));
             for (Tuple<ItemStack, Double> part : recipe)
                 ingredients.merge(part.GetKey().getType(), part.GetValue(), Double::sum);
             return ingredients;

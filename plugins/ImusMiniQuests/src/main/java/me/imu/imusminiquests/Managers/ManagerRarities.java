@@ -1,6 +1,6 @@
 package me.imu.imusminiquests.Managers;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Quests.Luck;
 import me.imu.imusminiquests.Quests.PanelRarity;
@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class ManagerRarities
 {
-    private static final PanelRarity FALLBACK = new PanelRarity("common", Metods.msgC("&fCommon"), 1, 1, 0, 0);
+    private static final PanelRarity FALLBACK = new PanelRarity("common", Methods.msgC("&fCommon"), 1, 1, 0, 0);
 
     private final ImusMiniQuests _plugin;
     private final Map<String, PanelRarity> _rarities = new LinkedHashMap<>();
@@ -45,7 +45,7 @@ public class ManagerRarities
                 }
                 String key = name.toLowerCase(Locale.ROOT);
                 _rarities.put(key, new PanelRarity(key,
-                        Metods.msgC(entry.getString("display", name)),
+                        Methods.msgC(entry.getString("display", name)),
                         weight,
                         Math.max(0.01, entry.getDouble("amount-multiplier", 1)),
                         Math.max(0, entry.getDouble("bonus-luck", 0)),

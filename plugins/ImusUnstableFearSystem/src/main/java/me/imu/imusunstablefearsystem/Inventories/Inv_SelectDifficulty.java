@@ -12,7 +12,7 @@ import me.imu.imusunstablefearsystem.Managers.Manager_Difficult;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IBUTTONN;
+import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Utilities.ItemUtils;
 
@@ -57,7 +57,7 @@ public class Inv_SelectDifficulty extends CustomInventory
 	{
 		for(int i = 0; i < getSize(); i++)
 		{
-			IBUTTONN ibuttonn = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
+			IMenuButton ibuttonn = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
 			addButton(ibuttonn);
 		}
 		

@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Enums.VISIBILITY_TYPE;
 import imu.iWaystones.Main.ImusWaystones;
@@ -52,8 +52,8 @@ public class WaystoneEvents implements Listener
 		HashMap<String, String> cmds = new HashMap<String, String>();
 		cmds.put("( CONFIRM )",
 				"/iw confirm " + wStone.GetLoc().getWorld().getName() + " " + wStone.GetLoc().toVector());
-		// ImusAPI._metods.SendMessageCommands(e.getPlayer(), cmds, " // ");
-		ImusAPI._metods.SendMessageCommands(e.getPlayer(), "Waystone creation started! ", cmds, "", "");
+		// Methods._ins.SendMessageCommands(e.getPlayer(), cmds, " // ");
+		Methods._ins.SendMessageCommands(e.getPlayer(), "Waystone creation started! ", cmds, "", "");
 		_waystoneManager.SetPlayerConfirmation(e.getPlayer().getUniqueId(), wStone);
 	}
 
@@ -95,7 +95,7 @@ public class WaystoneEvents implements Listener
 
 			if (ws.GetVisibilityType() == VISIBILITY_TYPE.BY_TOUCH)
 			{
-				e.getPlayer().sendMessage(Metods.msgC("&3You have discovered new waystone named as " + ws.GetName()));
+				e.getPlayer().sendMessage(Methods.msgC("&3You have discovered new waystone named as " + ws.GetName()));
 				return;
 			}
 
@@ -109,7 +109,7 @@ public class WaystoneEvents implements Listener
 		{
 			ws.GetPlayerUpgradePanel(e.getPlayer().getUniqueId()).InsertUpgradeItem(stack);
 			stack.setAmount(stack.getAmount() - 1);
-			e.getPlayer().sendMessage(Metods.msgC("&6Upgrade data has been &5applied"));
+			e.getPlayer().sendMessage(Methods.msgC("&6Upgrade data has been &5applied"));
 			ws.GetPlayerUpgradePanel(e.getPlayer().getUniqueId()).SaveUpgradesToDatabase(e.getPlayer().getUniqueId());
 			return;
 		}
@@ -180,7 +180,7 @@ public class WaystoneEvents implements Listener
 		Bukkit.getLogger().info(
 				"WS: " + player.getName() + " broke " + ws.GetOwnerName() + "'s waystone named " + ws.GetName());
 		_waystoneManager.RemoveWaystone(ws);
-		player.sendMessage(Metods.msgC("&3Waystone has been &cDestroyed"));
+		player.sendMessage(Methods.msgC("&3Waystone has been &cDestroyed"));
 		player.playSound(ws.GetLoc(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.1f, 0.1f);
 	}
 

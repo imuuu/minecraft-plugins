@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 
 public class InvUtil
 {
@@ -29,7 +29,7 @@ public class InvUtil
             for (ItemStack overflowItem : overflow.values()) 
             {
                 world.dropItemNaturally(location, overflowItem);
-                player.sendMessage(Metods.msgC("&9Dropped: &e" + overflowItem.getType() + " &9x &e" + overflowItem.getAmount()));
+                player.sendMessage(Methods.msgC("&9Dropped: &e" + overflowItem.getType() + " &9x &e" + overflowItem.getAmount()));
             }
         }
     }

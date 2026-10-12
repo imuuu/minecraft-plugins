@@ -4,7 +4,7 @@ import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.engine.shop.Shop;
 import imu.iAPI.Npc.NpcAction;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 

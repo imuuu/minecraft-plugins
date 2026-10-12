@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Commands.ExampleCmd;
 import imu.iAPI.FastInventory.Manager_FastInventories;
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Interfaces.ICustomInventory;
 import imu.iAPI.Interfaces.IHasSql;
 import imu.iAPI.Interfaces.IHasSqlSource;
@@ -35,7 +35,9 @@ import java.util.*;
 public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
 {
     public static ImusAPI _instance;
-    public static Metods _metods;
+    /** @deprecated the same instance as {@link Methods#_ins} */
+    @Deprecated
+    public static Methods _metods;
     public static MySQLHelper _sqlHelper;
     private Manager_FastInventories _fastInvs;
     private Manager_ImusLootTable _lootTableManager;
@@ -81,7 +83,7 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         _commandSenderManager = new Manager_CommandSender();
         Manager_Vault.setupEconomy();
 
-        _metods = new Metods(this);
+        _metods = new Methods(this);
         _sqlHelper = new MySQLHelper();
         _fastInvs = new Manager_FastInventories();
         _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);
@@ -358,27 +360,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         return new DataSourceConnectionSource(dataSource, dataSource.getJdbcUrl());
     }
 
-//	boolean setup()
-//	{
-//		if(Bukkit.getPluginManager().getPlugin("imusAPI") != null)
-//		{
-//			ChestCleaner cc = (ChestCleaner) Bukkit.getPluginManager().getPlugin("ChestCleaner");
-//			System.out.println("LOADING CHESTCLEANER");
-//			
-//			
-//			return true;
-//		}
-//		return false;
-//	}
 
-//	boolean setupImusApi()
-//	{
-//		if(Bukkit.getPluginManager().getPlugin("imusAPI") != null)
-//		{
-//			_imusAPI = (ImusAPI) Bukkit.getPluginManager().getPlugin("imusAPI");
-//			return true;
-//		}
-//		return false;
-//	}
 
 }

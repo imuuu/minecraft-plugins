@@ -14,7 +14,7 @@ import imu.GS.engine.trade.TradeResult;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -58,7 +58,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
 
     private static String displayName(Listing listing)
     {
-        return Metods._ins.GetItemDisplayName(ItemKeys.template(listing.getItem()));
+        return Methods._ins.GetItemDisplayName(ItemKeys.template(listing.getItem()));
     }
 
     private int bundle()
@@ -232,8 +232,8 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
         double balance = _service.getWallet().balance(player.getUniqueId());
         switch (result.status())
         {
-            case SUCCESS -> Messages.send(player, "custom-price.bought", "price", Metods.Round(result.price()), "balance", Metods.Round(balance));
-            case NOT_ENOUGH_MONEY -> Messages.send(player, "custom-price.not-enough-money", "balance", Metods.Round(balance));
+            case SUCCESS -> Messages.send(player, "custom-price.bought", "price", Methods.Round(result.price()), "balance", Methods.Round(balance));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "custom-price.not-enough-money", "balance", Methods.Round(balance));
             case NOT_ENOUGH_ITEMS -> Messages.send(player, "custom-price.not-enough-items");
             case PAYMENT_FAILED -> Messages.send(player, "custom-price.payment-failed");
             case NO_LISTING, WRONG_PRICE_TYPE -> Messages.send(player, "custom-price.shop-changed");

@@ -5,7 +5,7 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.table.TableUtils;
 import imu.iAPI.Managers.Manager_CommandSender;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imuschallenges.CONSTANTS;
 import me.imu.imuschallenges.Database.Tables.TablePlayerShopStats;
@@ -318,11 +318,11 @@ public class ManagerChallengeShop
 
             if (tier.isSpecial())
             {
-                player.sendMessage(Metods.msgC("&6Special &9Challenge shop has been updated!"));
+                player.sendMessage(Methods.msgC("&6Special &9Challenge shop has been updated!"));
             }
             else
             {
-                player.sendMessage(Metods.msgC("&2Normal &9Challenge shop has been updated!"));
+                player.sendMessage(Methods.msgC("&2Normal &9Challenge shop has been updated!"));
             }
         }
     }
@@ -334,15 +334,15 @@ public class ManagerChallengeShop
         {
             if (!player.hasPermission(CONSTANTS.PERM_BROADCAST_CHALLENGE_SHOP_UPDATE))
             {
-                player.sendMessage(Metods.msgC("&9Challenge shop has been updated!"));
+                player.sendMessage(Methods.msgC("&9Challenge shop has been updated!"));
             }
             if (tier.isSpecial())
             {
-                player.sendMessage(Metods.msgC("&9You can now buy &2new &6special &9items!"));
+                player.sendMessage(Methods.msgC("&9You can now buy &2new &6special &9items!"));
             }
             else
             {
-                player.sendMessage(Metods.msgC("&9You can now buy &2new &9items!"));
+                player.sendMessage(Methods.msgC("&9You can now buy &2new &9items!"));
             }
         }
     }

@@ -95,7 +95,7 @@ public class NodeBooster extends NodeDirectional
 		ItemUtils.AddLore(itemStack, "&6⚡: &2" + _power, true);
 		ItemUtils.HideFlag(itemStack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(itemStack);
-		ItemUtils.SetPersistenData(itemStack, PD_BOOSTER, PersistentDataType.INTEGER, _power);
+		ItemUtils.SetPersistentData(itemStack, PD_BOOSTER, PersistentDataType.INTEGER, _power);
 		SetDirectionsPD(itemStack);
 		
 		
@@ -104,13 +104,13 @@ public class NodeBooster extends NodeDirectional
 
 	public static int GetPower(ItemStack stack)
 	{
-		Integer p = ItemUtils.GetPersistenData(stack, PD_BOOSTER, PersistentDataType.INTEGER);
+		Integer p = ItemUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER);
 		return p != null ? p : 0;
 	}
 
 	public static boolean IsBooster(ItemStack stack)
 	{
-		return ItemUtils.GetPersistenData(stack, PD_BOOSTER, PersistentDataType.INTEGER) != null;
+		return ItemUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsBoostingThis(INode node)

@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Enums.UpgradeType;
 
@@ -46,7 +46,7 @@ public class UpgradeFoundation extends BaseUpgrade
 				{
 						"&dYour Waystone will be the fastest when foundation is maxed out!",
 						"",
-						"&3&lCurrent Tier &3=> &9Base Cooldown: " + Metods.FormatTime((long)(GetTier()._value*1000)),
+						"&3&lCurrent Tier &3=> &9Base Cooldown: " + Methods.FormatTime((long)(GetTier()._value*1000)),
 
 				};
 		

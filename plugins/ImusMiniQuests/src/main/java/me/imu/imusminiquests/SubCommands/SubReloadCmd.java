@@ -1,7 +1,7 @@
 package me.imu.imusminiquests.SubCommands;
 
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.ImusMiniQuests;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,7 +13,7 @@ public class SubReloadCmd implements CommandInterface
     {
         ImusMiniQuests plugin = ImusMiniQuests.getInstance();
         plugin.reloadSettings();
-        sender.sendMessage(Metods.msgC("&9ImusMiniQuests reloaded, &e" + plugin.getQuests().getQuests().size() + "&9 quests"));
+        sender.sendMessage(Methods.msgC("&9ImusMiniQuests reloaded, &e" + plugin.getQuests().getQuests().size() + "&9 quests"));
         return true;
     }
 

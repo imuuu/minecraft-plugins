@@ -43,7 +43,7 @@ import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.Plugin;
 
-import imu.iAPI.Other.Metods;
+import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 
 
@@ -180,7 +180,7 @@ public class Events implements Listener
 		SmithingInventory inv = event.getInventory();
 		if (NodeBooster.IsBooster(inv.getItem(0)))
 		{
-			event.getViewers().get(0).sendMessage(Metods.msgC("&cBoosters can't be use in smithing table"));
+			event.getViewers().get(0).sendMessage(Methods.msgC("&cBoosters can't be use in smithing table"));
 			event.getViewers().get(0).closeInventory();
 			return;
 		}
@@ -243,7 +243,7 @@ public class Events implements Listener
 			return;
 
 		event.setCancelled(true);
-		event.getWhoClicked().sendMessage(Metods.msgC("&cYou cannot use &6slotted &citem on a grindstone!"));
+		event.getWhoClicked().sendMessage(Methods.msgC("&cYou cannot use &6slotted &citem on a grindstone!"));
 		event.getWhoClicked().closeInventory();
 	}
 

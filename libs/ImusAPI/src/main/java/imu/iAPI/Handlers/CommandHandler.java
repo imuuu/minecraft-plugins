@@ -1,4 +1,4 @@
-package imu.iAPI.Handelers;
+package imu.iAPI.Handlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,8 +16,9 @@ import org.bukkit.plugin.Plugin;
 public class CommandHandler implements CommandExecutor
 {
  
-    static HashMap<String, CommandInterface> commands = new HashMap<String, CommandInterface>();
-    static HashMap<String, ArrayList<String>> subCommands = new HashMap<String,ArrayList<String>>();
+    // Each plugin's own commands; shared tables let two plugins' commands of the same name overwrite each other
+    private final HashMap<String, CommandInterface> commands = new HashMap<String, CommandInterface>();
+    private final HashMap<String, ArrayList<String>> subCommands = new HashMap<String,ArrayList<String>>();
     HashMap<String, String> commandsPermissions = new HashMap<String, String>();
     // Sub commands the console may run too, e.g. "gs limits"; every other command is for players only
     HashSet<String> consoleCommands = new HashSet<String>();

@@ -27,7 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Commands.ExampleCmd;
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
 
 public class ImusEnchants extends JavaPlugin

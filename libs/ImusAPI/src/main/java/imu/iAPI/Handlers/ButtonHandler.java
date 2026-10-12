@@ -1,4 +1,4 @@
-package imu.iAPI.Handelers;
+package imu.iAPI.Handlers;
 
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Interfaces.*;
@@ -21,7 +21,7 @@ import java.util.*;
 public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler, ITouchHandler
 {
     private Plugin _plugin;
-    private Map<Integer, IBUTTONN> _buttons;
+    private Map<Integer, IMenuButton> _buttons;
 
     private List<IGrid> _grids;
 
@@ -57,7 +57,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         if (_buttons == null) return;
 
         List<Integer> positionsToRemove = new ArrayList<>();
-        for (Map.Entry<Integer, IBUTTONN> entry : _buttons.entrySet())
+        for (Map.Entry<Integer, IMenuButton> entry : _buttons.entrySet())
         {
             positionsToRemove.add(entry.getKey());
         }
@@ -68,18 +68,18 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         }
     }
 
-    public void addButton(IBUTTONN button)
+    public void addButton(IMenuButton button)
     {
         addButton(button.getPosition(), button);
     }
 
-    public void addButton(int position, IBUTTONN button)
+    public void addButton(int position, IMenuButton button)
     {
         button.setButtonHandler(this);
         _buttons.put(position, button);
     }
 
-    public IBUTTONN removeButton(int position)
+    public IMenuButton removeButton(int position)
     {
         removeTouch(position);
 
@@ -91,21 +91,21 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         return _buttons.remove(position);
     }
 
-    public IBUTTONN removeButton(IBUTTONN button)
+    public IMenuButton removeButton(IMenuButton button)
     {
         return removeButton(button.getPosition());
     }
 
-    public IBUTTONN getButton(int position)
+    public IMenuButton getButton(int position)
     {
         if (!_buttons.containsKey(position)) return null;
 
         return _buttons.get(position);
     }
 
-    public IBUTTONN getButton(UUID uuid)
+    public IMenuButton getButton(UUID uuid)
     {
-        for (IBUTTONN button : _buttons.values())
+        for (IMenuButton button : _buttons.values())
         {
             if (button.getUUID().equals(uuid))
             {
@@ -147,7 +147,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
             return;
         }
 
-        IBUTTONN button = _buttons.get(event.getRawSlot());
+        IMenuButton button = _buttons.get(event.getRawSlot());
         if (button != null)
         {
             button.setLastClickType(event.getClick());
@@ -206,7 +206,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
                     {
                         _dropPending = false;
                         _customInventory.getInventory().setItem(event.getSlot(), newItem);
-                        IBUTTONN newButton = _customInventory.onDropItemSet(
+                        IMenuButton newButton = _customInventory.onDropItemSet(
                                 newItem, event.getSlot());
 
 
@@ -349,7 +349,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
                 _plugin.getServer().getScheduler().runTask(_plugin, () ->
                 {
                     _customInventory.getInventory().setItem(slot, newItem);
-                    IBUTTONN newButton = _customInventory.onDragItemSet(newItem, slot);
+                    IMenuButton newButton = _customInventory.onDragItemSet(newItem, slot);
 
                     if (newItem.getAmount() > newButton.getMaxStackAmount())
                     {
@@ -369,7 +369,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
 
     }
 
-    public void handlePickupAll(InventoryClickEvent event, IBUTTONN button)
+    public void handlePickupAll(InventoryClickEvent event, IMenuButton button)
     {
         int slot = event.getSlot();
         boolean onPickUpAll = _customInventory.onPickupAll(button, slot);
@@ -380,7 +380,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
             return;
         }
 
-        IBUTTONN b = getButton(slot);
+        IMenuButton b = getButton(slot);
 
         if (b != null && b.getItemStack().getType() == Material.AIR)
         {
@@ -452,13 +452,13 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
             }
         }
 
-        for (IBUTTONN button : _buttons.values())
+        for (IMenuButton button : _buttons.values())
         {
             updateButton(button.getPosition());
         }
     }
 
-    public void updateButton(IBUTTONN button)
+    public void updateButton(IMenuButton button)
     {
         button.onUpdate();
         _customInventory.
@@ -469,7 +469,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
 
     public void updateButton(int position)
     {
-        IBUTTONN button = getButton(position);
+        IMenuButton button = getButton(position);
         if (button == null)
         {
             _customInventory.
@@ -489,7 +489,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         _touchedButtons.add(position);
     }
 
-    public void addTouch(IBUTTONN button)
+    public void addTouch(IMenuButton button)
     {
         if (button == null) return;
         addTouch(button.getPosition());
@@ -500,7 +500,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         _touchedButtons.remove(position);
     }
 
-    public void removeTouch(IBUTTONN button)
+    public void removeTouch(IMenuButton button)
     {
         if (button == null) return;
         removeTouch(button.getPosition());
@@ -511,7 +511,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         return _touchedButtons.contains(position);
     }
 
-    public boolean isTouched(IBUTTONN button)
+    public boolean isTouched(IMenuButton button)
     {
         if (button == null) return false;
         return isTouched(button.getPosition());
@@ -526,7 +526,7 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
     {
         for (Integer position : _touchedButtons)
         {
-            IBUTTONN button = getButton(position);
+            IMenuButton button = getButton(position);
             if (button == null) continue;
 
             InvUtil.AddItemToInventoryOrDrop(_customInventory.getPlayer(), button.getItemStack());
@@ -535,17 +535,17 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
 
 
     //SNAPSHOT SYSTEM, not tested
-    private Map<String, Map<Integer, IBUTTONN>> _snapshots = new HashMap<>();
+    private Map<String, Map<Integer, IMenuButton>> _snapshots = new HashMap<>();
 
     public void takeSnapshot(String snapshotName)
     {
-        Map<Integer, IBUTTONN> currentButtons = new HashMap<>(_buttons);
+        Map<Integer, IMenuButton> currentButtons = new HashMap<>(_buttons);
         _snapshots.put(snapshotName, currentButtons);
     }
 
     public void restoreSnapshot(String snapshotName)
     {
-        Map<Integer, IBUTTONN> snapshot = _snapshots.get(snapshotName);
+        Map<Integer, IMenuButton> snapshot = _snapshots.get(snapshotName);
         if (snapshot != null)
         {
             _buttons.clear();
@@ -554,9 +554,9 @@ public class ButtonHandler implements Listener, IButtonHandler, ISnapshotHandler
         }
     }
 
-    public IBUTTONN getButtonFromSnapshot(String snapshotName, int slotId)
+    public IMenuButton getButtonFromSnapshot(String snapshotName, int slotId)
     {
-        Map<Integer, IBUTTONN> snapshot = _snapshots.get(snapshotName);
+        Map<Integer, IMenuButton> snapshot = _snapshots.get(snapshotName);
         if (snapshot != null)
         {
             return snapshot.get(slotId);

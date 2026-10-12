@@ -13,7 +13,7 @@ import imu.GS.command.VillageCommands;
 import imu.GS.text.Messages;
 import imu.GS.npc.ShopNpcAction;
 import imu.iAPI.Config.ConfigMenu;
-import imu.iAPI.Handelers.CommandHandler;
+import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Interfaces.CommandInterface;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.ImusTabCompleter;
