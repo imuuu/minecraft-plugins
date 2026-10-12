@@ -1,5 +1,6 @@
 package imu.GS.command;
 
+import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.live.FlashDeal;
@@ -49,7 +50,7 @@ public class LiveCommands
             return;
         if (_service.getLive().getDeals().active(shop.getId(), System.currentTimeMillis()) == null)
         {
-            send(player, "&eThere are no flash deals on right now");
+            Messages.send(player, "flash.no-deals");
             return;
         }
         new FlashDealMenu(_service, shop, true).open(player);

@@ -1,5 +1,6 @@
 package imu.GS.menu;
 
+import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.bukkit.PlayerInventoryAdapter;
@@ -48,7 +49,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
 
     public CustomPriceBuyMenu(GsService service, Shop shop, Listing listing)
     {
-        super(service.getPlugin(), "Buying " + displayName(listing), 54);
+        super(service.getPlugin(), Messages.get("custom-price.title", "item", displayName(listing)), 54);
         _service = service;
         _shop = shop;
         _listing = listing;
@@ -128,13 +129,13 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
         drawCost();
         drawAmounts();
 
-        addButton(new Button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<= BACK"), e -> backToShop()));
-        addButton(new Button(48, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, "&eYou are buying this &b==>")));
-        addButton(new Button(50, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, "&b<== &eYou are buying this")));
+        addButton(new Button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, Messages.get("custom-price.back")), e -> backToShop()));
+        addButton(new Button(48, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-right"))));
+        addButton(new Button(50, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-left"))));
         addButton(new Button(49, Icons.withLore(ItemKeys.template(_listing.getItem()),
-                List.of("&9Minimum amount to buy: &a" + bundle(), "&9Stock Amount: &a" + _listing.getAmount()))));
-        addButton(new Button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&9BUY",
-                "&bM1: &aBuying &9and going &cback &9to Shop menu!", "&bM2: &aBuying &9and staying &6this &9menu"),
+                Messages.lines("custom-price.info", "bundle", bundle(), "stock", _listing.getAmount()))));
+        addButton(new Button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, Messages.get("custom-price.buy"),
+                Messages.lines("custom-price.buy-lore")),
                 e -> buy(e.isLeftClick())));
         updateButtons(true);
     }
@@ -150,16 +151,16 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             int have = _customer.inventory().count(need.item());
             int perBundle = custom.items().get(i).amount();
             ItemStack stack = Icons.withLore(ItemKeys.template(need.item()), List.of(
-                    "&eYou have: " + (have >= need.amount() ? "&a" : "&c") + have,
-                    "&9Cost you:&6 " + need.amount() + " &e(&8" + perBundle + " &3x &8" + _selected / custom.bundleSize() + "&e)"));
+                    Messages.get(have >= need.amount() ? "custom-price.you-have-enough" : "custom-price.you-have-too-few", "amount", have),
+                    Messages.get("custom-price.costs", "amount", need.amount(), "per-bundle", perBundle, "bundles", _selected / custom.bundleSize())));
             addButton(new Button(slot, stack));
         }
         if (cost.money() > 0 && slot < 27)
         {
             double balance = _service.getWallet().balance(getPlayer().getUniqueId());
-            addButton(new Button(slot, Icons.glow(Icons.icon(Material.PAPER, "&6Extra values",
-                    "&9Money&6: &a" + Icons.money(cost.money()),
-                    "&eYou have: " + (balance >= cost.money() ? "&a" : "&c") + Icons.money(balance)))));
+            addButton(new Button(slot, Icons.glow(Icons.icon(Material.PAPER, Messages.get("custom-price.extra"),
+                    Messages.get("custom-price.money", "price", Icons.money(cost.money())),
+                    Messages.get(balance >= cost.money() ? "custom-price.you-have-enough" : "custom-price.you-have-too-few", "amount", Icons.money(balance))))));
         }
     }
 
@@ -178,16 +179,16 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             int slot = 28 + i;
             if (amount > _listing.getAmount() || amount < bundle)
             {
-                addButton(new Button(slot, Icons.icon(Material.BARRIER, "&cUnable to Buy: &4" + amount,
-                        "&c&lNot Enough in Stock! &8(&7In Stock:&3 " + _listing.getAmount() + "&8)")));
+                addButton(new Button(slot, Icons.icon(Material.BARRIER, Messages.get("custom-price.not-in-stock", "amount", amount),
+                        Messages.get("custom-price.not-in-stock-lore", "stock", _listing.getAmount()))));
                 continue;
             }
 
             List<String> lore = new ArrayList<>();
             boolean canPay = canPay(amount);
             if (!canPay)
-                lore.add("&c&lYou dont have enough items!");
-            ItemStack stack = Icons.icon(icons[i], "&9BUY&6 " + amount, lore);
+                lore.add(Messages.get("custom-price.missing-items"));
+            ItemStack stack = Icons.icon(icons[i], Messages.get("custom-price.buy-amount", "amount", amount), lore);
             if (!canPay)
                 Icons.glow(stack);
             addButton(new Button(slot, stack, e ->
@@ -199,7 +200,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             }));
 
             if (amount == _selected)
-                addButton(new Button(slot + 9, Icons.icon(Material.REDSTONE_TORCH, "&a^SELECTED^")));
+                addButton(new Button(slot + 9, Icons.icon(Material.REDSTONE_TORCH, Messages.get("custom-price.selected"))));
         }
     }
 
@@ -222,7 +223,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
         int amount = Math.min(_selected, _listing.getAmount());
         if (amount != _selected)
         {
-            player.sendMessage(Metods.msgC("&cYou were able to buy only &2" + amount + " &cbecause there weren't enough items in stock!"));
+            Messages.send(player, "custom-price.only-some", "amount", amount);
             refresh();
             return;
         }
@@ -231,12 +232,11 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
         double balance = _service.getWallet().balance(player.getUniqueId());
         switch (result.status())
         {
-            case SUCCESS -> player.sendMessage(Metods.msgC("&4Buy &9confirmed! Purchase value: &e " + Metods.Round(result.price())
-                    + " &2$&9. &9Balance: &e" + Metods.Round(balance) + "&2$&9."));
-            case NOT_ENOUGH_MONEY -> player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9Balance isn't enough! &9Balance: &e" + Metods.Round(balance) + "&2$&9."));
-            case NOT_ENOUGH_ITEMS -> player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9You don't have the items to pay with."));
-            case PAYMENT_FAILED -> player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9Payment failed."));
-            case NO_LISTING, WRONG_PRICE_TYPE -> player.sendMessage(Metods.msgC("&cThe shop has changed, please open it again."));
+            case SUCCESS -> Messages.send(player, "custom-price.bought", "price", Metods.Round(result.price()), "balance", Metods.Round(balance));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "custom-price.not-enough-money", "balance", Metods.Round(balance));
+            case NOT_ENOUGH_ITEMS -> Messages.send(player, "custom-price.not-enough-items");
+            case PAYMENT_FAILED -> Messages.send(player, "custom-price.payment-failed");
+            case NO_LISTING, WRONG_PRICE_TYPE -> Messages.send(player, "custom-price.shop-changed");
             default ->
             {
             }

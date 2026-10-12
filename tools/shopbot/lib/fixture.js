@@ -14,6 +14,7 @@ const HOTBAR_TOGGLE = 33
  */
 async function resetPlayer (rcon, name, money = 1000) {
   await rcon.command('ia config imusgs set live.mood.enabled false')
+  await rcon.command('ia config imusgs set language en')
   await rcon.command('ia config imusgs set live.progress.flash-deals false')
   await rcon.command(`op ${name}`)
   await rcon.command(`gamemode survival ${name}`)

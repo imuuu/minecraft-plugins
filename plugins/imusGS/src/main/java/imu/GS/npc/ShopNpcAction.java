@@ -1,5 +1,6 @@
 package imu.GS.npc;
 
+import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.engine.shop.Shop;
 import imu.iAPI.Npc.NpcAction;
@@ -43,7 +44,7 @@ public class ShopNpcAction implements NpcAction
         Shop shop = shop(data);
         if (shop == null)
         {
-            player.sendMessage(Metods.msgC("&9This shop is closed."));
+            Messages.send(player, "shop.npc-closed");
             return;
         }
         _service.openShop(player, shop);

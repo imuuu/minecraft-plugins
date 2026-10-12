@@ -1,5 +1,6 @@
 package imu.GS.bukkit;
 
+import imu.GS.text.Messages;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -15,7 +16,6 @@ import java.util.List;
 public final class FlashItems
 {
     public static final NamespacedKey KEY = new NamespacedKey("imusgs", "flash_deal");
-    public static final String LORE = "&c⚡ Flash deal &7- can't be sold to the shop";
 
     private FlashItems() {}
 
@@ -30,7 +30,7 @@ public final class FlashItems
             return stack;
         meta.getPersistentDataContainer().set(KEY, PersistentDataType.BYTE, (byte) 1);
         stack.setItemMeta(meta);
-        ItemUtils.AddLore(stack, List.of(LORE));
+        ItemUtils.AddLore(stack, List.of(Messages.get("flash.item-mark")));
         return stack;
     }
 

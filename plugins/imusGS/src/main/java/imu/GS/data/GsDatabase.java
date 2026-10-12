@@ -680,6 +680,111 @@ public class GsDatabase
         });
     }
 
+    // Statistics =====================================================================================================
+
+    /**
+     * A sum of logged trades: of a trade type, an item or a player (name), how many trades, units and money.
+     */
+    public record Total(String name, long trades, long units, double money) {}
+
+    /**
+     * Logged trades of the last days.
+     *
+     * @param bought   players buying from shops: the money they paid
+     * @param sold     players selling to shops: the money shops paid
+     * @param flash    flash deal purchases, part of bought
+     * @param topSold  items sold to shops, the most money first
+     * @param topBought items bought from shops, the most money first
+     * @param sellers  players who sold the most
+     * @param days     date (yyyy-mm-dd) -> [money paid by players, money paid by shops]
+     */
+    public record TradeStats(Total bought, Total sold, Total flash, List<Total> topSold, List<Total> topBought,
+                             List<Total> sellers, Map<String, double[]> days) {}
+
+    /**
+     * Reads the statistics of the trade log. Not on the main thread.
+     *
+     * @param shopId one shop, or null for every shop
+     */
+    public TradeStats loadTradeStats(int days, UUID shopId) throws SQLException
+    {
+        String where = " WHERE time >= NOW() - INTERVAL ? DAY" + (shopId != null ? " AND shop_id = ?" : "");
+        try (Connection con = _sql.GetConnection())
+        {
+            Total bought = new Total("BUY", 0, 0, 0);
+            Total sold = new Total("SELL", 0, 0, 0);
+            try (PreparedStatement ps = statsQuery(con, "SELECT type, COUNT(*), COALESCE(SUM(amount),0), COALESCE(SUM(price),0) FROM gs_trades"
+                    + where + " GROUP BY type", days, shopId))
+            {
+                for (Total total : totals(ps))
+                {
+                    if (total.name().equals("BUY"))
+                        bought = total;
+                    else if (total.name().equals("SELL"))
+                        sold = total;
+                }
+            }
+            Total flash = new Total("FLASH", 0, 0, 0);
+            try (PreparedStatement ps = statsQuery(con, "SELECT 'FLASH', COUNT(*), COALESCE(SUM(amount),0), COALESCE(SUM(price),0) FROM gs_trades"
+                    + where + " AND type = 'BUY' AND item LIKE '%imusgs:flash_deal%'", days, shopId))
+            {
+                List<Total> totals = totals(ps);
+                if (!totals.isEmpty())
+                    flash = totals.getFirst();
+            }
+            List<Total> topSold;
+            try (PreparedStatement ps = statsQuery(con, "SELECT item, COUNT(*), SUM(amount), SUM(price) FROM gs_trades" + where
+                    + " AND type = 'SELL' GROUP BY item ORDER BY SUM(price) DESC LIMIT 5", days, shopId))
+            {
+                topSold = totals(ps);
+            }
+            List<Total> topBought;
+            try (PreparedStatement ps = statsQuery(con, "SELECT item, COUNT(*), SUM(amount), SUM(price) FROM gs_trades" + where
+                    + " AND type = 'BUY' GROUP BY item ORDER BY SUM(price) DESC LIMIT 5", days, shopId))
+            {
+                topBought = totals(ps);
+            }
+            List<Total> sellers;
+            try (PreparedStatement ps = statsQuery(con, "SELECT MAX(player_name), COUNT(*), SUM(amount), SUM(price) FROM gs_trades" + where
+                    + " AND type = 'SELL' GROUP BY player_id ORDER BY SUM(price) DESC LIMIT 5", days, shopId))
+            {
+                sellers = totals(ps);
+            }
+            Map<String, double[]> perDay = new LinkedHashMap<>();
+            try (PreparedStatement ps = statsQuery(con, "SELECT DATE(time), type, SUM(price) FROM gs_trades" + where
+                    + " GROUP BY DATE(time), type ORDER BY DATE(time)", days, shopId);
+                 ResultSet rs = ps.executeQuery())
+            {
+                while (rs.next())
+                {
+                    double[] day = perDay.computeIfAbsent(rs.getString(1), d -> new double[2]);
+                    day["BUY".equals(rs.getString(2)) ? 0 : 1] += rs.getDouble(3);
+                }
+            }
+            return new TradeStats(bought, sold, flash, topSold, topBought, sellers, perDay);
+        }
+    }
+
+    private static PreparedStatement statsQuery(Connection con, String sql, int days, UUID shopId) throws SQLException
+    {
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, days);
+        if (shopId != null)
+            ps.setString(2, shopId.toString());
+        return ps;
+    }
+
+    private static List<Total> totals(PreparedStatement ps) throws SQLException
+    {
+        List<Total> totals = new ArrayList<>();
+        try (ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+                totals.add(new Total(rs.getString(1), rs.getLong(2), rs.getLong(3), rs.getDouble(4)));
+        }
+        return totals;
+    }
+
     public void logTrade(Trade trade, String shopName)
     {
         write("log trade", con ->

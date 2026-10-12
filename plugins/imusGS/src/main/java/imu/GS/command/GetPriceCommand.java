@@ -1,5 +1,6 @@
 package imu.GS.command;
 
+import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.engine.pricing.Overflow;
 import imu.iAPI.Interfaces.CommandInterface;
@@ -31,10 +32,10 @@ public class GetPriceCommand implements CommandInterface
 
         for (ItemStack stack : selection.items(player))
         {
-            String line = "&b" + stack.getType() + " &eprice is: &2" + Metods.Round(_service.getRules().value(stack)) + "&2$";
+            String line = Messages.get("getprice.line", "item", stack.getType(), "price", Metods.Round(_service.getRules().value(stack)));
             Overflow overflow = _service.getMaterials().get(stack.getType()).getOverflow();
             if (overflow != null)
-                line += " &b&k# &4Price drops after: &2" + overflow.softCap() + " &9items";
+                line += Messages.get("getprice.drops-after", "amount", overflow.softCap());
             player.sendMessage(Metods.msgC(line));
         }
         return true;

@@ -9,6 +9,7 @@ import imu.GS.engine.customer.Customer;
 import imu.GS.engine.live.FlashDeal;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.live.MarketEvents;
+import imu.GS.text.Messages;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.PriceRule;
@@ -172,20 +173,20 @@ public class ShopMenu extends CustomInventory implements ShopListener
     private Button listingButton(int slot, Listing listing, PriceCalculator prices)
     {
         if (listing.getAmount() <= 0)
-            return new Button(slot, Icons.icon(Material.BLACK_STAINED_GLASS_PANE, "&9-"));
+            return new Button(slot, Icons.icon(Material.BLACK_STAINED_GLASS_PANE, Messages.get("shop.sold-out")));
 
         ItemStack item = ItemKeys.template(listing.getItem());
         if (!_service.getTrades().isAvailable(listing, _customer))
-            return new Button(slot, Icons.withLore(item, List.of("&cNOT AVAILABLE")));
+            return new Button(slot, Icons.withLore(item, Messages.lines("shop.not-available")));
 
         if (listing.getPrice() instanceof PriceRule.Custom)
         {
-            return new Button(slot, Icons.withLore(item, List.of(amountLine(listing.getAmount()), "&9(&l&eClick&r&9) to see price!", "")),
+            return new Button(slot, Icons.withLore(item, List.of(amountLine(listing.getAmount()), Messages.get("shop.custom-price"), "")),
                     e -> Bukkit.getScheduler().runTask(_service.getPlugin(),
                             () -> new CustomPriceBuyMenu(_service, _shop, listing).open(getPlayer())));
         }
 
-        List<String> lore = priceLines("&2BUY ", listing.getAmount(), amount -> prices.buyPrice(_shop, listing, amount));
+        List<String> lore = priceLines(Messages.get("shop.buy-action"), listing.getAmount(), amount -> prices.buyPrice(_shop, listing, amount));
         if (listing.getPrice() instanceof PriceRule.Material)
             addMoodLine(lore, listing.getItem());
         return new Button(slot, Icons.withLore(item, lore), e -> buy(listing, e));
@@ -197,16 +198,16 @@ public class ShopMenu extends CustomInventory implements ShopListener
         addButton(wantedButton());
         addButton(flashButton());
 
-        addButton(new Button(27, Icons.icon(Material.DARK_OAK_SIGN, "&9<< Shop"), e -> changeShopPage(-1)));
-        addButton(new Button(35, Icons.icon(Material.DARK_OAK_SIGN, "&9Shop >>"), e -> changeShopPage(1)));
-        addButton(new Button(30, Icons.icon(Material.BIRCH_SIGN, "&9<< Inv"), e -> changeCustomerPage(-1)));
-        addButton(new Button(32, Icons.icon(Material.BIRCH_SIGN, "&9Inv >>"), e -> changeCustomerPage(1)));
+        addButton(new Button(27, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-back")), e -> changeShopPage(-1)));
+        addButton(new Button(35, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-next")), e -> changeShopPage(1)));
+        addButton(new Button(30, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-back")), e -> changeCustomerPage(-1)));
+        addButton(new Button(32, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-next")), e -> changeCustomerPage(1)));
 
         ItemStack tab = switch (TABS[_tab])
         {
-            case BLOCKS -> Icons.icon(Material.STONE, "&9Blocks, Ores...");
-            case GEAR -> Icons.icon(Material.NETHERITE_CHESTPLATE, "&9Tools, Armor...");
-            case SHULKER_BOX -> Icons.icon(Material.CYAN_SHULKER_BOX, "&9CONTENT OF SHULKER BOXES");
+            case BLOCKS -> Icons.icon(Material.STONE, Messages.get("shop.tab-blocks"));
+            case GEAR -> Icons.icon(Material.NETHERITE_CHESTPLATE, Messages.get("shop.tab-gear"));
+            case SHULKER_BOX -> Icons.icon(Material.CYAN_SHULKER_BOX, Messages.get("shop.tab-shulkers"));
         };
         addButton(new Button(31, tab, e ->
         {
@@ -216,8 +217,8 @@ public class ShopMenu extends CustomInventory implements ShopListener
         }));
 
         ItemStack hotbar = _inventory.isIncludeHotbarAndArmor()
-                ? Icons.icon(Material.SHIELD, "&9Hotbar and Armor slots &2Included!")
-                : Icons.icon(Material.CHEST, "&9Hotbar and Armor slots &cExcluded!");
+                ? Icons.icon(Material.SHIELD, Messages.get("shop.hotbar-included"))
+                : Icons.icon(Material.CHEST, Messages.get("shop.hotbar-excluded"));
         addButton(new Button(33, hotbar, e ->
         {
             _inventory.setIncludeHotbarAndArmor(!_inventory.isIncludeHotbarAndArmor());
@@ -231,7 +232,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
     {
         String mood = moodText(_service.getMarket().moodFactor(item));
         if (mood != null)
-            lore.add(mood + " &7today");
+            lore.add(Messages.get("market.mood-line", "mood", mood));
     }
 
     /**
@@ -242,7 +243,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         long percent = Math.round((factor - 1) * 100);
         if (percent == 0)
             return null;
-        return percent > 0 ? "&a▲ +" + percent + "%" : "&c▼ " + percent + "%";
+        return Messages.get(percent > 0 ? "market.mood-up" : "market.mood-down", "percent", Math.abs(percent));
     }
 
     /**
@@ -257,9 +258,9 @@ public class ShopMenu extends CustomInventory implements ShopListener
         for (Map.Entry<String, Double> mood : moods.entrySet())
         {
             String text = moodText(mood.getValue());
-            lore.add("&7" + mood.getKey() + " " + (text == null ? "&7±0%" : text));
+            lore.add(Messages.get("market.button-line", "tag", mood.getKey(), "mood", text == null ? Messages.get("market.mood-none") : text));
         }
-        return new Button(28, Icons.icon(Material.FILLED_MAP, "&6Market Today", lore));
+        return new Button(28, Icons.icon(Material.FILLED_MAP, Messages.get("market.button"), lore));
     }
 
     /**
@@ -272,11 +273,12 @@ public class ShopMenu extends CustomInventory implements ShopListener
             return new Button(29, Icons.filler(Material.RED_STAINED_GLASS_PANE));
         List<String> lore = new ArrayList<>();
         for (WantedRequests.Wanted request : wanted)
-            lore.add("&e" + MarketEvents.itemName(ItemKeys.template(request.item()).getType()) + " &a+" + Math.round(request.bonus() * 100) + "%");
+            lore.add(Messages.get("market.wanted-line", "item", MarketEvents.itemName(ItemKeys.template(request.item()).getType()),
+                    "percent", Math.round(request.bonus() * 100)));
         long left = wanted.getFirst().endMillis() - System.currentTimeMillis();
-        lore.add("&7Ends in " + (left / 3_600_000) + " h " + (left / 60_000 % 60) + " min");
-        lore.add("&7The shop pays more for these now!");
-        ItemStack icon = Icons.glow(Icons.icon(ItemKeys.template(wanted.getFirst().item()).getType(), "&a&lWANTED", lore));
+        lore.add(Messages.get("market.wanted-ends", "hours", left / 3_600_000, "minutes", left / 60_000 % 60));
+        lore.add(Messages.get("market.wanted-hint"));
+        ItemStack icon = Icons.glow(Icons.icon(ItemKeys.template(wanted.getFirst().item()).getType(), Messages.get("market.wanted"), lore));
         return new Button(29, icon);
     }
 
@@ -284,7 +286,6 @@ public class ShopMenu extends CustomInventory implements ShopListener
 
     private static final Material[] FLASH_FRAMES = { Material.NETHER_STAR, Material.YELLOW_STAINED_GLASS_PANE,
             Material.GOLD_BLOCK, Material.ORANGE_STAINED_GLASS_PANE };
-    private static final String[] FLASH_NAMES = { "&e&l⚡ FLASH DEALS ⚡", "&6&l⚡ FLASH DEALS ⚡" };
 
     /**
      * Slot 34: a blinking button to the flash deals while they are on, otherwise a filler.
@@ -296,9 +297,9 @@ public class ShopMenu extends CustomInventory implements ShopListener
         if (deal == null)
             return new Button(34, Icons.filler(Material.RED_STAINED_GLASS_PANE));
 
-        ItemStack icon = Icons.glow(Icons.icon(FLASH_FRAMES[_frame % FLASH_FRAMES.length], FLASH_NAMES[_frame % FLASH_NAMES.length],
-                "&eEnds in &6" + FlashDealMenu.timeLeft(deal.millisLeft(System.currentTimeMillis())),
-                "&7Limited offers, while they last", "&bClick to see!"));
+        List<String> names = Messages.lines("flash.button");
+        ItemStack icon = Icons.glow(Icons.icon(FLASH_FRAMES[_frame % FLASH_FRAMES.length], names.get(_frame % names.size()),
+                Messages.lines("flash.button-lore", "time", FlashDealMenu.timeLeft(deal.millisLeft(System.currentTimeMillis())))));
         return new Button(34, icon, e ->
         {
             Player player = getPlayer();
@@ -346,22 +347,22 @@ public class ShopMenu extends CustomInventory implements ShopListener
         {
             Map<ItemKey, Integer> contents = new LinkedHashMap<>(_inventory.shulkerContents(entry.getShulkerSlot()));
             if (contents.isEmpty())
-                return new Button(slot, Icons.icon(Material.PURPLE_STAINED_GLASS, "&6Shulker Content &aCleared!"));
+                return new Button(slot, Icons.icon(Material.PURPLE_STAINED_GLASS, Messages.get("shop.shulker-cleared")));
             contents.keySet().removeIf(content -> !_service.getTrades().buysItem(_shop, content));
             if (contents.isEmpty())
-                return new Button(slot, Icons.withLore(item, List.of(amountLine(1), "&cThe shop doesn't buy anything in it")));
+                return new Button(slot, Icons.withLore(item, List.of(amountLine(1), Messages.get("shop.shulker-nothing"))));
             double price = prices.shulkerPrice(_shop, contents);
-            return new Button(slot, Icons.withLore(item, List.of(amountLine(1), "&9Sell Content with &5" + Icons.money(price), "")),
+            return new Button(slot, Icons.withLore(item, List.of(amountLine(1), Messages.get("shop.shulker-sell", "price", Icons.money(price)), "")),
                     e -> sellShulker(entry.getShulkerSlot()));
         }
 
         if (!_service.getTrades().buysItem(_shop, entry.getItem()))
-            return new Button(slot, Icons.withLore(item, List.of(amountLine(entry.getAmount()), "&cThe shop doesn't buy this")));
+            return new Button(slot, Icons.withLore(item, List.of(amountLine(entry.getAmount()), Messages.get("shop.doesnt-buy"))));
 
-        List<String> lore = priceLines("&3SELL ", entry.getAmount(), amount -> prices.sellPrice(_shop, entry.getItem(), amount));
+        List<String> lore = priceLines(Messages.get("shop.sell-action"), entry.getAmount(), amount -> prices.sellPrice(_shop, entry.getItem(), amount));
         double wanted = _service.getMarket().wantedBonus(_shop.getId(), entry.getItem());
         if (wanted > 0)
-            lore.add("&a&lWANTED &a+" + Math.round(wanted * 100) + "%");
+            lore.add(Messages.get("market.wanted-lore", "percent", Math.round(wanted * 100)));
         if (_service.getRules().uniquePrice(entry.getItem()) == null)
             addMoodLine(lore, entry.getItem());
         Overflow overflow = _service.getRules().uniquePrice(entry.getItem()) == null ? _service.getRules().overflow(entry.getItem()) : null;
@@ -369,25 +370,25 @@ public class ShopMenu extends CustomInventory implements ShopListener
         {
             int dropsIn = overflow.softCap() - prices.overflowStock(_shop, entry.getItem());
             lore.add(" ");
-            lore.add(dropsIn <= 0 ? "&b&k# &e&nThe Price Drops&b&k #" : "&e&nThe Price Drops in:&2&l " + dropsIn);
+            lore.add(dropsIn <= 0 ? Messages.get("shop.price-drops") : Messages.get("shop.price-drops-in", "amount", dropsIn));
         }
         PriceCalculator.LimitStatus limit = prices.limitStatus(_shop, entry.getItem());
         if (limit.unitsLeft() > 0)
         {
             lore.add(" ");
-            lore.add("&e&nFull Price for:&2&l " + limit.unitsLeft());
+            lore.add(Messages.get("shop.full-price-for", "amount", limit.unitsLeft()));
         } else if (limit.unitsLeft() == 0)
         {
             lore.add(" ");
-            lore.add("&e&nShop is Full:&c&l " + Math.round(limit.multiplier() * 100) + "% &eprice");
-            lore.add("&7The price comes back over time");
+            lore.add(Messages.get("shop.shop-full", "percent", Math.round(limit.multiplier() * 100)));
+            lore.add(Messages.get("shop.shop-full-refills"));
         }
         return new Button(slot, Icons.withLore(item, lore), e -> sell(entry, e));
     }
 
     private static String amountLine(int amount)
     {
-        return "&9____ &6Amount: &a" + amount + " &9____";
+        return Messages.get("shop.amount", "amount", amount);
     }
 
     private interface PriceFor
@@ -403,13 +404,13 @@ public class ShopMenu extends CustomInventory implements ShopListener
         List<String> lore = new ArrayList<>();
         lore.add(amountLine(amount));
         if (amount >= 1)
-            lore.add(" &bM&21  " + action + " :  &e1  : &5" + Icons.money(price.price(1)));
+            lore.add(Messages.get("shop.price-1", "action", action, "price", Icons.money(price.price(1))));
         if (amount >= 8)
-            lore.add(" &bM&42  " + action + " :  &e8  : &5" + Icons.money(price.price(8)));
+            lore.add(Messages.get("shop.price-8", "action", action, "price", Icons.money(price.price(8))));
         if (amount >= 64)
-            lore.add("&9S&bM&21  " + action + " : &e64 : &5" + Icons.money(price.price(64)));
+            lore.add(Messages.get("shop.price-64", "action", action, "price", Icons.money(price.price(64))));
         if (amount != 1 && amount != 8 && amount != 64)
-            lore.add("&9S&bM&42  " + action + " : &eAll : &5" + Icons.money(price.price(amount)));
+            lore.add(Messages.get("shop.price-all", "action", action, "price", Icons.money(price.price(amount))));
         return lore;
     }
 
@@ -466,11 +467,9 @@ public class ShopMenu extends CustomInventory implements ShopListener
         TradeResult result = _service.getTrades().buy(_shop, _customer, listing, amount);
         switch (result.status())
         {
-            case SUCCESS -> player.sendMessage(Metods.msgC("&4Buy &9confirmed! Purchase value: &e " + Metods.Round(result.price())
-                    + " &2$&9. &9Balance: &e" + Metods.Round(balance()) + "&2$&9."));
-            case NOT_ENOUGH_MONEY -> player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9Balance isn't enough! Purchase value: &e "
-                    + Metods.Round(price) + " &2$&9. &9Balance: &e" + Metods.Round(balance()) + "&2$&9."));
-            case PAYMENT_FAILED -> player.sendMessage(Metods.msgC("&4Buy &cCanceled! &9Payment failed."));
+            case SUCCESS -> Messages.send(player, "shop.bought", "price", Metods.Round(result.price()), "balance", Metods.Round(balance()));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "shop.not-enough-money", "price", Metods.Round(price), "balance", Metods.Round(balance()));
+            case PAYMENT_FAILED -> Messages.send(player, "shop.buy-payment-failed");
             default ->
             {
                 // Stock or availability changed under the click; the menu redraws with the current state
@@ -505,10 +504,9 @@ public class ShopMenu extends CustomInventory implements ShopListener
         Player player = getPlayer();
         switch (result.status())
         {
-            case SUCCESS -> player.sendMessage(Metods.msgC("&3Sell &9confirmed! Sold value: &e " + Metods.Round(result.price())
-                    + " &2$&9. &9Balance: &e" + Metods.Round(balance()) + "&2$&9."));
-            case NOT_ENOUGH_ITEMS -> player.sendMessage(Metods.msgC("&cYour inventory changed, the shop was refreshed. Please try again."));
-            case PAYMENT_FAILED -> player.sendMessage(Metods.msgC("&3Sell &cCanceled! &9Payment failed."));
+            case SUCCESS -> Messages.send(player, "shop.sold", "price", Metods.Round(result.price()), "balance", Metods.Round(balance()));
+            case NOT_ENOUGH_ITEMS -> Messages.send(player, "shop.inventory-changed");
+            case PAYMENT_FAILED -> Messages.send(player, "shop.sell-payment-failed");
             default ->
             {
             }

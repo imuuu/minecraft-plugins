@@ -7,8 +7,8 @@ import imu.GS.engine.live.DailyMood;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.engine.pricing.Market;
 import imu.GS.engine.shop.Shop;
+import imu.GS.text.Messages;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -56,6 +56,14 @@ public class MarketEvents implements Market
     {
         ConfigurationSection section = _service.getPlugin().getConfig().getConfigurationSection("live." + part);
         return section != null ? section : new MemoryConfiguration();
+    }
+
+    /**
+     * When shops next start wanting items, 0 before the first tick.
+     */
+    public long getNextWantedMillis()
+    {
+        return _nextWantedMillis;
     }
 
     public WantedRequests getWanted()
@@ -253,11 +261,11 @@ public class MarketEvents implements Market
     {
         List<String> items = new ArrayList<>();
         for (WantedRequests.Wanted request : requests)
-            items.add(itemName(ItemKeys.template(request.item()).getType()) + " (+" + Math.round(request.bonus() * 100) + "%)");
+            items.add(Messages.get("market.wanted-item", "item", itemName(ItemKeys.template(request.item()).getType()),
+                    "percent", Math.round(request.bonus() * 100)));
         long hours = Math.max(1, Math.round(millis / 3_600_000.0));
-        Component message = Component.text("[Wanted] ", NamedTextColor.GREEN)
-                .append(LegacyComponentSerializer.legacyAmpersand().deserialize(shop.getDisplayName()))
-                .append(Component.text(" wants " + String.join(", ", items) + " for the next " + hours + " h!", NamedTextColor.GREEN));
+        Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(Messages.get("market.wanted-announce",
+                "shop", shop.getDisplayName(), "items", String.join(", ", items), "hours", hours));
         Bukkit.broadcast(message);
         for (Player player : Bukkit.getOnlinePlayers())
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_TRADE, 0.8f, 1.2f);

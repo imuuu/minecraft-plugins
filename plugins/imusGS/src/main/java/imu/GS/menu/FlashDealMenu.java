@@ -1,5 +1,6 @@
 package imu.GS.menu;
 
+import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.bukkit.PlayerInventoryAdapter;
@@ -48,7 +49,7 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
      */
     public FlashDealMenu(GsService service, Shop shop, boolean peek)
     {
-        super(service.getPlugin(), (peek ? "&8Peek: " : "") + "&6&l⚡ Flash Deals", 27);
+        super(service.getPlugin(), Messages.get(peek ? "flash.peek-title" : "flash.title"), 27);
         _service = service;
         _shop = shop;
         _peek = peek;
@@ -102,20 +103,20 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
         long now = System.currentTimeMillis();
         FlashDeal deal = _service.getLive().getDeals().active(_shop.getId(), now);
         if (!_peek)
-            addButton(new Button(18, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<< Back to the shop"), e -> backToShop()));
+            addButton(new Button(18, Icons.icon(Material.RED_STAINED_GLASS_PANE, Messages.get("flash.back")), e -> backToShop()));
         if (deal == null)
         {
-            addButton(new Button(13, Icons.icon(Material.BARRIER, "&cThe flash deals are over", "&7Keep an eye out for the next ones!")));
+            addButton(new Button(13, Icons.icon(Material.BARRIER, Messages.get("flash.over"), Messages.lines("flash.over-lore"))));
             updateButtons(true);
             return;
         }
 
         List<String> header = new ArrayList<>();
-        header.add("&eEnds in &6" + timeLeft(deal.millisLeft(now)));
-        header.add("&7Bought items can't be sold back");
+        header.add(Messages.get("flash.ends-in", "time", timeLeft(deal.millisLeft(now))));
+        header.add(Messages.get("flash.no-sell-back"));
         if (_peek)
-            header.add("&7Visit &r" + _shop.getDisplayName() + " &7to buy");
-        addButton(new Button(4, Icons.glow(Icons.icon(Material.CLOCK, "&6&l⚡ FLASH DEALS ⚡", header))));
+            header.add(Messages.get("flash.visit", "shop", _shop.getDisplayName()));
+        addButton(new Button(4, Icons.glow(Icons.icon(Material.CLOCK, Messages.get("flash.header"), header))));
 
         List<FlashOffer> offers = deal.offers();
         int shown = Math.min(offers.size(), 9);
@@ -125,12 +126,12 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
         {
             FlashOffer offer = offers.get(i);
             if (_peek && i >= peekCount)
-                addButton(new Button(first + i, Icons.icon(Material.GRAY_DYE, "&8&l???", "&7Visit the shop to see")));
+                addButton(new Button(first + i, Icons.icon(Material.GRAY_DYE, Messages.get("flash.hidden"), Messages.lines("flash.hidden-lore"))));
             else
                 addButton(offerButton(first + i, offer));
         }
         if (_peek)
-            addButton(new Button(22, Icons.icon(Material.OAK_SIGN, "&eGo to the shop to buy", "&7" + _shop.getDisplayName())));
+            addButton(new Button(22, Icons.icon(Material.OAK_SIGN, Messages.get("flash.go-to-shop"), "&7" + _shop.getDisplayName())));
         updateButtons(true);
     }
 
@@ -143,15 +144,15 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
 
         List<String> lore = new ArrayList<>();
         lore.add(" ");
-        lore.add("&6Flash price: &e" + Icons.money(offer.getUnitPrice()) + " &7each");
+        lore.add(Messages.get("flash.price", "price", Icons.money(offer.getUnitPrice())));
         if (normal > offer.getUnitPrice())
-            lore.add("&7Normally &m" + Metods.Round(normal) + "&r &c-" + Math.round((1 - offer.getUnitPrice() / normal) * 100) + "%");
-        lore.add(left <= 0 ? "&c&lSOLD OUT" : "&9Left: &e" + left);
-        lore.add("&9You can buy: &e" + canBuy + " &7of " + offer.getPerPlayerLimit());
+            lore.add(Messages.get("flash.normally", "normal", Metods.Round(normal), "percent", Math.round((1 - offer.getUnitPrice() / normal) * 100)));
+        lore.add(left <= 0 ? Messages.get("flash.sold-out") : Messages.get("flash.left", "amount", left));
+        lore.add(Messages.get("flash.can-buy", "amount", canBuy, "limit", offer.getPerPlayerLimit()));
         if (!_peek && canBuy > 0)
         {
             lore.add(" ");
-            lore.add("&bM1 &71  &bM2 &78  &bSM1 &764  &bSM2 &7all you can");
+            lore.add(Messages.get("flash.clicks"));
         }
         ItemStack icon = Icons.withLore(item, lore);
         icon.setAmount(Math.max(1, Math.min(left, icon.getMaxStackSize())));
@@ -184,12 +185,11 @@ public class FlashDealMenu extends CustomInventory implements FlashDeals.Listene
         TradeResult result = _service.getTrades().buyFlash(_shop, _customer, _service.getLive().getDeals(), offer.getId(), amount, now);
         switch (result.status())
         {
-            case SUCCESS -> player.sendMessage(Metods.msgC("&6⚡ Flash deal &9bought! Paid &e" + Metods.Round(result.price())
-                    + " &2$&9. Balance: &e" + Metods.Round(_service.getWallet().balance(player.getUniqueId())) + "&2$"));
-            case NOT_ENOUGH_MONEY -> player.sendMessage(Metods.msgC("&cNot enough money for that, it costs &e"
-                    + Metods.Round(offer.getUnitPrice() * amount) + " &2$"));
-            case DEAL_OVER -> player.sendMessage(Metods.msgC("&cThe flash deals just ended"));
-            case PAYMENT_FAILED -> player.sendMessage(Metods.msgC("&cPayment failed"));
+            case SUCCESS -> Messages.send(player, "flash.bought", "price", Metods.Round(result.price()),
+                    "balance", Metods.Round(_service.getWallet().balance(player.getUniqueId())));
+            case NOT_ENOUGH_MONEY -> Messages.send(player, "flash.not-enough-money", "price", Metods.Round(offer.getUnitPrice() * amount));
+            case DEAL_OVER -> Messages.send(player, "flash.ended");
+            case PAYMENT_FAILED -> Messages.send(player, "flash.payment-failed");
             default ->
             {
                 // Someone bought the last ones first; the redraw shows what is left

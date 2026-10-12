@@ -1,5 +1,6 @@
 package imu.GS;
 
+import imu.GS.text.Messages;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.bukkit.PlayerContext;
 import imu.GS.bukkit.PlayerInventoryAdapter;
@@ -258,14 +259,17 @@ public class GsService implements Listener
 
         FileConfiguration config = _plugin.getConfig();
         long tickTicks = Math.max(1, config.getInt("shop.check-interval-seconds")) * 20L;
-        _tickTask = Bukkit.getScheduler().runTaskTimer(_plugin, () ->
+        Runnable tick = () ->
         {
             long now = System.currentTimeMillis();
             for (Shop shop : _shops.values())
                 shop.tick(now);
             _live.tick(now);
             _market.tick(now, _live.liveShops());
-        }, tickTicks, tickTicks);
+        };
+        // Once now, so the live events have their times from the start
+        tick.run();
+        _tickTask = Bukkit.getScheduler().runTaskTimer(_plugin, tick, tickTicks, tickTicks);
 
         _live.getTracker().start();
 
@@ -533,12 +537,12 @@ public class GsService implements Listener
     {
         if (!_loaded)
         {
-            player.sendMessage(Metods.msgC("&9The shops are still opening, try again in a moment."));
+            Messages.send(player, "shop.still-opening");
             return;
         }
         if (shop.getSettings().locked() || isBeingEdited(shop))
         {
-            player.sendMessage(Metods.msgC("&9The Shop is temporarily closed! Come back later!"));
+            Messages.send(player, "shop.closed");
             if (!player.isOp())
                 return;
         }

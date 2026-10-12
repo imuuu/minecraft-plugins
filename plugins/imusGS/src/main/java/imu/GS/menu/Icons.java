@@ -1,5 +1,7 @@
 package imu.GS.menu;
 
+import imu.GS.text.Messages;
+
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
@@ -58,6 +60,6 @@ public final class Icons
      */
     public static String money(double amount)
     {
-        return Metods.Round(amount) + " &2$";
+        return Messages.get("shop.money", "amount", Metods.Round(amount));
     }
 }

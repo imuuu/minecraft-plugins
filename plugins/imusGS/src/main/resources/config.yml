@@ -1,6 +1,9 @@
 # imusGS settings. The database connection is in DataBaseSettings.yml.
 # Every value here can be changed in game with /gs config (or /ia config).
 
+# Language of the texts players see: en, fi, or your own messages_<code>.yml in this folder
+language: en
+
 shop:
   # How often shops refill stockable items and check for expiring stock, in seconds
   check-interval-seconds: 20

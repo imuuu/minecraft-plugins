@@ -7,7 +7,9 @@ import imu.GS.command.LiveCommands;
 import imu.GS.command.PricingCommands;
 import imu.GS.command.ItemSelection;
 import imu.GS.command.OpenForCommand;
+import imu.GS.command.StatsCommands;
 import imu.GS.command.SubCommand;
+import imu.GS.text.Messages;
 import imu.GS.npc.ShopNpcAction;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handelers.CommandHandler;
@@ -45,6 +47,7 @@ public class ImusGS extends JavaPlugin
         getConfig().options().copyDefaults(true);
         saveConfig();
         ItemKeys.setLogger(getLogger());
+        Messages.load(this);
 
         _service = new GsService(this, new MySQL(this, 10, "imusGS"));
         getServer().getPluginManager().registerEvents(_service, this);
@@ -81,6 +84,7 @@ public class ImusGS extends JavaPlugin
     public void reloadSettings()
     {
         reloadConfig();
+        Messages.load(this);
         _service.getMarket().reload();
         _service.restartTimers();
         _service.refreshMenus();
@@ -134,10 +138,11 @@ public class ImusGS extends JavaPlugin
         consoleSub(handler, gs, "restock", "gs.flash", live::restock);
         consoleSub(handler, gs, "wanted", "gs.flash", live::wanted);
         consoleSub(handler, gs, "progress", "gs.flash", live::progress);
+        consoleSub(handler, gs, "stats", "gs.stats", new StatsCommands(_service)::stats);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc" });
         arguments.put("open", new String[] { "shop" });
@@ -242,6 +247,10 @@ public class ImusGS extends JavaPlugin
     private ConfigMenu createConfigMenu()
     {
         ConfigMenu menu = new ConfigMenu(this, "imusGS", "gs.config", this::reloadSettings);
+        menu.addString("language", "Language", Material.BOOK)
+                .description("Texts players see: en, fi, or your own")
+                .description("messages_<code>.yml in the plugin folder")
+                .note("now");
         menu.addInt("shop.check-interval-seconds", "Shop check interval", Material.CLOCK, 1, 3600)
                 .description("Seconds between stockable refills and expire checks")
                 .note("now");

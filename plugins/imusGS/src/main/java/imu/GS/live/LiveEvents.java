@@ -11,11 +11,10 @@ import imu.GS.engine.live.FlashOffer;
 import imu.GS.engine.live.LiveRules;
 import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.shop.Shop;
+import imu.GS.text.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,6 +65,19 @@ public class LiveEvents implements Listener
         _service = service;
         _deals.addListener(shopId -> _dealsDirty = true);
         _tracker = new ProgressTracker(service);
+    }
+
+    /**
+     * When the next flash deals start, 0 before the first tick.
+     */
+    public long getNextFlashMillis()
+    {
+        return _nextFlashMillis;
+    }
+
+    public long getNextRotationMillis()
+    {
+        return _nextRotationMillis;
     }
 
     public ProgressTracker getTracker()
@@ -319,14 +331,11 @@ public class LiveEvents implements Listener
     private void announce(Shop shop, FlashDeal deal, long now)
     {
         long minutes = Math.max(1, Math.round(deal.millisLeft(now) / (double) MINUTE));
-        Component shopName = LegacyComponentSerializer.legacyAmpersand().deserialize(shop.getDisplayName());
-        Component message = Component.text("⚡ ", NamedTextColor.GOLD)
-                .append(Component.text("Flash deals are on in ", NamedTextColor.YELLOW))
-                .append(shopName)
-                .append(Component.text("! " + minutes + " min left. ", NamedTextColor.YELLOW))
-                .append(Component.text("[Peek]", NamedTextColor.AQUA, TextDecoration.BOLD)
+        LegacyComponentSerializer legacy = LegacyComponentSerializer.legacyAmpersand();
+        Component message = legacy.deserialize(Messages.get("flash.announce", "shop", shop.getDisplayName(), "minutes", minutes))
+                .append(legacy.deserialize(Messages.get("flash.peek-button"))
                         .clickEvent(ClickEvent.runCommand("/gs peek " + shop.getName()))
-                        .hoverEvent(HoverEvent.showText(Component.text("See a few of the deals", NamedTextColor.GRAY))));
+                        .hoverEvent(HoverEvent.showText(legacy.deserialize(Messages.get("flash.peek-hover")))));
         Bukkit.broadcast(message);
         for (Player player : Bukkit.getOnlinePlayers())
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1.5f);

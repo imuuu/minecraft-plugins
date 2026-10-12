@@ -36,6 +36,7 @@ balances before and after each click, so they can be run again on the same serve
 | `flash.test.js` | Flash deals: the announcement, a peek, the blinking button, buying up to the per player limit, no selling back; `/gs restock` |
 | `market.test.js` | The day's mood (market button, prices follow it) and wanted requests (announcement, button, the bonus) |
 | `progress.test.js` | Flash deals offer only items and enchants non-op players have had, up to the seen level |
+| `stats.test.js` | `/gs stats` after a sale, live events in the stats, the language setting (fi/en) |
 | `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of
