@@ -1,6 +1,8 @@
 package imu.GS.live;
 
 import imu.GS.engine.live.ServerProgress;
+import imu.iAPI.CustomEnchants.CustomEnchantProvider;
+import imu.iAPI.CustomEnchants.CustomEnchants;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
@@ -26,6 +28,16 @@ final class GearGenerator
      * @param progress      what players have had, or null for any enchant at any level
      */
     static ItemStack generate(Material material, int minEnchants, int maxEnchants, double overMaxChance, ServerProgress progress, Random random)
+    {
+        return generate(material, minEnchants, maxEnchants, overMaxChance, 0, progress, random);
+    }
+
+    /**
+     * @param customChance chance to also get one custom enchant of another plugin, at level I (higher levels are
+     *                     the plugin's own progression)
+     */
+    static ItemStack generate(Material material, int minEnchants, int maxEnchants, double overMaxChance, double customChance,
+                              ServerProgress progress, Random random)
     {
         ItemStack item = new ItemStack(material);
         List<Enchantment> candidates = new ArrayList<>();
@@ -56,7 +68,33 @@ final class GearGenerator
             item.addUnsafeEnchantment(enchant, level);
             added++;
         }
+        if (random.nextDouble() < customChance)
+        {
+            List<String> custom = new ArrayList<>();
+            for (CustomEnchantProvider.Info info : CustomEnchants.enchants())
+            {
+                if ((progress == null || progress.seenLevel(info.key()) > 0) && CustomEnchants.canApply(item, info.key()))
+                    custom.add(info.key());
+            }
+            if (!custom.isEmpty())
+                CustomEnchants.apply(item, custom.get(random.nextInt(custom.size())));
+        }
         return item;
+    }
+
+    /**
+     * A level I book of another plugin's custom enchant; with the server's progress only one players have had.
+     * Null when there is none.
+     */
+    static ItemStack customBook(ServerProgress progress, Random random)
+    {
+        List<String> keys = new ArrayList<>();
+        for (CustomEnchantProvider.Info info : CustomEnchants.enchants())
+        {
+            if (progress == null || progress.seenLevel(info.key()) > 0)
+                keys.add(info.key());
+        }
+        return keys.isEmpty() ? null : CustomEnchants.book(keys.get(random.nextInt(keys.size())), 1);
     }
 
     /**

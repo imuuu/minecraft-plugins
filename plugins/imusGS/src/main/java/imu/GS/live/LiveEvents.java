@@ -12,6 +12,9 @@ import imu.GS.engine.live.LiveRules;
 import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.shop.Shop;
 import imu.GS.presets.ShopPreset;
+import imu.iAPI.CustomEnchants.CustomEnchants;
+import imu.iAPI.CustomItems.CustomItemProvider;
+import imu.iAPI.CustomItems.CustomItems;
 import imu.GS.text.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -276,14 +279,15 @@ public class LiveEvents implements Listener
         Predicate<Material> allowed = m -> _tracker.allows("rotation", m);
         int added = 0;
 
-        int special = preset == null ? 0 : preset.books() ? count : (int) Math.round(count * preset.rotationGearShare());
+        int special = preset == null ? 0 : preset.sellsBooks() ? count : (int) Math.round(count * preset.rotationGearShare());
         List<Material> gear = gearOf(preset, m -> _tracker.allows("flash-deals", m));
         ConfigurationSection flash = config("flash-deals");
         for (int i = 0; i < special; i++)
         {
-            ItemStack item = preset.books() ? GearGenerator.book(gearProgress(), flash.getDouble("over-max-level-chance", 0.15), _random)
+            ItemStack item = preset.sellsBooks() ? book(preset, flash)
                     : gear.isEmpty() ? null : GearGenerator.generate(gear.get(_random.nextInt(gear.size())), flash.getInt("gear-enchants-min", 2),
-                    flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15), gearProgress(), _random);
+                    flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15),
+                    flash.getDouble("custom-enchant-chance", 0.3), gearProgress(), _random);
             if (item == null)
                 continue;
             ItemKey key = ItemKeys.of(item);
@@ -292,7 +296,21 @@ public class LiveEvents implements Listener
         }
 
         double budget = rotation.getDouble("budget", 2000) * (preset == null ? 1 : preset.quality());
-        List<Material> picked = preset != null && preset.books() ? List.of()
+        // Now and then a custom item of another plugin (special TNT...) of the shop's tags
+        if (preset == null || !preset.sellsBooks())
+        {
+            ItemStack custom = customItem(tagsOf(preset, rotation), rotation.getDouble("custom-item-chance", 0.25), "rotation");
+            if (custom != null)
+            {
+                ItemKey key = ItemKeys.of(custom);
+                if (LiveRules.restock(shop, key, 1 + _random.nextInt(4), 4, _service.getPrices().priceForSoldItem(key)) > 0)
+                {
+                    added++;
+                    special++;
+                }
+            }
+        }
+        List<Material> picked = preset != null && preset.sellsBooks() ? List.of()
                 : ItemPool.pick(_service.getMaterials(), tagsOf(preset, rotation), valueScale(preset), count - special, allowed, _random);
         for (Material material : picked)
         {
@@ -319,7 +337,7 @@ public class LiveEvents implements Listener
         ShopPreset preset = presetOf(shop);
         int count = between(flash.getInt("offers-min", 4), flash.getInt("offers-max", 7));
         double gearShare = preset != null && preset.flashGearShare() != null ? preset.flashGearShare() : flash.getDouble("gear-share", 0.4);
-        int gearCount = preset != null && preset.books() ? count : (int) Math.round(count * gearShare);
+        int gearCount = preset != null && preset.sellsBooks() ? count : (int) Math.round(count * gearShare);
         Predicate<Material> allowed = m -> _tracker.allows("flash-deals", m);
         ServerProgress progress = gearProgress();
 
@@ -329,9 +347,9 @@ public class LiveEvents implements Listener
         for (int i = 0; i < gearCount; i++)
         {
             FlashOffer offer = null;
-            if (preset != null && preset.books())
+            if (preset != null && preset.sellsBooks())
             {
-                ItemStack book = GearGenerator.book(progress, flash.getDouble("over-max-level-chance", 0.15), _random);
+                ItemStack book = book(preset, flash);
                 if (book != null)
                     offer = offer(shop, book, between(flash.getInt("gear-stock-min", 2), flash.getInt("gear-stock-max", 5)),
                             flash.getInt("gear-player-limit", 2), flash);
@@ -343,7 +361,8 @@ public class LiveEvents implements Listener
             } else if (!gear.isEmpty())
             {
                 ItemStack item = GearGenerator.generate(gear.get(_random.nextInt(gear.size())), flash.getInt("gear-enchants-min", 2),
-                        flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15), progress, _random);
+                        flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15),
+                        flash.getDouble("custom-enchant-chance", 0.3), progress, _random);
                 offer = offer(shop, item, between(flash.getInt("gear-stock-min", 2), flash.getInt("gear-stock-max", 5)),
                         flash.getInt("gear-player-limit", 2), flash);
             }
@@ -361,7 +380,22 @@ public class LiveEvents implements Listener
             if (_random.nextDouble() < flash.getDouble("fun-chance", 0.3))
                 picked.add(fun.removeFirst());
         }
-        if (preset == null || !preset.books())
+        // A custom item of another plugin (special TNT...) of the shop's tags now and then
+        if (preset == null || !preset.sellsBooks())
+        {
+            ItemStack custom = customItem(tagsOf(preset, flash), flash.getDouble("custom-item-chance", 0.25), "flash-deals");
+            if (custom != null)
+            {
+                FlashOffer offer = offer(shop, custom, between(flash.getInt("gear-stock-min", 2), flash.getInt("gear-stock-max", 5)) * 2,
+                        flash.getInt("gear-player-limit", 2), flash);
+                if (offer != null)
+                {
+                    offers.add(offer);
+                    blockCount--;
+                }
+            }
+        }
+        if (preset == null || !preset.sellsBooks())
             picked.addAll(ItemPool.pick(_service.getMaterials(), tagsOf(preset, flash), valueScale(preset),
                     blockCount - picked.size(), allowed.and(m -> !picked.contains(m)), _random));
         for (Material material : picked)
@@ -381,6 +415,31 @@ public class LiveEvents implements Listener
         if (announce)
             announce(shop, deal, now);
         return deal;
+    }
+
+    /**
+     * A book for a shop that sells them: vanilla, a custom enchant's, or either, as its preset says.
+     */
+    private ItemStack book(ShopPreset preset, ConfigurationSection flash)
+    {
+        boolean custom = preset.customBooks() && (!preset.books() || _random.nextBoolean());
+        ItemStack book = custom ? GearGenerator.customBook(gearProgress(), _random) : null;
+        return book != null ? book : preset.books() || CustomEnchants.isEmpty() || !preset.customBooks()
+                ? GearGenerator.book(gearProgress(), flash.getDouble("over-max-level-chance", 0.15), _random) : null;
+    }
+
+    /**
+     * With the chance, a random custom item of another plugin with one of the tags; with the progress check of
+     * {@code part} on, only one players have had. Null when none.
+     */
+    private ItemStack customItem(List<String> tags, double chance, String part)
+    {
+        if (CustomItems.isEmpty() || _random.nextDouble() >= chance)
+            return null;
+        List<CustomItemProvider.CustomItem> items = new ArrayList<>(CustomItems.withTags(tags));
+        if (_tracker.appliesTo(part))
+            items.removeIf(item -> !_tracker.getProgress().hasSeen(item.id()));
+        return items.isEmpty() ? null : items.get(_random.nextInt(items.size())).stack();
     }
 
     public void endFlashDeal(Shop shop)

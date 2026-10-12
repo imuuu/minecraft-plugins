@@ -1,0 +1,46 @@
+# imusGS shop preset: Enchanter. /gs create preset enchanter makes a shop of it with its NPC where you stand,
+# /gs village makes every preset at once. Edit this file to change what new shops of it get; shops made
+# already keep their stock, but their live events (rotation, flash deals, found items) follow this file.
+#
+# name, display-name   the shop's name and how players see it
+# buy-only             players can only buy here
+# npc                  the villager: profession, one of the names, and a title after it
+# tags                 material tags (see the price profile) the shop is about: its rotating stock and flash
+#                      deals come from these
+# found-tags           items of these tags that players find turn up here (default: the same as tags)
+# quality              over 1 brings rarer, pricier items more often
+# rotation             how many kinds of items come every rotation, and the share of enchanted gear
+# books                rotating stock and flash deals are enchanted books
+# custom-books         ...books of other plugins' custom enchants (ImusEnchants), level I
+# flash                flash deals: share of enchanted gear, fun items (TNT...), rare specials (totems...)
+# gear                 gear this shop enchants and sells (default: the flash deal gear of config.yml)
+# stock                what the shop always has: at most max, fill more every minutes; an item can be a
+#                      custom item of another plugin by its id (see /gs customprices)
+
+name: Enchanter
+display-name: "&5&l✦ &d&lEnchanter"
+buy-only: true
+npc:
+  profession: librarian
+  names: [Elara, Zephyr, Orin, Lyra, Cassius]
+  title: "&7the Enchanter"
+tags: []
+found-tags: []
+quality: 1
+rotation:
+  items-min: 2
+  items-max: 4
+  gear-share: 0
+# Custom enchant books (ImusEnchants) and vanilla ones
+books: true
+custom-books: true
+flash:
+  gear-share: 0
+stock:
+  - {item: LAPIS_LAZULI, max: 64, fill: 16, minutes: 30}
+  - {item: EXPERIENCE_BOTTLE, max: 32, fill: 8, minutes: 60}
+  - {item: BOOK, max: 32, fill: 8, minutes: 30}
+  - {item: ENCHANTING_TABLE, max: 2, fill: 1, minutes: 120}
+  - {item: "imusenchants:booster_1", max: 8, fill: 2, minutes: 60}
+  - {item: "imusenchants:booster_2", max: 4, fill: 1, minutes: 120}
+  - {item: "imusenchants:booster_3", max: 2, fill: 1, minutes: 240}

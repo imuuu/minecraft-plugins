@@ -122,6 +122,8 @@ public class GsDatabase
                     + "tags VARCHAR(1000) NOT NULL DEFAULT '', "
                     + "limit_group VARCHAR(64) NULL)");
             addColumnIfMissing(con, st, "gs_materials", "limit_group", "VARCHAR(64) NULL");
+            // Custom enchant and item prices are kept here with their namespaced keys
+            st.executeUpdate("ALTER TABLE gs_enchant_settings MODIFY name VARCHAR(160) NOT NULL");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_limits ("
                     + "grp VARCHAR(64) NOT NULL PRIMARY KEY, "
                     + "allowance DOUBLE NOT NULL, "
@@ -399,6 +401,8 @@ public class GsDatabase
                     String name = rs.getString(1);
                     if (name.equals("enchant_count_percent"))
                         enchants.setEnchantCountPercent(rs.getDouble(2));
+                    else if (name.startsWith("custom:"))
+                        enchants.setCustomPrice(name.substring("custom:".length()), rs.getDouble(2));
                     else if (name.startsWith("gear_"))
                     {
                         try
@@ -649,6 +653,31 @@ public class GsDatabase
             {
                 ps.setString(1, name);
                 ps.setDouble(2, value);
+                ps.executeUpdate();
+            }
+        });
+    }
+
+    /**
+     * A custom enchant or item price, see {@link EnchantPrices#getCustomPrice}; null deletes it.
+     */
+    public void saveCustomPrice(String name, Double price)
+    {
+        write("save custom price " + name, con ->
+        {
+            if (price == null)
+            {
+                try (PreparedStatement ps = con.prepareStatement("DELETE FROM gs_enchant_settings WHERE name=?"))
+                {
+                    ps.setString(1, "custom:" + name);
+                    ps.executeUpdate();
+                }
+                return;
+            }
+            try (PreparedStatement ps = con.prepareStatement("REPLACE INTO gs_enchant_settings (name, value) VALUES (?,?)"))
+            {
+                ps.setString(1, "custom:" + name);
+                ps.setDouble(2, price);
                 ps.executeUpdate();
             }
         });

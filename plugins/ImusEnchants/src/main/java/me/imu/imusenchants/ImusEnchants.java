@@ -1,5 +1,8 @@
 package me.imu.imusenchants;
 
+import imu.iAPI.CustomEnchants.CustomEnchants;
+import imu.iAPI.CustomItems.CustomItems;
+import me.imu.imusenchants.CustomEnchants.ImusEnchantsProvider;
 import java.util.HashMap;
 
 import me.imu.imusenchants.Commands.ImusEnchantsCmd;
@@ -42,6 +45,8 @@ public class ImusEnchants extends JavaPlugin
     private ImusEnchantsCmd _cmd;
     private ConfigMenu _settingsMenu;
 
+    private final ImusEnchantsProvider _provider = new ImusEnchantsProvider();
+
     @Override
     public void onEnable()
     {
@@ -51,6 +56,9 @@ public class ImusEnchants extends JavaPlugin
         _managerEnchants = new ManagerEnchants();
         CustomEnchantRegistry.RegisterDefaults();
         EnchantSettings.Load(this);
+        // Other plugins (imusGS) can price, sell and track the custom enchants
+        CustomEnchants.register(_provider);
+        CustomItems.register(_provider);
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName+" is Activated");
 
@@ -98,6 +106,8 @@ public class ImusEnchants extends JavaPlugin
     @Override
     public void onDisable()
     {
+        CustomEnchants.unregister(_provider);
+        CustomItems.unregister(_provider);
         if (_settingsMenu != null)
             _settingsMenu.unregister();
         InventoryEnchanting.CloseAll();

@@ -17,6 +17,7 @@ import java.util.List;
  * @param quality         over 1 brings rarer, pricier items more often (the value scale of picking is multiplied)
  * @param rotationGearShare share of rotating stock that is enchanted gear (of {@code gear})
  * @param books           its rotating stock and flash deals are enchanted books
+ * @param customBooks     ...books of other plugins' custom enchants (ImusEnchants), level I
  * @param flashGearShare  share of flash offers that are enchanted gear; null = the config.yml value
  * @param gear            gear this shop enchants and sells; empty = the config.yml flash deal gear
  * @param fun             flash deals may have fun items (TNT, fireworks...)
@@ -25,16 +26,17 @@ import java.util.List;
  */
 public record ShopPreset(String id, String name, String displayName, boolean buyOnly, String profession,
                          List<String> npcNames, String npcTitle, List<String> tags, List<String> foundTags,
-                         double quality, int rotationMin, int rotationMax, double rotationGearShare, boolean books,
+                         double quality, int rotationMin, int rotationMax, double rotationGearShare, boolean books, boolean customBooks,
                          Double flashGearShare, List<Material> gear, boolean fun, boolean specials, List<StockItem> stock)
 {
     public static final String GENERAL = "general";
 
     /**
+     * @param item    a material, or a custom item of another plugin ("imustnt:chunk_tnt")
      * @param max     most the shop has
      * @param fill    how many come back every {@code minutes}
      */
-    public record StockItem(Material material, int max, int fill, int minutes) {}
+    public record StockItem(String item, int max, int fill, int minutes) {}
 
     public ShopPreset
     {
@@ -44,6 +46,11 @@ public record ShopPreset(String id, String name, String displayName, boolean buy
         gear = List.copyOf(gear);
         stock = List.copyOf(stock);
         quality = Math.max(0.1, quality);
+    }
+
+    public boolean sellsBooks()
+    {
+        return books || customBooks;
     }
 
     public boolean isGeneral()

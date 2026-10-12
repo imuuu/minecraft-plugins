@@ -23,7 +23,7 @@ public class ShopPresets
      * The presets imusGS comes with, in the order a village is built.
      */
     public static final List<String> BUNDLED = List.of("general", "builder", "farmer", "blacksmith", "redstone",
-            "fisherman", "alchemist", "librarian", "decorator");
+            "fisherman", "alchemist", "librarian", "enchanter", "decorator");
 
     private final JavaPlugin _plugin;
     private final File _folder;
@@ -93,10 +93,11 @@ public class ShopPresets
         List<ShopPreset.StockItem> stock = new ArrayList<>();
         for (Map<?, ?> entry : yaml.getMapList("stock"))
         {
-            Material material = Material.matchMaterial(String.valueOf(entry.get("item")));
-            if (material == null || !material.isItem())
+            Object item = entry.get("item");
+            if (item == null)
                 continue;
-            stock.add(new ShopPreset.StockItem(material, number(entry.get("max"), 64), number(entry.get("fill"), 16),
+            // Custom items of other plugins are found when a shop is made, they may not be loaded yet
+            stock.add(new ShopPreset.StockItem(String.valueOf(item), number(entry.get("max"), 64), number(entry.get("fill"), 16),
                     number(entry.get("minutes"), 30)));
         }
         List<Material> gear = new ArrayList<>();
@@ -111,7 +112,7 @@ public class ShopPresets
                 yaml.getString("npc.profession", "none"), yaml.getStringList("npc.names"), yaml.getString("npc.title", ""),
                 lower(yaml.getStringList("tags")), lower(yaml.getStringList("found-tags")), yaml.getDouble("quality", 1),
                 yaml.getInt("rotation.items-min", 2), yaml.getInt("rotation.items-max", 4), yaml.getDouble("rotation.gear-share", 0),
-                yaml.getBoolean("books", false), yaml.contains("flash.gear-share") ? yaml.getDouble("flash.gear-share") : null,
+                yaml.getBoolean("books", false), yaml.getBoolean("custom-books", false), yaml.contains("flash.gear-share") ? yaml.getDouble("flash.gear-share") : null,
                 gear, yaml.getBoolean("flash.fun", false), yaml.getBoolean("flash.specials", false), stock);
     }
 

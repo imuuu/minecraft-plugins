@@ -51,6 +51,12 @@ public class NodeBooster extends NodeDirectional
 		return _power;
 	}
 
+	// How many directions the booster powers
+	public int GetDirectionAmount()
+	{
+		return _directions == null ? _directionAmount : _directions.length;
+	}
+
 
 	@Override
 	public boolean IsValidGUIitem(TOUCH_TYPE touchType, EnchantedItem enchantedItem, ItemStack stack)

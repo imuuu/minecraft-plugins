@@ -17,6 +17,8 @@ import imu.GS.engine.live.WantedRequests;
 import imu.GS.live.LiveEvents;
 import imu.GS.live.MarketEvents;
 import imu.GS.presets.ShopPreset;
+import imu.iAPI.CustomItems.CustomItemProvider;
+import imu.iAPI.CustomItems.CustomItems;
 import imu.GS.presets.ShopPresets;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
@@ -115,6 +117,7 @@ public class GsService implements Listener
         _db = new GsDatabase(sql, plugin.getLogger());
         _rules = new ServerPriceRules(_materials, _enchants, _uniques,
                 () -> plugin.getConfig().getDouble("pricing.durability-penalty"));
+        _rules.setTierFactors(setting -> plugin.getConfig().getDoubleList("pricing." + setting));
         _prices = new PriceCalculator(_rules, _pressure, System::currentTimeMillis);
         _trades = new TradeService(_prices, _wallet, () -> plugin.getConfig().getBoolean("shop.allow-zero-price-sells", true));
         _trades.addListener((shop, customer, trade) ->
@@ -194,6 +197,7 @@ public class GsService implements Listener
 
         _enchants.getValues().putAll(enchants.getValues());
         _enchants.setEnchantCountPercent(enchants.getEnchantCountPercent());
+        _enchants.getCustomPrices().putAll(enchants.getCustomPrices());
         for (imu.GS.prices.GearTier tier : imu.GS.prices.GearTier.values())
             _enchants.setGearMultiplier(tier, enchants.getGearMultiplier(tier));
 
@@ -397,13 +401,31 @@ public class GsService implements Listener
                 preset.isGeneral() ? null : preset.id()));
         for (ShopPreset.StockItem item : preset.stock())
         {
-            Listing listing = new Listing(UUID.randomUUID(), ItemKeys.of(new ItemStack(item.material())), item.max(), PriceRule.MATERIAL);
+            ItemStack stack = stockStack(item.item());
+            if (stack == null)
+            {
+                _plugin.getLogger().warning("Preset " + preset.id() + ": no item " + item.item() + " (is its plugin on?)");
+                continue;
+            }
+            Listing listing = new Listing(UUID.randomUUID(), ItemKeys.of(stack), item.max(), PriceRule.MATERIAL);
             shop.addListing(listing);
             shop.setStock(listing, new StockRules(item.max(), item.fill(), item.minutes()));
         }
         _live.rotate(shop);
         saveNow(shop);
         return shop;
+    }
+
+    /**
+     * A material, or a custom item of another plugin by its id; null when neither.
+     */
+    private static ItemStack stockStack(String item)
+    {
+        Material material = Material.matchMaterial(item);
+        if (material != null && material.isItem())
+            return new ItemStack(material);
+        CustomItemProvider.CustomItem custom = CustomItems.item(item);
+        return custom == null ? null : custom.stack();
     }
 
     public ShopPresets getPresets()

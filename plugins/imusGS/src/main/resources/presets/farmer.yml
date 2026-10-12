@@ -11,9 +11,11 @@
 # quality              over 1 brings rarer, pricier items more often
 # rotation             how many kinds of items come every rotation, and the share of enchanted gear
 # books                rotating stock and flash deals are enchanted books
+# custom-books         ...books of other plugins' custom enchants (ImusEnchants), level I
 # flash                flash deals: share of enchanted gear, fun items (TNT...), rare specials (totems...)
 # gear                 gear this shop enchants and sells (default: the flash deal gear of config.yml)
-# stock                what the shop always has: at most max, fill more every minutes
+# stock                what the shop always has: at most max, fill more every minutes; an item can be a
+#                      custom item of another plugin by its id (see /gs customprices)
 
 name: Farmer
 display-name: "&a&lFarmer"

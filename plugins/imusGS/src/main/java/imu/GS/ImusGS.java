@@ -87,6 +87,7 @@ public class ImusGS extends JavaPlugin
         reloadConfig();
         Messages.load(this);
         _service.getPresets().reload();
+        _service.getRules().clearCustomCache();
         _service.getMarket().reload();
         _service.restartTimers();
         _service.refreshMenus();
@@ -133,6 +134,8 @@ public class ImusGS extends JavaPlugin
         PricingCommands pricing = new PricingCommands(_service);
         consoleSub(handler, gs, "profile", "gs.profile", pricing::profile);
         consoleSub(handler, gs, "limits", "gs.limits", pricing::limits);
+        consoleSub(handler, gs, "customprices", "gs.set.material.price", pricing::customPrices);
+        consoleSub(handler, gs, "set custom price", "gs.set.material.price", pricing::setCustomPrice);
         consoleSub(handler, gs, "reset limits", "gs.limits", pricing::resetLimits);
         LiveCommands live = new LiveCommands(_service);
         sub(handler, gs, "peek", "gs.peek", live::peek);
@@ -149,13 +152,13 @@ public class ImusGS extends JavaPlugin
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove", "customprices" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc", "preset" });
         arguments.put("open", new String[] { "shop" });
         arguments.put("modify", new String[] { "shop", "uniques", "enchantments" });
         arguments.put("add", ItemSelection.NAMES.toArray(new String[0]));
-        arguments.put("set", new String[] { "material" });
+        arguments.put("set", new String[] { "material", "custom" });
         arguments.put("unset", new String[] { "material" });
         arguments.put("tag", new String[] { "materials", "shopitems" });
         arguments.put("reset", new String[] { "limits" });

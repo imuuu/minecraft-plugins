@@ -46,11 +46,48 @@ public class EnchantPrices
     private final Map<NamespacedKey, EnchantValue> _values = new HashMap<>();
     private final Map<GearTier, Double> _gearMultipliers = new EnumMap<>(GearTier.class);
     private double _enchantCountPercent = DEFAULT_ENCHANT_COUNT_PERCENT;
+    // "enchant:<key>" -> price per level, "item:<id>" -> price of one; set by admins, the rest go by tier
+    private final Map<String, Double> _customPrices = new HashMap<>();
 
     public EnchantPrices()
     {
         for (GearTier tier : GearTier.values())
             _gearMultipliers.put(tier, tier.getDefaultMultiplier());
+    }
+
+    public static String customEnchantName(String key)
+    {
+        return "enchant:" + key.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    public static String customItemName(String id)
+    {
+        return "item:" + id.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /**
+     * The price an admin set for a custom enchant (per level) or item, see {@link #customEnchantName} and
+     * {@link #customItemName}; null when it goes by its tier.
+     */
+    public Double getCustomPrice(String name)
+    {
+        return _customPrices.get(name);
+    }
+
+    /**
+     * Null goes back to the price by tier.
+     */
+    public void setCustomPrice(String name, Double price)
+    {
+        if (price == null)
+            _customPrices.remove(name);
+        else
+            _customPrices.put(name, price);
+    }
+
+    public Map<String, Double> getCustomPrices()
+    {
+        return _customPrices;
     }
 
     /**

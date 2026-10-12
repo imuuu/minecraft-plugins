@@ -1,5 +1,7 @@
 package imu.imusTNT.main;
 
+import imu.iAPI.CustomItems.CustomItems;
+import imu.imusTNT.TNTs.TntItems;
 import java.util.HashMap;
 
 import org.bukkit.ChatColor;
@@ -22,11 +24,20 @@ public class ImusTNT extends JavaPlugin
 	private CmdHelper _cmdHelper;
 	private ImusTabCompleter _tab_cmd1;
 	private TNT_Mananger _managerTNT;
+	private final TntItems _tntItems = new TntItems();
+
+	@Override
+	public void onDisable()
+	{
+		CustomItems.unregister(_tntItems);
+	}
 	@Override
 	public void onEnable()
 	{
 		Instance = this;
 		_managerTNT = new TNT_Mananger();
+		// Shops (imusGS) can price and sell the special TNTs
+		CustomItems.register(_tntItems);
 		
 		getServer().getConsoleSender().sendMessage(ChatColor.GREEN + _pluginName+" is Activated");
 		getServer().getPluginManager().registerEvents(new imusTNT_events(), this);

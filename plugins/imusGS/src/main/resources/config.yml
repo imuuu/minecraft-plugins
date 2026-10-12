@@ -28,6 +28,10 @@ pricing:
   first-start-profile: default
   # What diamond costs with that profile; everything else is scaled to match
   first-start-diamond-price: 1000
+  # Custom enchants and items of other plugins (ImusEnchants, imusTNT...) cost their tier (1, 2, 3) times what
+  # diamond costs, until you set a price with /gs set custom price. A tier 2 enchant: 0.8 diamonds per level.
+  custom-enchant-tiers: [0.3, 0.8, 2.0]
+  custom-item-tiers: [0.5, 1.5, 4.0]
 
 # Values a newly created shop starts with. Existing shops keep their own, change those with /gs modify shop
 new-shop:
@@ -70,6 +74,8 @@ live:
     budget: 2000
     value-scale: 5
     tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]
+    # A rotation brings a custom item of another plugin (special TNT...) of the shop's tags with this chance
+    custom-item-chance: 0.25
   # Limited time offers. Players are told only that deals are on, with a [Peek] at a couple of them.
   # Items bought from a deal can't be sold back to a shop.
   flash-deals:
@@ -112,6 +118,10 @@ live:
     block-stacks-max: 6
     block-player-limit: 128
     tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]
+    # Gear gets one custom enchant of another plugin (ImusEnchants) at level I with this chance
+    custom-enchant-chance: 0.3
+    # A deal has a custom item of another plugin (special TNT...) of the shop's tags with this chance
+    custom-item-chance: 0.25
     # Each block offer is one of these fun items with this chance
     fun-chance: 0.3
     fun-items: [TNT, FIREWORK_ROCKET, FIREWORK_STAR, SLIME_BLOCK, HONEY_BLOCK, ENDER_PEARL, SNOWBALL, EGG, NAME_TAG,

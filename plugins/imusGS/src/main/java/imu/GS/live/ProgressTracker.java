@@ -3,6 +3,8 @@ package imu.GS.live;
 import imu.GS.GsService;
 import imu.GS.bukkit.FlashItems;
 import imu.GS.engine.live.ServerProgress;
+import imu.iAPI.CustomEnchants.CustomEnchants;
+import imu.iAPI.CustomItems.CustomItems;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.block.ShulkerBox;
@@ -89,6 +91,10 @@ public class ProgressTracker implements Listener
         if (item == null || item.getType().isAir() || FlashItems.isMarked(item))
             return;
         _progress.seeItem(item.getType().name());
+        String custom = CustomItems.idOf(item);
+        if (custom != null)
+            _progress.seeItem(custom);
+        CustomEnchants.read(item).forEach(_progress::seeEnchant);
         for (Map.Entry<Enchantment, Integer> enchant : item.getEnchantments().entrySet())
             _progress.seeEnchant(enchant.getKey().getKey().toString(), enchant.getValue());
         if (!item.hasItemMeta())

@@ -3,6 +3,12 @@ package imu.GS.command;
 import imu.GS.GsService;
 import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.shop.Shop;
+import imu.GS.prices.EnchantPrices;
+import imu.GS.prices.ServerPriceRules;
+import imu.iAPI.CustomEnchants.CustomEnchantProvider;
+import imu.iAPI.CustomEnchants.CustomEnchants;
+import imu.iAPI.CustomItems.CustomItemProvider;
+import imu.iAPI.CustomItems.CustomItems;
 import imu.GS.prices.profile.PriceProfiles;
 import imu.GS.prices.profile.ProfileCalculator;
 import org.bukkit.command.CommandSender;
@@ -119,6 +125,74 @@ public class PricingCommands
                 + " &a(diamond = " + format(diamond) + ")");
         for (Shop shop : _service.getShops())
             _service.warnAboutBuyBackProfit(sender, shop);
+    }
+
+    // Custom enchants and items of other plugins =====================================================================
+
+    /**
+     * /gs customprices: other plugins' custom enchants and items, with their tier and price.
+     */
+    public void customPrices(CommandSender sender, String[] args)
+    {
+        List<CustomEnchantProvider.Info> enchants = CustomEnchants.enchants();
+        List<CustomItemProvider.CustomItem> items = CustomItems.items();
+        if (enchants.isEmpty() && items.isEmpty())
+        {
+            send(sender, "&eNo plugin has custom enchants or items registered (ImusEnchants, imusTNT...)");
+            return;
+        }
+        ServerPriceRules rules = _service.getRules();
+        if (!enchants.isEmpty())
+        {
+            send(sender, "&9Custom enchants &7(price per level):");
+            for (CustomEnchantProvider.Info info : enchants)
+                send(sender, "&7  " + info.key() + " &f" + info.name() + " &7tier " + info.tier() + " &e" + format(rules.customEnchantPrice(info.key()))
+                        + (_service.getEnchants().getCustomPrice(EnchantPrices.customEnchantName(info.key())) != null ? " &a(set)" : ""));
+        }
+        if (!items.isEmpty())
+        {
+            send(sender, "&9Custom items:");
+            for (CustomItemProvider.CustomItem item : items)
+                send(sender, "&7  " + item.id() + " &f" + item.name() + " &7tier " + item.tier() + " &e"
+                        + format(rules.customItemPrice(item.id(), item.item().getType()))
+                        + (_service.getEnchants().getCustomPrice(EnchantPrices.customItemName(item.id())) != null ? " &a(set)" : "")
+                        + " &7" + item.tags());
+        }
+        send(sender, "&7/gs set custom price <key> <price|default>");
+    }
+
+    /**
+     * /gs set custom price &lt;key&gt; &lt;price|default&gt;: the price of a custom enchant (per level) or item.
+     */
+    public void setCustomPrice(CommandSender sender, String[] args)
+    {
+        if (args.length != 5)
+        {
+            send(sender, "&c/gs set custom price <enchant or item key> <price|default>");
+            return;
+        }
+        String key = args[3].toLowerCase(java.util.Locale.ROOT);
+        String name;
+        if (CustomEnchants.info(key) != null)
+            name = EnchantPrices.customEnchantName(key);
+        else if (CustomItems.item(key) != null)
+            name = EnchantPrices.customItemName(key);
+        else
+        {
+            send(sender, "&cNo custom enchant or item " + key + ", see /gs customprices");
+            return;
+        }
+        Double price = args[4].equalsIgnoreCase("default") ? null : number(args[4]);
+        if (price != null && price < 0 || price == null && !args[4].equalsIgnoreCase("default"))
+        {
+            send(sender, "&cThe price must be a number of 0 or more, or default");
+            return;
+        }
+        _service.getEnchants().setCustomPrice(name, price);
+        _service.getDatabase().saveCustomPrice(name, price);
+        _service.refreshMenus();
+        send(sender, "&a" + key + " &7now costs &e" + (price == null ? "its tier's price" : format(price))
+                + (name.startsWith("enchant:") ? " &7per level" : ""));
     }
 
     // Sell limits ====================================================================================================

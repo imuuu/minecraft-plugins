@@ -55,6 +55,11 @@ public class TNT_Mananger
 		
 		return new ItemStack(Material.TNT);
 	}
+	public java.util.List<TNT> GetTNTs()
+	{
+		return java.util.Collections.unmodifiableList(_tnts);
+	}
+
 	public TNT GetTNT(TNT_TYPE tnt_type)
 	{
 		for(TNT tnt : _tnts)
