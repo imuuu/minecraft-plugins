@@ -1,5 +1,6 @@
 package imu.imusTNT.TNTs;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Other.Methods;
 import imu.imusTNT.enums.TNT_TYPE;
 
 public abstract class TNT
@@ -49,7 +49,7 @@ public abstract class TNT
 		
 		ItemUtils.SetDisplayName(stack, DisplayName);
 		ItemUtils.AddLore(stack, lores);
-		Methods._ins.setPersistentData(stack, TNT_Mananger.Instance.PD_TNT_TYPE, PersistentDataType.STRING, Type.toString());
+		DataUtils.SetPersistentData(stack, TNT_Mananger.Instance.PD_TNT_TYPE, PersistentDataType.STRING, Type.toString());
 		return stack;
 	}
 	

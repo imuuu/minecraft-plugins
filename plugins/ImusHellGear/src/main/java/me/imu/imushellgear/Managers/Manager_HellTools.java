@@ -1,5 +1,6 @@
 package me.imu.imushellgear.Managers;
 
+import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,7 +26,6 @@ import me.imu.imushellgear.CustomItems.Hell_Sword_Controller;
 import me.imu.imushellgear.CustomItems.Hell_ThrowingAxe_Controller;
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.ImusHellGear;
-import imu.iAPI.Other.Methods;
 
 
 public class Manager_HellTools implements Listener
@@ -312,7 +312,7 @@ public class Manager_HellTools implements Listener
 	private void GiveVoidTool(Player player, ItemStack baseStack,ItemStack stack)
 	{
 		ItemUtils.CloneEnchantments(baseStack, stack);
-		Methods._ins.InventoryAddItemOrDrop(stack, player );
+		InvUtil.AddItemOrDropGetSlots(stack, player );
 	}
 	
 	@EventHandler

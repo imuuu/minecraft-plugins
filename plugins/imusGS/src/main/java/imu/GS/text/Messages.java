@@ -1,6 +1,6 @@
 package imu.GS.text;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.TextUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -111,7 +111,7 @@ public final class Messages
     {
         String text = get(key, placeholders);
         if (!text.isEmpty())
-            to.sendMessage(Methods.msgC(text));
+            to.sendMessage(TextUtils.Color(text));
     }
 
     static String fill(String text, Object... placeholders)

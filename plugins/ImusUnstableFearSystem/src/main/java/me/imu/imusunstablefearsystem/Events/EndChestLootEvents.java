@@ -34,7 +34,6 @@ import me.imu.imushellgear.Managers.Manager_LegendaryUpgrades;
 import me.imu.imushellgear.Managers.Manager_VoidStones;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.LootTables.ImusLootTable;
-import imu.iAPI.Other.Methods;
 
 public class EndChestLootEvents implements Listener
 {

@@ -1,5 +1,7 @@
 package me.imu.imusunstablefearsystem.CustomEnd;
 
+import imu.iAPI.Utilities.ItemUtils;
+import imu.iAPI.Utilities.TextUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +55,6 @@ import me.imu.imusunstablefearsystem.Events.NetherEvents;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.ExplosionResult;
 
@@ -439,7 +440,7 @@ public class EndEvents implements Listener
 				{
 					Player player = (Player)edbe.getDamager();
 					ItemStack stack = player.getInventory().getItemInMainHand();
-					looting = Methods._ins.GetItemStackEnchantCount(stack, Enchantment.LOOTING);
+					looting = ItemUtils.GetEnchantCount(stack, Enchantment.LOOTING);
 				}
 				
 			}
@@ -517,7 +518,7 @@ public class EndEvents implements Listener
 	    {
 	       
 	        player.setGliding(false);
-	        player.sendMessage(Methods.msgC("&9Elytra &3flying &cis not allowed during &5EVENTS!"));
+	        player.sendMessage(TextUtils.Color("&9Elytra &3flying &cis not allowed during &5EVENTS!"));
 	    }
 	}
 

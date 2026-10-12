@@ -1,5 +1,6 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
@@ -10,7 +11,6 @@ import imu.GS.engine.shop.StockRules;
 import imu.GS.menu.Icons;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Methods;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
@@ -322,7 +322,7 @@ public class ItemGeneratorMenu extends AdminMenu
             _shop.setStock(listing, new StockRules(generated.maxStock, generated.fillAmount, generated.fillDelay));
             count++;
         }
-        getPlayer().sendMessage(Methods.msgC("&9" + count + " &aitems added to the shop"));
+        getPlayer().sendMessage(TextUtils.Color("&9" + count + " &aitems added to the shop"));
         _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         openNext(new ShopEditorMenu(_service, _shop));
     }

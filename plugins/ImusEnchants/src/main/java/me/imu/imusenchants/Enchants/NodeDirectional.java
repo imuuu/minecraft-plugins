@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Enchants;
 
+import imu.iAPI.Utilities.DataUtils;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -67,7 +68,7 @@ public abstract class NodeDirectional extends Node
 	{
 		_directions = DIRECTION.GetSortedDirections(_directions);
 		String serializedDirections = GetSerializedDirections();
-		ItemUtils.SetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING, serializedDirections);
+		DataUtils.SetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING, serializedDirections);
 		
 		return stack;
 	}
@@ -75,7 +76,7 @@ public abstract class NodeDirectional extends Node
 	public DIRECTION[] GetDirectionsPD(ItemStack stack) 
 	{
 	    String serializedDirections = 
-	    		ItemUtils.GetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING);
+	    		DataUtils.GetPersistentData(stack, "node_direction_directions", PersistentDataType.STRING);
 	    if (serializedDirections != null && !serializedDirections.isEmpty()) 
 	    {
 	        return GetDeserializedDirections(serializedDirections); 

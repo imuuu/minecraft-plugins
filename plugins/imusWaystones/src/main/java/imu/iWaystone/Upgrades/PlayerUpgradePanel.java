@@ -1,5 +1,6 @@
 package imu.iWaystone.Upgrades;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -8,7 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Other.Methods;
 import imu.iWaystones.Enums.UpgradeType;
 import imu.iWaystones.Main.ImusWaystones;
 import imu.iWaystones.Managers.WaystoneManager;
@@ -140,11 +140,11 @@ public class PlayerUpgradePanel
 		if(GetUpgrade(UpgradeType.XP_USAGE).GetCurrentTier() > 0)	lores.add("&eXp Usage: &2"+ 	GetUpgrade(UpgradeType.XP_USAGE).GetCurrentTier());
 		if(GetUpgrade(UpgradeType.FOUNDATION).GetCurrentTier() > 0)	lores.add("&eFoundation: &2"+ 	GetUpgrade(UpgradeType.FOUNDATION).GetCurrentTier());
 		
-		Methods._ins.setPersistentData(stack, UpgradeType.CAST_TIME.toString(),	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.CAST_TIME).GetCurrentTier());
-		Methods._ins.setPersistentData(stack, UpgradeType.COOLDOWN.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.COOLDOWN).GetCurrentTier());
-		Methods._ins.setPersistentData(stack, UpgradeType.DIMENSION.toString(),	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.DIMENSION).GetCurrentTier());
-		Methods._ins.setPersistentData(stack, UpgradeType.XP_USAGE.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.XP_USAGE).GetCurrentTier());
-		Methods._ins.setPersistentData(stack, UpgradeType.FOUNDATION.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.FOUNDATION).GetCurrentTier());
+		DataUtils.SetPersistentData(stack, UpgradeType.CAST_TIME.toString(),	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.CAST_TIME).GetCurrentTier());
+		DataUtils.SetPersistentData(stack, UpgradeType.COOLDOWN.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.COOLDOWN).GetCurrentTier());
+		DataUtils.SetPersistentData(stack, UpgradeType.DIMENSION.toString(),	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.DIMENSION).GetCurrentTier());
+		DataUtils.SetPersistentData(stack, UpgradeType.XP_USAGE.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.XP_USAGE).GetCurrentTier());
+		DataUtils.SetPersistentData(stack, UpgradeType.FOUNDATION.toString(), 	PersistentDataType.INTEGER, GetUpgrade(UpgradeType.FOUNDATION).GetCurrentTier());
 		ItemUtils.SetLores(stack, lores, false);
 		ItemUtils.AddGlow(stack);
 		WaystoneManager.Instance.SetUpgradeItemStackPD(stack);
@@ -155,11 +155,11 @@ public class PlayerUpgradePanel
 	{
 		if(!WaystoneManager.Instance.IsUpgradeItemStack(stack)) return false;
 		
-		Integer castTime = Methods._ins.getPersistentData(stack, UpgradeType.CAST_TIME.toString(), PersistentDataType.INTEGER);
-		Integer cooldown = Methods._ins.getPersistentData(stack, UpgradeType.COOLDOWN.toString(), PersistentDataType.INTEGER);
-		Integer dimension = Methods._ins.getPersistentData(stack, UpgradeType.DIMENSION.toString(), PersistentDataType.INTEGER);
-		Integer xp_usage = Methods._ins.getPersistentData(stack, UpgradeType.XP_USAGE.toString(), PersistentDataType.INTEGER);
-		Integer foundation = Methods._ins.getPersistentData(stack, UpgradeType.FOUNDATION.toString(), PersistentDataType.INTEGER);
+		Integer castTime = DataUtils.GetPersistentData(stack, UpgradeType.CAST_TIME.toString(), PersistentDataType.INTEGER);
+		Integer cooldown = DataUtils.GetPersistentData(stack, UpgradeType.COOLDOWN.toString(), PersistentDataType.INTEGER);
+		Integer dimension = DataUtils.GetPersistentData(stack, UpgradeType.DIMENSION.toString(), PersistentDataType.INTEGER);
+		Integer xp_usage = DataUtils.GetPersistentData(stack, UpgradeType.XP_USAGE.toString(), PersistentDataType.INTEGER);
+		Integer foundation = DataUtils.GetPersistentData(stack, UpgradeType.FOUNDATION.toString(), PersistentDataType.INTEGER);
 		
 		if(castTime != null 	&& GetUpgrade(UpgradeType.CAST_TIME).GetCurrentTier() 	< castTime) 	GetUpgrade(UpgradeType.CAST_TIME).SetCurrentier(castTime);
 		if(cooldown != null 	&& GetUpgrade(UpgradeType.COOLDOWN).GetCurrentTier() 	< cooldown) 	GetUpgrade(UpgradeType.COOLDOWN).SetCurrentier(cooldown);

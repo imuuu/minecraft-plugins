@@ -36,7 +36,6 @@ import me.imu.imushellgear.Managers.Manager_HellArmor;
 import me.imu.imushellgear.Managers.Manager_HellTools;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.LootTables.ImusLootTable;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 
 public class ChestLootEvents implements Listener

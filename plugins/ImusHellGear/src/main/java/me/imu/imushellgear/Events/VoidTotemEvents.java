@@ -1,5 +1,6 @@
 package me.imu.imushellgear.Events;
 
+import imu.iAPI.Utilities.DataUtils;
 import java.awt.Color;
 import java.util.HashSet;
 
@@ -17,7 +18,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import me.imu.imushellgear.CustomItems.VoidTotemController;
 import me.imu.imushellgear.Managers.Manager_HellArmor;
-import imu.iAPI.Other.Methods;
 import net.md_5.bungee.api.ChatColor;
 
 public class VoidTotemEvents implements Listener 
@@ -88,7 +88,7 @@ public class VoidTotemEvents implements Listener
 
     private boolean GetPersistant(ItemStack item) 
     {
-    	String str = Methods._ins.getPersistentData(item, "totemtype", PersistentDataType.STRING);
+    	String str = DataUtils.GetPersistentData(item, "totemtype", PersistentDataType.STRING);
     	if(str == null) return false;
     	
     	if(str.matches("void")) return true;

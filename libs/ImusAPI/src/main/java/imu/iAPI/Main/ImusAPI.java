@@ -35,9 +35,6 @@ import java.util.*;
 public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
 {
     public static ImusAPI _instance;
-    /** @deprecated the same instance as {@link Methods#_ins} */
-    @Deprecated
-    public static Methods _metods;
     public static MySQLHelper _sqlHelper;
     private Manager_FastInventories _fastInvs;
     private Manager_ImusLootTable _lootTableManager;
@@ -83,7 +80,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         _commandSenderManager = new Manager_CommandSender();
         Manager_Vault.setupEconomy();
 
-        _metods = new Methods(this);
         _sqlHelper = new MySQLHelper();
         _fastInvs = new Manager_FastInventories();
         _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);

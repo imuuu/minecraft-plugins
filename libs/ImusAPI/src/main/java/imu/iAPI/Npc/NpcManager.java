@@ -1,7 +1,7 @@
 package imu.iAPI.Npc;
 
+import imu.iAPI.Utilities.TextUtils;
 import com.destroystokyo.paper.profile.PlayerProfile;
-import imu.iAPI.Other.Methods;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import io.papermc.paper.registry.RegistryAccess;
@@ -319,7 +319,7 @@ public class NpcManager implements Listener
             {
                 if (error != null || result == null || !result.hasTextures())
                 {
-                    editor.sendMessage(Methods.msgC("&cNo skin found for player &e" + playerName));
+                    editor.sendMessage(TextUtils.Color("&cNo skin found for player &e" + playerName));
                     return;
                 }
                 if (!(Bukkit.getEntity(npcId) instanceof Mannequin mannequin))
@@ -328,7 +328,7 @@ public class NpcManager implements Listener
                 mannequin.setProfile(ResolvableProfile.resolvableProfile(result));
                 mannequin.getPersistentDataContainer().set(_keySkin, PersistentDataType.STRING,
                         result.getName() != null ? result.getName() : playerName);
-                editor.sendMessage(Methods.msgC("&aThe NPC now has the skin of &e" + playerName));
+                editor.sendMessage(TextUtils.Color("&aThe NPC now has the skin of &e" + playerName));
             });
         });
     }
@@ -539,9 +539,9 @@ public class NpcManager implements Listener
         NpcAction action = getAction(getActionId(npc));
         if (action == null)
         {
-            player.sendMessage(Methods.msgC("&7Nothing happens."));
+            player.sendMessage(TextUtils.Color("&7Nothing happens."));
             if (player.hasPermission(PERM_EDIT))
-                player.sendMessage(Methods.msgC("&7The plugin of this NPC's action isn't loaded. Sneak + click it to change the action."));
+                player.sendMessage(TextUtils.Color("&7The plugin of this NPC's action isn't loaded. Sneak + click it to change the action."));
             return;
         }
         String data = getData(npc);

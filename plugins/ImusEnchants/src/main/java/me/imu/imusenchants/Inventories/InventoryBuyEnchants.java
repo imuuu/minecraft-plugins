@@ -1,11 +1,11 @@
 package me.imu.imusenchants.Inventories;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.ENCHANTMENT_TIER;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Enums.ITEM_CATEGORY;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.XpUtil;
 import imu.iAPI.Utilities.EnchantUtil;
 import imu.iAPI.Utilities.InvUtil;
@@ -359,7 +359,7 @@ public class InventoryBuyEnchants extends CustomInventory
 	    
 	    if(!hasEnough)
 	    {
-	    	getPlayer().sendMessage(Methods.msgC("&7Not Enough Levels"));
+	    	getPlayer().sendMessage(TextUtils.Color("&7Not Enough Levels"));
 	    }
 	    return hasEnough;
 	}
@@ -384,7 +384,7 @@ public class InventoryBuyEnchants extends CustomInventory
 	    
 	    if(!hasEnough)
 	    {
-	    	getPlayer().sendMessage(Methods.msgC("&7Not Enough Levels"));
+	    	getPlayer().sendMessage(TextUtils.Color("&7Not Enough Levels"));
 	    }
 	    return hasEnough;
 	}
@@ -470,7 +470,7 @@ public class InventoryBuyEnchants extends CustomInventory
 		ItemStack book = pickBook(bookTier, category);
 		if(book == null)
 		{
-			getPlayer().sendMessage(Methods.msgC("&cNo enchants of this kind are available right now"));
+			getPlayer().sendMessage(TextUtils.Color("&cNo enchants of this kind are available right now"));
 			return;
 		}
 

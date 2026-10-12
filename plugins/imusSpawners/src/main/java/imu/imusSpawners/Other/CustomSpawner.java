@@ -1,5 +1,6 @@
 package imu.imusSpawners.Other;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.UUID;
 
@@ -13,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Methods;
 import imu.imusSpawners.Managers.Manager_Spawners;
 
 public class CustomSpawner
@@ -64,9 +64,9 @@ public class CustomSpawner
 	{
 		ItemStack stack = new ItemStack(Material.SPAWNER);
 		ItemUtils.SetDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + _entityType.toString());
-		Methods._ins.setPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING, _entityType.toString());
+		DataUtils.SetPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING, _entityType.toString());
 		
-		if(_uuid != null) Methods._ins.setPersistentData(stack, PD_OWNER_UUID, PersistentDataType.STRING, _uuid.toString());
+		if(_uuid != null) DataUtils.SetPersistentData(stack, PD_OWNER_UUID, PersistentDataType.STRING, _uuid.toString());
 		
 		return stack;
 	}

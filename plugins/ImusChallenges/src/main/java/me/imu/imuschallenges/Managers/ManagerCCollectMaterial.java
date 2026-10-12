@@ -1,9 +1,9 @@
 package me.imu.imuschallenges.Managers;
 
+import imu.iAPI.Utilities.TextUtils;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.table.TableUtils;
-import imu.iAPI.Other.Methods;
 import me.imu.imuschallenges.CONSTANTS;
 import me.imu.imuschallenges.Database.Tables.TableCollected_materials;
 import me.imu.imuschallenges.Database.Tables.TableExludedCollectMaterials;
@@ -497,12 +497,12 @@ public class ManagerCCollectMaterial implements Listener
     {
         if (player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE_BROADCAST))
         {
-            Bukkit.getServer().broadcast(Methods.msgC("&9" + player.getName() + " &9has &6Researched &3" + material.name()), CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE_BROADCAST);
+            Bukkit.getServer().broadcast(TextUtils.Color("&9" + player.getName() + " &9has &6Researched &3" + material.name()), CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE_BROADCAST);
             return;
         }
 
         String message;
-        message = Methods.msgC("&9New &6Research &9found! The &3" + material.name());
+        message = TextUtils.Color("&9New &6Research &9found! The &3" + material.name());
 
         player.sendMessage(message);
 

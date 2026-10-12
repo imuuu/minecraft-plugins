@@ -1,10 +1,11 @@
 package imu.iAPI.FastInventory;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -64,7 +65,7 @@ public class Click_Get_Inv extends CustomInvLayout
 					&& !ItemUtils.IsArmor(stack)
 					&& !ItemUtils.IsTool(stack)) amount = 64;
 			
-			Methods._ins.InventoryAddItemOrDrop(stack, _player, amount);
+			InvUtil.AddItemOrDropGetSlots(stack, _player, amount);
 			return;
 
 		case NONE:
@@ -133,8 +134,8 @@ public class Click_Get_Inv extends CustomInvLayout
 		
 		int indicator = _currentPage % (9-2);
 		setupButton(BUTTON.NONE, Material.END_CRYSTAL, " ", _size-8+indicator);
-		setupButton(BUTTON.GO_LEFT, Material.DARK_OAK_SIGN, Methods.msgC("&9<< Next"), _size-9);
-		setupButton(BUTTON.GO_RIGHT, Material.DARK_OAK_SIGN, Methods.msgC("&9Next >>"), _size-1);
+		setupButton(BUTTON.GO_LEFT, Material.DARK_OAK_SIGN, TextUtils.Color("&9<< Next"), _size-9);
+		setupButton(BUTTON.GO_RIGHT, Material.DARK_OAK_SIGN, TextUtils.Color("&9Next >>"), _size-1);
 	}
 
 	@Override

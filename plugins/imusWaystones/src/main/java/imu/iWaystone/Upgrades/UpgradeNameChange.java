@@ -1,11 +1,11 @@
 package imu.iWaystone.Upgrades;
 
+import imu.iAPI.Utilities.PlayerUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Enums.ConvUpgradeModData;
 import imu.iWaystones.Enums.UpgradeType;
@@ -71,7 +71,7 @@ public class UpgradeNameChange extends BaseUpgrade
 			public void run() 
 			{
 				player.closeInventory();
-				Methods._ins.ConversationWithPlayer(player, new ConvUpgrade(ConvUpgradeModData.RENAME, new WaystoneUpgradeMenu(ImusWaystones._instance, player, ImusWaystones._instance.GetWaystoneManager().GetWaystone(ws.GetUUID())), "&3Give waystone &2new &3name?"));
+				PlayerUtils.StartConversation(player, new ConvUpgrade(ConvUpgradeModData.RENAME, new WaystoneUpgradeMenu(ImusWaystones._instance, player, ImusWaystones._instance.GetWaystoneManager().GetWaystone(ws.GetUUID())), "&3Give waystone &2new &3name?"));
 			}
 		}.runTask(ImusWaystones._instance);
 		

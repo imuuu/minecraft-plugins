@@ -1,5 +1,6 @@
 package imu.iAPI.Other;
 
+import imu.iAPI.Utilities.TextUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +142,7 @@ public class ImusTabCompleter implements TabCompleter
 			if(_rules.containsKey(args.length))
 			{
 				//System.out.println("rule found at index: "+args.length);
-				String test_rule = ("/"+label+" "+ Methods._ins.CombineArrayToOneString(args, " ")).toLowerCase();
+				String test_rule = ("/"+label+" "+ TextUtils.Join(args, " ")).toLowerCase();
 				
 				for(Rule rule : _rules.get(args.length))
 				{

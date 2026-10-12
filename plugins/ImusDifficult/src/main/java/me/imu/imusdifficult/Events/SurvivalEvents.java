@@ -1,6 +1,6 @@
 package me.imu.imusdifficult.Events;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.PlayerUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -116,9 +116,9 @@ public class SurvivalEvents implements Listener
 					return;
 				}
 
-				int protectionLevel = Methods._ins.GetArmorSlotEnchantCount(player,
+				int protectionLevel = PlayerUtils.GetArmorEnchantCount(player,
 						Enchantment.PROTECTION);
-				int protectileLevel = Methods._ins.GetArmorSlotEnchantCount(player,
+				int protectileLevel = PlayerUtils.GetArmorEnchantCount(player,
 						Enchantment.PROJECTILE_PROTECTION);
 				double toughnest = player.getAttribute(Attribute.ARMOR_TOUGHNESS).getValue();
 

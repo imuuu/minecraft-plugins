@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,6 @@ import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 
 public final class Hell_Pickaxe_Controller
 {
@@ -127,23 +127,23 @@ public final class Hell_Pickaxe_Controller
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER, rarity.GetIndex());
+		DataUtils.SetPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER, rarity.GetIndex());
 
 		return stack;
 	}
 
 	public boolean IsHellPickaxe(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(DataUtils.GetPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER));
 	}
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER);
 		if(i == null ) return false;
 		
 		if(i == tier.GetIndex()) return true;
@@ -153,7 +153,7 @@ public final class Hell_Pickaxe_Controller
 	
 	public Hell_Pickaxe GetPickaxe(ItemStack stack)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER)-(_hellPickaxes.length-1);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_PICKAXE, PersistentDataType.INTEGER)-(_hellPickaxes.length-1);
 
 		if(i == null || i < 0) return null;
 		
@@ -161,7 +161,7 @@ public final class Hell_Pickaxe_Controller
 	}
 	public ItemStack RemoveHellPickaxe(ItemStack stack)
 	{
-		return Methods._ins.removePersistentData(stack, _PD_HELL_PICKAXE);
+		return DataUtils.RemovePersistentData(stack, _PD_HELL_PICKAXE);
 	}
 
 	private boolean BreakTheBlock(Player player, Block b, int fortune)
@@ -189,7 +189,7 @@ public final class Hell_Pickaxe_Controller
 		{
 			for (ItemStack stack : b.getDrops())
 			{
-				ItemStack newStack = Methods._ins.FortuneSimulation(stack, fortune);
+				ItemStack newStack = ItemUtils.FortuneSimulation(stack, fortune);
 				b.getWorld().dropItemNaturally(b.getLocation(), newStack);
 			}
 

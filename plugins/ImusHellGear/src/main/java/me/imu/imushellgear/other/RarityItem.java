@@ -1,5 +1,6 @@
 package me.imu.imushellgear.other;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 
@@ -12,7 +13,6 @@ import me.imu.imushellgear.Enums.CATEGORY;
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import imu.iAPI.FastInventory.Fast_Inventory;
 import imu.iAPI.FastInventory.Manager_FastInventories;
-import imu.iAPI.Other.Methods;
 
 public class RarityItem extends CustomItem
 {
@@ -35,7 +35,7 @@ public class RarityItem extends CustomItem
 	{
 		ItemStack stack = Get_stack().clone();
 		ItemUtils.SetDisplayName(stack, GetColor(Rarity)+" "+Get_displayName());
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, Rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, Rarity.toString());
 		return stack;
 	}
 	
@@ -60,7 +60,7 @@ public class RarityItem extends CustomItem
 	
 	public static ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		String data  = Methods._ins.getPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
+		String data  = DataUtils.GetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING);
 		
 		if(data == null) return ITEM_RARITY.Common;
 		

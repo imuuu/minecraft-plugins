@@ -1,5 +1,6 @@
 package imu.imusTNT.TNTs;
 
+import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 
 import imu.iAPI.Interfaces.IButton;
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Methods;
 import imu.imusTNT.main.ImusTNT;
 
 public class TNT_Inv extends CustomInvLayout
@@ -49,7 +49,7 @@ public class TNT_Inv extends CustomInvLayout
 			
 			if(e.getClick() == ClickType.RIGHT) amount = 64;
 			
-			Methods._ins.InventoryAddItemOrDrop(stack, _player, amount);
+			InvUtil.AddItemOrDropGetSlots(stack, _player, amount);
 			return;
 
 		case NONE:

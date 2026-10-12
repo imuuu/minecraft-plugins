@@ -1,5 +1,6 @@
 package imu.imusTNT.TNTs;
 
+import imu.iAPI.Utilities.DataUtils;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -13,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Other.Methods;
 import imu.imusTNT.enums.TNT_TYPE;
 import imu.imusTNT.main.ImusTNT;
 
@@ -72,7 +72,7 @@ public class TNT_Mananger
 	
 	public TNT_TYPE GetTntType(ItemStack stack)
 	{
-		String str = Methods._ins.getPersistentData(stack, PD_TNT_TYPE, PersistentDataType.STRING);
+		String str = DataUtils.GetPersistentData(stack, PD_TNT_TYPE, PersistentDataType.STRING);
 		
 		return ToType(str);
 	}

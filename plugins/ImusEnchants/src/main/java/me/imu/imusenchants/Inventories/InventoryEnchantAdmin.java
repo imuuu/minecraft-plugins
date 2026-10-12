@@ -1,9 +1,9 @@
 package me.imu.imusenchants.Inventories;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
@@ -165,7 +165,7 @@ public class InventoryEnchantAdmin extends CustomInventory
 				EnchantSettings.SetEnabled(enchant, enabled);
 		}
 
-		getPlayer().sendMessage(Methods.msgC((enabled ? "&aEnabled" : "&cDisabled") + " &7all "
+		getPlayer().sendMessage(TextUtils.Color((enabled ? "&aEnabled" : "&cDisabled") + " &7all "
 				+ (_tab == Tab.VANILLA ? "vanilla" : "custom") + " enchants"));
 		Render();
 	}

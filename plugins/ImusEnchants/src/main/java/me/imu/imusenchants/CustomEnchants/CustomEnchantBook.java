@@ -1,5 +1,6 @@
 package me.imu.imusenchants.CustomEnchants;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -33,13 +34,13 @@ public class CustomEnchantBook
 		if (curse != null && curse != enchant)
 		{
 			ItemUtils.AddLore(book, "&cCursed: &4" + curse.GetName() + " &8(" + curse.GetDescription(1) + ")", true);
-			ItemUtils.SetPersistentData(book, PD_CUSTOM_BOOK_CURSE, PersistentDataType.STRING, curse.GetKey());
+			DataUtils.SetPersistentData(book, PD_CUSTOM_BOOK_CURSE, PersistentDataType.STRING, curse.GetKey());
 		}
 
 		ItemUtils.AddLore(book, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
 		ItemUtils.AddLore(book, "&3Click it on an item to apply &eLevel I", true);
 		ItemUtils.AddLore(book, "&3Higher levels: &6slots &3+ &6boosters", true);
-		ItemUtils.SetPersistentData(book, PD_CUSTOM_BOOK, PersistentDataType.STRING, enchant.GetKey() + ":" + level);
+		DataUtils.SetPersistentData(book, PD_CUSTOM_BOOK, PersistentDataType.STRING, enchant.GetKey() + ":" + level);
 		return book;
 	}
 
@@ -48,7 +49,7 @@ public class CustomEnchantBook
 		if (stack == null || stack.getType() != Material.ENCHANTED_BOOK)
 			return false;
 
-		return ItemUtils.GetPersistentData(stack, PD_CUSTOM_BOOK, PersistentDataType.STRING) != null;
+		return DataUtils.GetPersistentData(stack, PD_CUSTOM_BOOK, PersistentDataType.STRING) != null;
 	}
 
 	// Enchant and level of the book, or null if it isn't a (known) custom book
@@ -57,7 +58,7 @@ public class CustomEnchantBook
 		if (!IsBook(stack))
 			return null;
 
-		String data = ItemUtils.GetPersistentData(stack, PD_CUSTOM_BOOK, PersistentDataType.STRING);
+		String data = DataUtils.GetPersistentData(stack, PD_CUSTOM_BOOK, PersistentDataType.STRING);
 		String[] parts = data.split(":");
 
 		CustomEnchant enchant = CustomEnchantRegistry.Get(parts[0]);
@@ -84,6 +85,6 @@ public class CustomEnchantBook
 		if (!IsBook(stack))
 			return null;
 
-		return CustomEnchantRegistry.Get(ItemUtils.GetPersistentData(stack, PD_CUSTOM_BOOK_CURSE, PersistentDataType.STRING));
+		return CustomEnchantRegistry.Get(DataUtils.GetPersistentData(stack, PD_CUSTOM_BOOK_CURSE, PersistentDataType.STRING));
 	}
 }

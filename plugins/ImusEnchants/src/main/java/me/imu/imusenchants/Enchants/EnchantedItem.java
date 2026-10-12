@@ -1,6 +1,7 @@
 package me.imu.imusenchants.Enchants;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.DebugUtils;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
@@ -118,7 +119,7 @@ public class EnchantedItem
         }
 
 
-        //Methods._ins.printHashMap(map);
+        //DebugUtils.PrintMap(map);
 
 
     }
@@ -585,7 +586,7 @@ public class EnchantedItem
             slots = CONSTANTS.MAX_SLOTS;
         }
         this._slots = slots;
-        ItemUtils.SetPersistentData(_stack, PD_SLOTS, PersistentDataType.INTEGER, slots);
+        DataUtils.SetPersistentData(_stack, PD_SLOTS, PersistentDataType.INTEGER, slots);
     }
 
     public void AddSlots(int additionalSlots)
@@ -610,7 +611,7 @@ public class EnchantedItem
 
     public static Integer GetSlots(ItemStack stack)
     {
-        Integer slots = ItemUtils.GetPersistentData(stack, PD_SLOTS, PersistentDataType.INTEGER);
+        Integer slots = DataUtils.GetPersistentData(stack, PD_SLOTS, PersistentDataType.INTEGER);
         return (slots != null) ? slots : 0;
     }
 
@@ -621,13 +622,13 @@ public class EnchantedItem
 
     public static boolean IsUpgraded(ItemStack stack)
     {
-        Integer data = ItemUtils.GetPersistentData(stack, PD_UPRADED, PersistentDataType.INTEGER);
+        Integer data = DataUtils.GetPersistentData(stack, PD_UPRADED, PersistentDataType.INTEGER);
         return data != null && data == 1;
     }
 
     public static void SetUpgraded(ItemStack stack, boolean upgraded)
     {
-        ItemUtils.SetPersistentData(stack, PD_UPRADED, PersistentDataType.INTEGER, upgraded ? 1 : 0);
+        DataUtils.SetPersistentData(stack, PD_UPRADED, PersistentDataType.INTEGER, upgraded ? 1 : 0);
     }
 
     public boolean IsRevealed()
@@ -638,13 +639,13 @@ public class EnchantedItem
     private void SetRevealed(boolean revealed)
     {
         _isReveaveled = revealed;
-        ItemUtils.SetPersistentData(_stack, PD_REVEALED, PersistentDataType.INTEGER, revealed ? 1 : 0);
+        DataUtils.SetPersistentData(_stack, PD_REVEALED, PersistentDataType.INTEGER, revealed ? 1 : 0);
     }
 
     private boolean IsRevealed(ItemStack stack)
     {
-        //String data = ItemUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING)
-        Integer data = ItemUtils.GetPersistentData(stack, PD_REVEALED, PersistentDataType.INTEGER);
+        //String data = DataUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING)
+        Integer data = DataUtils.GetPersistentData(stack, PD_REVEALED, PersistentDataType.INTEGER);
         return data != null;
     }
 
@@ -665,7 +666,7 @@ public class EnchantedItem
 
     public static double getQuality(ItemStack stack)
     {
-        Double quality = ItemUtils.GetPersistentData(stack, PD_QUALITY, PersistentDataType.DOUBLE);
+        Double quality = DataUtils.GetPersistentData(stack, PD_QUALITY, PersistentDataType.DOUBLE);
         return (quality != null) ? quality : -1;
     }
 
@@ -683,13 +684,13 @@ public class EnchantedItem
 
     public void setQuality(ItemStack stack, double quality)
     {
-        ItemUtils.SetPersistentData(stack, PD_QUALITY, PersistentDataType.DOUBLE, quality);
+        DataUtils.SetPersistentData(stack, PD_QUALITY, PersistentDataType.DOUBLE, quality);
         _quality = quality;
     }
 
     public static void removeQuality(ItemStack stack)
     {
-        ItemUtils.RemovePersistentData(stack, PD_QUALITY);
+        DataUtils.RemovePersistentData(stack, PD_QUALITY);
     }
 
     public INode[][] Get_nodes()
@@ -1003,8 +1004,8 @@ public class EnchantedItem
             }
         }
 
-        //ItemUtils.SetPersistentData(stack, "ie_unlocked_nodes", PersistentDataType.STRING, serializedData.toString());
-        ItemUtils.SetPersistentData(stack, PD_UNLOCKED_NODES, PersistentDataType.STRING, serializedData.toString());
+        //DataUtils.SetPersistentData(stack, "ie_unlocked_nodes", PersistentDataType.STRING, serializedData.toString());
+        DataUtils.SetPersistentData(stack, PD_UNLOCKED_NODES, PersistentDataType.STRING, serializedData.toString());
 
         //System.out.println("item SAVED: " + stack);
     }
@@ -1016,7 +1017,7 @@ public class EnchantedItem
 
     public boolean LoadUnlockedNodes(ItemStack stack)
     {
-        String serializedData = ItemUtils.GetPersistentData(stack, PD_UNLOCKED_NODES, PersistentDataType.STRING);
+        String serializedData = DataUtils.GetPersistentData(stack, PD_UNLOCKED_NODES, PersistentDataType.STRING);
 
         //System.out.println("LOADING DATA: " + stack + " =========> DATA: " + serializedData);
 
@@ -1064,7 +1065,7 @@ public class EnchantedItem
 
 //	public boolean LoadUnlockedNodes(ItemStack stack) 
 //	{
-//	    String serializedData = ItemUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING);
+//	    String serializedData = DataUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING);
 //	    
 //	    if (serializedData == null || serializedData.isEmpty()) return false;
 //
@@ -1109,13 +1110,13 @@ public class EnchantedItem
 //	        serializedData.append(node.GetFlatIndex());
 //	    }
 //
-//	    ItemUtils.SetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING, serializedData.toString());
+//	    DataUtils.SetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING, serializedData.toString());
 //	}
 //	
 //	public boolean LoadUnlockedNodes(ItemStack stack) 
 //	{
 //		
-//	    String serializedData = ItemUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING);
+//	    String serializedData = DataUtils.GetPersistentData(stack, "unlocked_nodes", PersistentDataType.STRING);
 //	    if (serializedData == null || serializedData.isEmpty()) return false;
 //	    
 //	    GenenrateEmptyNodeArray();

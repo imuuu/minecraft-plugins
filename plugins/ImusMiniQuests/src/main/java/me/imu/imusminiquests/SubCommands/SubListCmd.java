@@ -1,7 +1,7 @@
 package me.imu.imusminiquests.SubCommands;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Quests.Quest;
 import org.bukkit.command.Command;
@@ -18,11 +18,11 @@ public class SubListCmd implements CommandInterface
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
     {
         Collection<Quest> quests = ImusMiniQuests.getInstance().getQuests().getQuests();
-        sender.sendMessage(Methods.msgC("&6Mini quests (" + quests.size() + "):"));
+        sender.sendMessage(TextUtils.Color("&6Mini quests (" + quests.size() + "):"));
         for (Quest quest : quests)
         {
             String drop = quest.getDropWeight() > 0 ? "drop weight " + quest.getDropWeight() : "does not drop";
-            sender.sendMessage(Methods.msgC("&e" + quest.getId() + " &7- " + quest.getName()
+            sender.sendMessage(TextUtils.Color("&e" + quest.getId() + " &7- " + quest.getName()
                     + " &7- " + quest.getObjective().describe() + " &8(" + drop + ")"));
         }
         return true;

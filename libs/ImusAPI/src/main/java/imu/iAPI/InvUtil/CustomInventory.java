@@ -1,5 +1,6 @@
 package imu.iAPI.InvUtil;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Handlers.ButtonHandler;
@@ -7,7 +8,6 @@ import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Interfaces.ICustomInventory;
 import imu.iAPI.Interfaces.IGrid;
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -35,7 +35,7 @@ public abstract class CustomInventory implements ICustomInventory
         _plugin = main;
         _size = adjustSize(size);
 
-        _name = Methods.msgC(name);
+        _name = TextUtils.Color(name);
         _buttonHandler = new ButtonHandler(_plugin, this);
         _inv = _plugin.getServer().createInventory(null, _size, _name);
     }

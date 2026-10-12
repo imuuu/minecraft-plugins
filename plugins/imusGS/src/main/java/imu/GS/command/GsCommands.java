@@ -1,5 +1,6 @@
 package imu.GS.command;
 
+import imu.iAPI.Utilities.ItemUtils;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.ItemKey;
@@ -16,7 +17,6 @@ import imu.GS.prices.MaterialPrices;
 import imu.GS.prices.UniqueItems;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -134,7 +134,7 @@ public class GsCommands
             }
             shop.setStock(listing, new StockRules(stack.getAmount(), -1, -1));
             shop.setAmount(listing, stack.getAmount());
-            send(player, "&9" + Methods._ins.GetItemDisplayName(stack) + " &ahas been added to &3" + shop.getDisplayName());
+            send(player, "&9" + ItemUtils.GetNameOrMaterial(stack) + " &ahas been added to &3" + shop.getDisplayName());
         }
         _service.saveNow(shop);
     }

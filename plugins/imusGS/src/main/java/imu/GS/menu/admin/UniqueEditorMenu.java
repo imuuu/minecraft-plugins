@@ -1,10 +1,10 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
 import imu.GS.menu.Icons;
 import imu.GS.prices.UniqueItems;
 import imu.iAPI.Buttons.Button;
-import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.ClickType;
 
@@ -50,7 +50,7 @@ public class UniqueEditorMenu extends AdminMenu
             _service.getUniques().setPrice(_unique.key(), _price);
             _service.getDatabase().saveUnique(_unique.key(), _price);
             _service.refreshMenus();
-            getPlayer().sendMessage(Methods.msgC("&eUnique item has been changed!"));
+            getPlayer().sendMessage(TextUtils.Color("&eUnique item has been changed!"));
             openNext(new UniquesMenu(_service));
         }));
         addButton(new Button(14, Icons.icon(Material.PAPER, "&bWrite the price"), e ->

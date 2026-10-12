@@ -1,5 +1,6 @@
 package imu.imusSpawners.Events;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +28,6 @@ import org.bukkit.plugin.Plugin;
 
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.ConfigMaker;
-import imu.iAPI.Other.Methods;
 import imu.imusSpawners.main.ImusSpawners;
 
 public class MainEvents implements Listener
@@ -82,7 +82,7 @@ public class MainEvents implements Listener
 			return;
 
 		ItemStack stack = e.getItemInHand();
-		String str_entityType = Methods._ins.getPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING);
+		String str_entityType = DataUtils.GetPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING);
 		
 		if (str_entityType == null)
 		{
@@ -144,7 +144,7 @@ public class MainEvents implements Listener
 	{
 		ItemStack stack = new ItemStack(Material.SPAWNER);
 		ItemUtils.SetDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + type.toString());
-		Methods._ins.setPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
+		DataUtils.SetPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
 		return stack;
 	}
 

@@ -1,5 +1,6 @@
 package me.imu.imushellgear.CustomItems;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,7 +34,6 @@ import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 
 public final class Hell_Sword_Controller
@@ -107,24 +107,24 @@ public final class Hell_Sword_Controller
 
 		ItemUtils.SetLores(stack, lores.toArray(new String[lores.size()]), false);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER, rarity.GetIndex());
+		DataUtils.SetPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER, rarity.GetIndex());
 
 		return stack;
 	}
 
 	public boolean IsHellSword(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
 	{
-		return ITEM_RARITY.GetRarity(Methods._ins.getPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER));
+		return ITEM_RARITY.GetRarity(DataUtils.GetPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER));
 	}
 	
 	public boolean IsTier(ItemStack stack, ITEM_RARITY tier)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_SWORD, PersistentDataType.INTEGER);
 		if(i == null ) return false;
 		
 		if(i == tier.GetIndex()) return true;
@@ -134,7 +134,7 @@ public final class Hell_Sword_Controller
 	
 	public ItemStack RemoveHellSword(ItemStack stack)
 	{
-		return Methods._ins.removePersistentData(stack, _PD_HELL_SWORD);
+		return DataUtils.RemovePersistentData(stack, _PD_HELL_SWORD);
 	}
 	
 	private void RemoveThrowable(Throwable_DoubleSword td)
@@ -381,7 +381,7 @@ public final class Hell_Sword_Controller
 
 		ITEM_RARITY rarity = RarityItem.GetRarity(stack);
 		Hell_Triple_Sword sword = (Hell_Triple_Sword)GetRarityItem(rarity);
-		Methods._ins.setPersistentData(armorStand, _PD_HELL_SWORD, PersistentDataType.INTEGER, rarity.GetIndex() );
+		DataUtils.SetPersistentData(armorStand, _PD_HELL_SWORD, PersistentDataType.INTEGER, rarity.GetIndex() );
 		
 		int throwDistance = sword.GetThrowDistance();
 		Location endLoc = player.getLocation().add(player.getLocation().getDirection().normalize().multiply(throwDistance));

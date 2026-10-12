@@ -1,5 +1,6 @@
 package me.imu.imusunstablefearsystem.CustomEnd;
 
+import imu.iAPI.Utilities.TextUtils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,7 +41,6 @@ import me.imu.imusunstablefearsystem.CustomEnd.EndCustomEvents.EndEvent_TntWalk;
 import me.imu.imusunstablefearsystem.CustomEnd.EndCustomEvents.EndEvent_UnstableGround;
 import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.Tuple;
 import imu.iAPI.Utilities.ImusUtilities;
 
@@ -257,7 +257,7 @@ public class UnstableEnd implements Listener
 		{
 			if (block.getType().isInteractable())
 			{
-				player.sendMessage(Methods.msgC("&cUnable &9to place &6inventory &9item in &5Event"));
+				player.sendMessage(TextUtils.Color("&cUnable &9to place &6inventory &9item in &5Event"));
 				e.setCancelled(true);
 				
 			} 

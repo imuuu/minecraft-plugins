@@ -1,12 +1,12 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
 import imu.GS.data.GsDatabase;
 import imu.GS.menu.Icons;
 import imu.GS.prices.EnchantPrices;
 import imu.GS.prices.GearTier;
 import imu.iAPI.Buttons.Button;
-import imu.iAPI.Other.Methods;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
@@ -232,6 +232,6 @@ public class EnchantPricesMenu extends AdminMenu
     private void saved(String what)
     {
         _service.refreshMenus();
-        getPlayer().sendMessage(Methods.msgC("&b" + what + "&3 data has been saved"));
+        getPlayer().sendMessage(TextUtils.Color("&b" + what + "&3 data has been saved"));
     }
 }

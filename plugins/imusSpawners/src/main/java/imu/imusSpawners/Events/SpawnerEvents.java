@@ -1,6 +1,6 @@
 package imu.imusSpawners.Events;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +94,7 @@ public class SpawnerEvents implements Listener
 			return;
 
 		ItemStack stack = e.getItemInHand();
-		String str_entityType = Methods._ins.getPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING);
+		String str_entityType = DataUtils.GetPersistentData(stack, Manager_Spawners.PD_SPAWNER_TYPE, PersistentDataType.STRING);
 		
 		if (str_entityType == null)
 		{

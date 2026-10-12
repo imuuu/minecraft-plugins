@@ -1,9 +1,9 @@
 package me.imu.imusminiquests.Inventories;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imusminiquests.ImusMiniQuests;
@@ -146,7 +146,7 @@ public class InventoryQuestBrowser extends CustomInventory
         Quest quest = _quests.rollDrop();
         if (quest == null)
         {
-            getPlayer().sendMessage(Methods.msgC("&cNo quest has a drop-weight above 0"));
+            getPlayer().sendMessage(TextUtils.Color("&cNo quest has a drop-weight above 0"));
             return;
         }
         InvUtil.AddItemToInventoryOrDrop(getPlayer(), QuestItem.create(quest));

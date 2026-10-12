@@ -1,6 +1,8 @@
 package imu.iAPI.Other;
 
 
+import imu.iAPI.Utilities.DataUtils;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Interfaces.CustomInv;
 import org.bukkit.Material;
@@ -25,7 +27,6 @@ import imu.iAPI.Main.ImusAPI;
 public abstract class CustomInvLayout implements Listener, CustomInv
 {
 	protected Plugin _plugin = null;
-	protected Methods _metods = Methods._ins;
 	String _name="";
 	protected int _size = 0;
 	
@@ -44,7 +45,7 @@ public abstract class CustomInvLayout implements Listener, CustomInv
 	{
 		_plugin = main;
 
-		_name = Methods.msgC(name);
+		_name = TextUtils.Color(name);
 		_size = AdjustSize(size);
 		_player = player;	
 		_inv =  _plugin.getServer().createInventory(null, _size, _name);
@@ -89,7 +90,7 @@ public abstract class CustomInvLayout implements Listener, CustomInv
 //				PacketContainer packet = pManager.createPacket(PacketType.Play.Server.OPEN_WINDOW);
 //				packet.getIntegers().write(0, ImusAPI._instance.GetProtocolLibUtil().GetInventoryID(_player));
 //				//packet.getIntegers().write(1, ImusAPI._instance.GetProtocolLibUtil().GetInventoryType(_player));
-//				packet.getChatComponents().write(0, WrappedChatComponent.fromText(Methods.msgC(rename)));
+//				packet.getChatComponents().write(0, WrappedChatComponent.fromText(TextUtils.Color(rename)));
 //				try 
 //				{
 //					pManager.sendServerPacket(_player, packet);
@@ -250,7 +251,7 @@ public abstract class CustomInvLayout implements Listener, CustomInv
 	
 	void SetSlotPD(int slot, ItemStack stack)
 	{
-		_metods.setPersistentData(stack, "slottt", PersistentDataType.INTEGER, slot);
+		DataUtils.SetPersistentData(stack, "slottt", PersistentDataType.INTEGER, slot);
 	}
 	
 	protected void SetITEM(int slot, ItemStack stack)
@@ -271,21 +272,21 @@ public abstract class CustomInvLayout implements Listener, CustomInv
 	
 	protected Integer GetSLOT(ItemStack stack)
 	{
-		return _metods.getPersistentData(stack, "slottt", PersistentDataType.INTEGER);
+		return DataUtils.GetPersistentData(stack, "slottt", PersistentDataType.INTEGER);
 	}
 	
 	@Override
 	public ItemStack SetButton(ItemStack stack, IButton b)
 	{
 
-		return _metods.setPersistentData(stack, pd_buttonType, PersistentDataType.STRING, b.toString());
+		return DataUtils.SetPersistentData(stack, pd_buttonType, PersistentDataType.STRING, b.toString());
 		
 	}
 	
 	@Override
 	public String getButtonName(ItemStack stack)
 	{
-		String button = _metods.getPersistentData(stack, pd_buttonType, PersistentDataType.STRING);
+		String button = DataUtils.GetPersistentData(stack, pd_buttonType, PersistentDataType.STRING);
 		if(button != null)
 			return button;
 		
@@ -296,7 +297,7 @@ public abstract class CustomInvLayout implements Listener, CustomInv
 	public ItemStack setupButton(IButton b, Material material, String displayName, Integer itemSlot)
 	{
 		ItemStack sbutton = new ItemStack(material);
-		ItemUtils.SetDisplayName(sbutton, Methods.msgC(displayName));
+		ItemUtils.SetDisplayName(sbutton, TextUtils.Color(displayName));
 		SetButton(sbutton, b);
 		if(itemSlot != null)
 		{

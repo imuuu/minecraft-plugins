@@ -1,5 +1,7 @@
 package me.imu.imushellgear.Managers;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +59,6 @@ import me.imu.imushellgear.other.RarityItem;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import org.bukkit.NamespacedKey;
 
 public class Manager_HellArmor implements Listener
@@ -231,7 +232,7 @@ public class Manager_HellArmor implements Listener
 		
 		for(String pd : hellEquipment)
 		{
-			stack = Methods._ins.removePersistentData(stack, pd);
+			stack = DataUtils.RemovePersistentData(stack, pd);
 		}
 		
 		return stack;
@@ -274,9 +275,9 @@ public class Manager_HellArmor implements Listener
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER, 1);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
+		DataUtils.SetPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
 
 		return stack;
 	}
@@ -319,9 +320,9 @@ public class Manager_HellArmor implements Listener
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER, 1);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
+		DataUtils.SetPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
 
 		return stack;
 	}
@@ -368,9 +369,9 @@ public class Manager_HellArmor implements Listener
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER, 1);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
+		DataUtils.SetPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
 
 		return stack;
 	}
@@ -416,9 +417,9 @@ public class Manager_HellArmor implements Listener
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER, 1);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
+		DataUtils.SetPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, rarityItem.Values[5]);
 
 		return stack;
 	}
@@ -464,8 +465,8 @@ public class Manager_HellArmor implements Listener
  
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_ARROW, PersistentDataType.INTEGER, (int)rarityItem.Values[0]);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_ARROW, PersistentDataType.INTEGER, (int)rarityItem.Values[0]);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarity.toString());
 
 		return stack;
 	}
@@ -496,7 +497,7 @@ public class Manager_HellArmor implements Listener
  
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER, 1);
 		return stack;
 	}
 	
@@ -524,7 +525,7 @@ public class Manager_HellArmor implements Listener
  
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER, 1);
 		return stack;
 	}
 	
@@ -571,9 +572,9 @@ public class Manager_HellArmor implements Listener
 
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER, 2);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
+		DataUtils.SetPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER, 2);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
 
 		return stack;
 	}
@@ -619,9 +620,9 @@ public class Manager_HellArmor implements Listener
 		meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, new AttributeModifier(new NamespacedKey(ImusHellGear.Instance, UUID.randomUUID().toString()), 0.2, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.LEGS.getGroup()));
 		stack.setItemMeta(meta);
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER, 2);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
+		DataUtils.SetPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER, 2);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
 
 		return stack;
 	}
@@ -675,9 +676,9 @@ public class Manager_HellArmor implements Listener
 
 		
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER, 2);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
+		DataUtils.SetPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER, 2);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
 
 		return stack;
 	}
@@ -727,9 +728,9 @@ public class Manager_HellArmor implements Listener
 		stack.setItemMeta(meta);
 
 
-		Methods._ins.setPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER, 2);
-		Methods._ins.setPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
-		Methods._ins.setPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
+		DataUtils.SetPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER, 2);
+		DataUtils.SetPersistentData(stack, _PD_HELL_TIER, PersistentDataType.STRING, rarityItem.Rarity.toString());
+		DataUtils.SetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE, fearReduce);
 
 		return stack;
 	}
@@ -1055,7 +1056,7 @@ public class Manager_HellArmor implements Listener
 							
 							for(ItemStack stack : stacks)
 							{
-								Methods._ins.InventoryAddItemOrDrop(Methods._ins.FortuneSimulation(stack, FortuneLevel), player);
+								InvUtil.AddItemOrDropGetSlots(ItemUtils.FortuneSimulation(stack, FortuneLevel), player);
 							}
 							
 							
@@ -1078,29 +1079,29 @@ public class Manager_HellArmor implements Listener
 	
 	public boolean IsHellBoots(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER) != null;
 	}
 	
 	public boolean IsHellLeggins(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER) != null;
 	}
 	
 	public boolean IsHellChestplate(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER) != null;
 	}
 	
 	public boolean IsHellHelmet(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER) != null;
 	}
 	
 	
 	
 	public boolean IsVoidBoots(ItemStack stack)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_BOOTS, PersistentDataType.INTEGER);
 		
 		if(i != null && i == 2) return true;
 		
@@ -1109,7 +1110,7 @@ public class Manager_HellArmor implements Listener
 	
 	public boolean IsVoidLeggins(ItemStack stack)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_LEGGINS, PersistentDataType.INTEGER);
 		
 		if(i != null && i == 2) return true;
 		
@@ -1118,7 +1119,7 @@ public class Manager_HellArmor implements Listener
 	
 	public boolean IsVoidChestplate(ItemStack stack)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_CHESTPLATE, PersistentDataType.INTEGER);
 		if(i != null && i == 2) return true;
 		
 		return false;
@@ -1126,7 +1127,7 @@ public class Manager_HellArmor implements Listener
 	
 	public boolean IsVoidHelmet(ItemStack stack)
 	{
-		Integer i = Methods._ins.getPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER);
+		Integer i = DataUtils.GetPersistentData(stack, _PD_HELL_HELMET, PersistentDataType.INTEGER);
 		if(i != null && i == 2) return true;
 		
 		return false;
@@ -1226,11 +1227,11 @@ public class Manager_HellArmor implements Listener
 	private void GiveVoidArmor(Player player, ItemStack baseStack,ItemStack stack)
 	{
 		ItemUtils.CloneEnchantments(baseStack, stack);
-		Methods._ins.InventoryAddItemOrDrop(stack, player );
+		InvUtil.AddItemOrDropGetSlots(stack, player );
 	}
 	public boolean IsHellTorch(ItemStack stack)
 	{
-		return Methods._ins.getPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, _PD_HELL_TORCH, PersistentDataType.INTEGER) != null;
 	}
 	
 	public ITEM_RARITY GetRarity(ItemStack stack)
@@ -1240,7 +1241,7 @@ public class Manager_HellArmor implements Listener
 	
 	public double GetFearReduceAmount(ItemStack stack)
 	{
-		Double x = Methods._ins.getPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE);
+		Double x = DataUtils.GetPersistentData(stack, _PD_HELL_FEAR_REDUCE, PersistentDataType.DOUBLE);
 		
 		if(x != null) return x;
 		
@@ -1283,7 +1284,7 @@ public class Manager_HellArmor implements Listener
 	
 	public int GetHellArrow(ItemStack stack)
 	{
-		Integer x = Methods._ins.getPersistentData(stack, _PD_HELL_ARROW, PersistentDataType.INTEGER);
+		Integer x = DataUtils.GetPersistentData(stack, _PD_HELL_ARROW, PersistentDataType.INTEGER);
 		
 		if(x != null) return x;
 		
@@ -1307,13 +1308,13 @@ public class Manager_HellArmor implements Listener
         	arrow.setAmount(arrow.getAmount()-1+extra);
         }
         
-        Methods._ins.setPersistentData(entity, _PD_HELL_ARROW, PersistentDataType.INTEGER, radius);
-        Methods._ins.setPersistentData(entity, _PD_HELL_TIER, PersistentDataType.STRING, GetRarity(arrow).toString());
+        DataUtils.SetPersistentData(entity, _PD_HELL_ARROW, PersistentDataType.INTEGER, radius);
+        DataUtils.SetPersistentData(entity, _PD_HELL_TIER, PersistentDataType.STRING, GetRarity(arrow).toString());
 	}
 	
 	public Integer GetHellArrow(Entity entity)
 	{
-		Integer x = Methods._ins.getPersistentData(entity, _PD_HELL_ARROW, PersistentDataType.INTEGER);
+		Integer x = DataUtils.GetPersistentData(entity, _PD_HELL_ARROW, PersistentDataType.INTEGER);
 		
 		if(x == null || x <= 0) return 0;
 		
@@ -1323,7 +1324,7 @@ public class Manager_HellArmor implements Listener
 	
 	public ITEM_RARITY GetHellArrowTier(Entity entity)
 	{
-		String x = Methods._ins.getPersistentData(entity, _PD_HELL_TIER, PersistentDataType.STRING);
+		String x = DataUtils.GetPersistentData(entity, _PD_HELL_TIER, PersistentDataType.STRING);
 		
 		if(x == null ) return null;
 		

@@ -1,6 +1,6 @@
 package me.imu.imusminiquests.Quests;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.TextUtils;
 import me.imu.imusminiquests.CONSTANTS;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerRewardPools;
@@ -175,23 +175,23 @@ public final class QuestItem
 
         List<String> lore = new ArrayList<>(quest.getLore());
         if (!lore.isEmpty()) lore.add("");
-        lore.add(Methods.msgC(config.getString("lore.objective", "&6Quest: &f%objective%")
+        lore.add(TextUtils.Color(config.getString("lore.objective", "&6Quest: &f%objective%")
                 .replace("%objective%", objective.describe(amount))));
         if (objective.timeLimitSeconds() > 0)
         {
-            lore.add(Methods.msgC(config.getString("lore.time-limit", "&c⌚ Within %time% &8(the count starts over when time runs out)")
+            lore.add(TextUtils.Color(config.getString("lore.time-limit", "&c⌚ Within %time% &8(the count starts over when time runs out)")
                     .replace("%time%", formatSeconds(objective.timeLimitSeconds()))));
         }
-        lore.add(Methods.msgC(config.getString("lore.progress", "%bar% &e%progress%&7/&e%amount%")
+        lore.add(TextUtils.Color(config.getString("lore.progress", "%bar% &e%progress%&7/&e%amount%")
                 .replace("%bar%", progressBar(config, progress, amount))
                 .replace("%progress%", String.valueOf(progress))
                 .replace("%amount%", String.valueOf(amount))));
         if (config.getBoolean("lore.show-rewards", true)) addRewardLines(lore, config, quest, rarity);
         for (String line : config.getStringList(complete ? "lore.complete" : "lore.instructions"))
         {
-            lore.add(Methods.msgC(line));
+            lore.add(TextUtils.Color(line));
         }
-        lore.add(Methods.msgC(config.getString("lore.rarity", "&8Rarity: %rarity%").replace("%rarity%", rarity.display())));
+        lore.add(TextUtils.Color(config.getString("lore.rarity", "&8Rarity: %rarity%").replace("%rarity%", rarity.display())));
 
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(quest.getName());
@@ -224,23 +224,23 @@ public final class QuestItem
 
         String line = config.getString("lore.reward-line", "&8 • &f%reward%");
         lore.add("");
-        lore.add(Methods.msgC(config.getString("lore.rewards-header", "&6Rewards:")));
+        lore.add(TextUtils.Color(config.getString("lore.rewards-header", "&6Rewards:")));
         for (String reward : guaranteed)
-            lore.add(Methods.msgC(line.replace("%reward%", reward)));
+            lore.add(TextUtils.Color(line.replace("%reward%", reward)));
 
         if (!pool.isEmpty())
         {
             String poolHeader = quest.getRolls() == 1
                     ? config.getString("lore.rewards-pool-one", "&7One of:")
                     : config.getString("lore.rewards-pool-many", "&7%rolls% of:");
-            lore.add(Methods.msgC(poolHeader.replace("%rolls%", String.valueOf(quest.getRolls()))));
+            lore.add(TextUtils.Color(poolHeader.replace("%rolls%", String.valueOf(quest.getRolls()))));
             for (String reward : pool)
-                lore.add(Methods.msgC(line.replace("%reward%", reward)));
+                lore.add(TextUtils.Color(line.replace("%reward%", reward)));
         }
 
         if (randomRolls > 0)
         {
-            lore.add(Methods.msgC(config.getString("lore.random-rewards", "&d+%count% random reward(s) &8(%range%&8)")
+            lore.add(TextUtils.Color(config.getString("lore.random-rewards", "&d+%count% random reward(s) &8(%range%&8)")
                     .replace("%count%", String.valueOf(randomRolls))
                     .replace("%range%", pools.describeRange())));
         }

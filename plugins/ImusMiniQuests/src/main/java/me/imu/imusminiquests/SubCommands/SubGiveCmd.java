@@ -1,8 +1,8 @@
 package me.imu.imusminiquests.SubCommands;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.CmdUtil.CmdData;
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusminiquests.ImusMiniQuests;
 import me.imu.imusminiquests.Managers.ManagerRarities;
@@ -85,7 +85,7 @@ public class SubGiveCmd implements CommandInterface
             InvUtil.AddItemToInventoryOrDrop(target, rarity == null ? QuestItem.create(quest) : QuestItem.create(quest, rarity));
         }
         ImusMiniQuests.getInstance().getPanelCarriers().markStale(target);
-        sender.sendMessage(Methods.msgC("&9Gave &e" + amount + "&9 x " + quest.getName() + "&9 to &e" + target.getName()));
+        sender.sendMessage(TextUtils.Color("&9Gave &e" + amount + "&9 x " + quest.getName() + "&9 to &e" + target.getName()));
         return true;
     }
 

@@ -1,5 +1,8 @@
 package imu.iWaystone.Waystones;
 
+import imu.iAPI.Utilities.WorldUtils;
+import imu.iAPI.Utilities.DataUtils;
+import imu.iAPI.Utilities.TextUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +22,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.XpUtil;
 import imu.iWaystone.Upgrades.BaseUpgrade;
 import imu.iWaystone.Upgrades.BuildUpgrade;
@@ -100,9 +102,9 @@ public class Waystone
 				
 				if(_hologram != null) _hologram.remove();
 				
-				_hologram =Methods._ins.CreateHologram(_name, _loc.clone().add(0.5, 0.5, 0.5));
-				_hologram.setCustomName(Methods.msgC(_name));
-				Methods._ins.setPersistentData(_hologram, ImusWaystones._instance.GetWaystoneManager().pd_waystoneHolo, PersistentDataType.STRING, _uuid.toString());
+				_hologram =WorldUtils.CreateHologram(_name, _loc.clone().add(0.5, 0.5, 0.5));
+				_hologram.setCustomName(TextUtils.Color(_name));
+				DataUtils.SetPersistentData(_hologram, ImusWaystones._instance.GetWaystoneManager().pd_waystoneHolo, PersistentDataType.STRING, _uuid.toString());
 
 				_hologram.setCustomNameVisible(true);
 
@@ -138,7 +140,7 @@ public class Waystone
 	}
 	boolean IsThisHolo(Entity entity)
 	{
-		String pd = Methods._ins.getPersistentData(entity, ImusWaystones._instance.GetWaystoneManager().pd_waystoneHolo, PersistentDataType.STRING);
+		String pd = DataUtils.GetPersistentData(entity, ImusWaystones._instance.GetWaystoneManager().pd_waystoneHolo, PersistentDataType.STRING);
 		
 		if(pd == null || pd == "") return false;
 		
@@ -267,7 +269,7 @@ public class Waystone
 					Player p = Bukkit.getServer().getPlayer(_owner_uuid);
 					if(p == null) return;
 					
-					Bukkit.getServer().getPlayer(_owner_uuid).sendMessage(Methods.msgC(str));
+					Bukkit.getServer().getPlayer(_owner_uuid).sendMessage(TextUtils.Color(str));
 				} 
 				catch (Exception e) 
 				{
@@ -416,7 +418,7 @@ public class Waystone
 				ImusWaystones._instance.GetWaystoneManager().RemoveTeleportin(uuid_player);
 				if(player != null)
 				{
-					player.sendTitle(Methods.msgC("&4Teleporting Canceled!"), "", 1, 20, 1);
+					player.sendTitle(TextUtils.Color("&4Teleporting Canceled!"), "", 1, 20, 1);
 				}
 			}
 			
@@ -426,13 +428,13 @@ public class Waystone
 				
 				if(!_main.GetWaystoneManager().IsValid(target_waystone) || !_main.GetWaystoneManager().IsValid(thiss))
 				{
-					player.sendMessage(Methods.msgC("&cDestination waystone might be broken!"));
+					player.sendMessage(TextUtils.Color("&cDestination waystone might be broken!"));
 					TeleCancel();
 					return;
 				}
 				if(!HasEnoughExpToTeleport(player)) 
 				{
-					player.sendMessage(Methods.msgC("&cYou don't have enough xp to teleport!"));
+					player.sendMessage(TextUtils.Color("&cYou don't have enough xp to teleport!"));
 					TeleCancel();
 					return;
 				}
@@ -482,7 +484,7 @@ public class Waystone
 					return;
 				}
 				
-				player.sendTitle(Methods.msgC("&2Teleporting in &5"+seconds+" &2s"), Methods.msgC("&4Don't move"), 0, 22, 0);
+				player.sendTitle(TextUtils.Color("&2Teleporting in &5"+seconds+" &2s"), TextUtils.Color("&4Don't move"), 0, 22, 0);
 				player.playSound(_loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.1f, 0.1f);
 				seconds--;
 			}

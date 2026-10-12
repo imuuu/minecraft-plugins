@@ -1,5 +1,7 @@
 package imu.iWaystones.Invs;
 
+import imu.iAPI.Utilities.DataUtils;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -18,7 +20,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import imu.iAPI.Interfaces.IButton;
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Methods;
 
 import imu.iWaystone.Upgrades.PlayerUpgradePanel;
 import imu.iWaystone.Waystones.Waystone;
@@ -51,19 +52,19 @@ public class WaystoneMenuInv extends CustomInvLayout {
 		
 		if(!_waystone.IsEnable())
 		{
-			_player.sendMessage(Methods.msgC("&cWaystone is Disabled!"));
+			_player.sendMessage(TextUtils.Color("&cWaystone is Disabled!"));
 			return;
 		}
 		
 		if(_waystone.GetVisibilityType() == VISIBILITY_TYPE.TO_ALL_ONE_WAY)
 		{
-			_player.sendMessage(Methods.msgC("&eThis Waystone is unable to teleport other Waystones"));
+			_player.sendMessage(TextUtils.Color("&eThis Waystone is unable to teleport other Waystones"));
 			return;
 		}
 		
 		if(_waystone.IsCooldown(_player)) 
 		{
-			_player.sendMessage(Methods.msgC("&eYou have cooldown => "+_waystone.GetCooldown(_player)));
+			_player.sendMessage(TextUtils.Color("&eYou have cooldown => "+_waystone.GetCooldown(_player)));
 			return;
 		}
 		
@@ -232,7 +233,7 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	{
 		if(!_wManager.IsValid(_wManager.GetWaystone(_waystone.GetUUID())))
 		{
-			_player.sendMessage(Methods.msgC("&cThe waystone isn't valid!"));
+			_player.sendMessage(TextUtils.Color("&cThe waystone isn't valid!"));
 			_wManager.RemoveWaystone(_waystone.GetUUID());
 			_player.closeInventory();
 			return false;
@@ -242,24 +243,24 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	
 	private void Teleporting(ItemStack currentItem) 
 	{
-		UUID uuid_ws = UUID.fromString(Methods._ins.getPersistentData(currentItem, "iwm", PersistentDataType.STRING));
+		UUID uuid_ws = UUID.fromString(DataUtils.GetPersistentData(currentItem, "iwm", PersistentDataType.STRING));
 		Waystone ws = _wManager.GetWaystone(uuid_ws);
 		
 		if(ws == null)
 		{
-			_player.sendMessage(Methods.msgC("&cTarget waystone doesn't exist!"));
+			_player.sendMessage(TextUtils.Color("&cTarget waystone doesn't exist!"));
 			return;
 		}
 		
 		if(!_wManager.IsValid(ws))
 		{
-			_player.sendMessage(Methods.msgC("&3Target Waystone &4isn't Valid!"));
+			_player.sendMessage(TextUtils.Color("&3Target Waystone &4isn't Valid!"));
 			return;
 		}
 		
 		if(!_waystone.HasEnoughExpToTeleport(_player))
 		{
-			_player.sendMessage(Methods.msgC("&3You don't have enough &2xp &3to teleport"));
+			_player.sendMessage(TextUtils.Color("&3You don't have enough &2xp &3to teleport"));
 			return;
 		}
 		
@@ -349,7 +350,7 @@ public class WaystoneMenuInv extends CustomInvLayout {
 	
 	Waystone GetWaystoneFromButton(ItemStack stack)
 	{
-		return _wManager.GetWaystone(UUID.fromString(Methods._ins.getPersistentData(stack, "iwm" ,PersistentDataType.STRING)));
+		return _wManager.GetWaystone(UUID.fromString(DataUtils.GetPersistentData(stack, "iwm" ,PersistentDataType.STRING)));
 	}
 	
 	void LoadWaystonesAsync()
@@ -368,7 +369,7 @@ public class WaystoneMenuInv extends CustomInvLayout {
 					ItemStack stack = ws.GetDisplayItem().clone();
 					ItemUtils.SetDisplayName(stack, ws.GetName());
 					ItemUtils.SetLores(stack, new String[] {"&7(&eClick&7)&2 to start &bTeleporting"}, false);
-					Methods._ins.setPersistentData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
+					DataUtils.SetPersistentData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
 					SetButton(stack, BUTTON.WAYSTONE);
 					_inv.setItem(i, stack);
 				}

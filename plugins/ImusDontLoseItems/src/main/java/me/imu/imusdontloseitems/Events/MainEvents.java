@@ -1,5 +1,7 @@
 package me.imu.imusdontloseitems.Events;
 
+import imu.iAPI.Utilities.DataUtils;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,7 +39,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.XpUtil;
 
 public class MainEvents implements Listener
@@ -62,7 +63,6 @@ public class MainEvents implements Listener
 	double durability_penalty_mob = 0.1;
 	double _death_xp_multiplier = 0.5; // if 0 doesnt give xp back
 	Plugin _plugin;
-	Methods _itemM = null;
 	Cooldowns _cd;
 
 	String _cd_in_combat_dmg = "entity_combat_";
@@ -76,7 +76,6 @@ public class MainEvents implements Listener
 	public MainEvents(Plugin plugin)
 	{
 		_plugin = plugin;
-		_itemM = Methods._ins;
 		_cd = new Cooldowns();
 		LoadSettings(plugin.getConfig());
 		runnable();
@@ -122,7 +121,7 @@ public class MainEvents implements Listener
 
 			_cd.setCooldownInSeconds(e.getPlayer().getUniqueId().toString() + "elytraPVP", 2);
 
-			e.getPlayer().sendMessage(Methods.msgC("&cYou are unable to use elytra on PVP combat!"));
+			e.getPlayer().sendMessage(TextUtils.Color("&cYou are unable to use elytra on PVP combat!"));
 
 		}
 	}
@@ -258,7 +257,7 @@ public class MainEvents implements Listener
 			ItemStack item = s_items[i];
 			if (item != null)
 			{
-				_itemM.giveDamage(item, (int) (item.getType().getMaxDurability() * prosent), false);
+				ItemUtils.GiveDamage(item, (int) (item.getType().getMaxDurability() * prosent), false);
 
 				inv.setItem(i, item);
 			}
@@ -330,7 +329,7 @@ public class MainEvents implements Listener
 		if (anyKept)
 		{
 			boolean pvp = player.getKiller() != null && !player.getKiller().equals(player);
-			Methods._ins.setPersistentData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE,
+			DataUtils.SetPersistentData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE,
 					pvp ? durability_penalty_pvp : durability_penalty_pve);
 		}
 
@@ -338,7 +337,7 @@ public class MainEvents implements Listener
 		{
 			// part of the levels comes back on respawn, so no orbs on top of that
 			e.setDroppedExp(0);
-			Methods._ins.setPersistentData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER, player.getLevel());
+			DataUtils.SetPersistentData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER, player.getLevel());
 		}
 	}
 
@@ -347,7 +346,7 @@ public class MainEvents implements Listener
 	{
 		Player player = e.getPlayer();
 
-		Double penalty = Methods._ins.getPersistentData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE);
+		Double penalty = DataUtils.GetPersistentData(player, PD_DEATH_PENALTY, PersistentDataType.DOUBLE);
 		if (penalty == null)
 			return;
 
@@ -359,7 +358,7 @@ public class MainEvents implements Listener
 			if (item == null || item.getType().getMaxDurability() <= 0)
 				continue;
 
-			_itemM.giveDamage(item, (int) (item.getType().getMaxDurability() * penalty), false);
+			ItemUtils.GiveDamage(item, (int) (item.getType().getMaxDurability() * penalty), false);
 		}
 
 		int prosent = (int) (penalty * 100);
@@ -373,7 +372,7 @@ public class MainEvents implements Listener
 	public void onRespawnXpSet(PlayerRespawnEvent e)
 	{
 		Player player = e.getPlayer();
-		Integer xpLevel = Methods._ins.getPersistentData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER);
+		Integer xpLevel = DataUtils.GetPersistentData(player, PD_DEATH_XP_LEVEL, PersistentDataType.INTEGER);
 		if (xpLevel == null)
 			return;
 

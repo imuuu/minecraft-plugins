@@ -1,5 +1,9 @@
 package imu.iAPI.Utilities;
 
+import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.ChatColor;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,7 +31,6 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 
 import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Other.Methods;
 
 
 
@@ -95,9 +98,9 @@ public class ItemUtils
         for (int i = 0; i < lores.size(); i++) 
         {
         	String existingLore = lores.get(i);
-            if (CalculateSimilarity(existingLore, Methods.msgC(newLore)) >= similarityPercent)
+            if (CalculateSimilarity(existingLore, TextUtils.Color(newLore)) >= similarityPercent)
             {
-                lores.set(i, Methods.msgC(newLore)); // Replace similar lore
+                lores.set(i, TextUtils.Color(newLore)); // Replace similar lore
                 loreExists = true;
                 break;
             }
@@ -105,7 +108,7 @@ public class ItemUtils
 
         if (!loreExists) 
         {
-            lores.add(Methods.msgC(newLore)); 
+            lores.add(TextUtils.Color(newLore)); 
         }
 
         meta.setLore(lores);
@@ -117,7 +120,7 @@ public class ItemUtils
 	{
 		if (!IsValid(stack))  return stack;
 		
-		lore = Methods.msgC(lore);
+		lore = TextUtils.Color(lore);
 		ItemMeta meta = stack.getItemMeta();
 		ArrayList<String> lores = new ArrayList<String>();
 		if(meta.hasLore())
@@ -190,7 +193,7 @@ public class ItemUtils
 		int idx = 0;
 		for(String l : lores)
 		{
-			read_lores.add(idx++, Methods.msgC(l));
+			read_lores.add(idx++, TextUtils.Color(l));
 		}
 		
 		meta.setLore(read_lores);
@@ -218,7 +221,7 @@ public class ItemUtils
 
 		for(String lore : lores)
 		{
-			metaLores.add(Methods.msgC(lore));
+			metaLores.add(TextUtils.Color(lore));
 		}
 		if(removeEmpty)
 		{
@@ -226,7 +229,7 @@ public class ItemUtils
 			for(int i = metaLores.size()-1; i >= 0 ; i--)
 			{
 				//System.out.println("==> empty? "+metaLores.get(i)+ "is it? "+Strings.isNullOrEmpty(metaLores.get(i)));
-				if(Methods.IsStringNullOrEmpty(metaLores.get(i)))
+				if(TextUtils.IsNullOrEmpty(metaLores.get(i)))
 				{
 					metaLores.remove(i);
 				}
@@ -259,7 +262,7 @@ public class ItemUtils
 				metaLores.add(" ");
 			}
 		}
-		metaLores.set(index, Methods.msgC(lore));
+		metaLores.set(index, TextUtils.Color(lore));
 		meta.setLore(metaLores);
 
 		stack.setItemMeta(meta);
@@ -339,25 +342,19 @@ public class ItemUtils
 		if (!IsValid(stack))  return stack;
 		
 		ItemMeta meta = stack.getItemMeta();
-		meta.setDisplayName(Methods.msgC(name));
+		meta.setDisplayName(TextUtils.Color(name));
 		stack.setItemMeta(meta);
 		return stack;
 	}
 
-	public static ItemStack setDisplayName(ItemStack stack, String name)
-	{
-		return SetDisplayName(stack, name);
-	}
+
 	
 	public static ItemStack SetDisplayNameEmpty(ItemStack stack)
 	{
 		return SetDisplayName(stack, " ");
 	}
 
-	public static ItemStack setDisplayNameEmpty(ItemStack stack)
-	{
-		return SetDisplayNameEmpty(stack);
-	}
+
 	
 	public enum DisplayNamePosition 
 	{
@@ -635,54 +632,18 @@ public class ItemUtils
 		return null;
 	}
 	
-	///>>>> PERSISTENT DATA
-	public static <T> ItemStack SetPersistentData(ItemStack stack, String keyName, PersistentDataType<T, T> type, T data)
-	{
-		if (!IsValid(stack))  return stack;
-		
-		NamespacedKey key = new NamespacedKey(ImusAPI._instance, keyName);
-		ItemMeta meta = stack.getItemMeta();
-		meta.getPersistentDataContainer().set(key, type, data);
-		stack.setItemMeta(meta);
-		return stack;
-		
-	}
-	
-	public static <T> T GetPersistentData(ItemStack stack, String keyName, PersistentDataType<T, T> type)
-	{
-		T value = null;
-		if (!IsValid(stack))  return value;
-		
-		NamespacedKey key = new NamespacedKey(ImusAPI._instance, keyName);
-		ItemMeta meta = stack.getItemMeta();
-		PersistentDataContainer container = meta.getPersistentDataContainer();
-		if(container.has(key, type))
-		{
-			value = container.get(key, type);
-			return value;
-		}
-		
-		return value;
-	}
-	
-	public static ItemStack RemovePersistentData(ItemStack stack, String keyName)
-	{
-		if (!IsValid(stack))  return stack;
 
-		NamespacedKey key = new NamespacedKey(ImusAPI._instance, keyName);
-		ItemMeta meta = stack.getItemMeta();
-		meta.getPersistentDataContainer().remove(key);
-		stack.setItemMeta(meta);
+	
 
-		return stack;
-	}
+	
+
 	
 	private static final String tagID = "pd_tg_";
 	public static ItemStack SetTag(ItemStack stack, String tag)
 	{
 		if (!IsValid(stack))  return stack;
 		
-		SetPersistentData(stack, tagID+tag, PersistentDataType.INTEGER, 1);
+		DataUtils.SetPersistentData(stack, tagID+tag, PersistentDataType.INTEGER, 1);
 		return stack;
 	}
 	
@@ -690,14 +651,14 @@ public class ItemUtils
 	{
 	    if (!IsValid(stack)) return false;
 	    
-	    return GetPersistentData(stack, tagID + tag, PersistentDataType.INTEGER) != null;
+	    return DataUtils.GetPersistentData(stack, tagID + tag, PersistentDataType.INTEGER) != null;
 	}
 	
 	public static ItemStack RemoveTag(ItemStack stack, String tag) 
 	{
 	    if (!IsValid(stack)) return stack;
 	    
-	    return RemovePersistentData(stack, "pd_tg_" + tag);
+	    return DataUtils.RemovePersistentData(stack, "pd_tg_" + tag);
 	}
 	
 	public static List<String> GetTags(ItemStack stack) 
@@ -720,6 +681,90 @@ public class ItemUtils
 
 
 	///<<<< PERSISTENT DATA
-	
-	
+
+	// Moved from the old Methods class ================================================================================
+
+	public static int FindLoreIndex(ItemStack stack, String lore)
+	{
+		if(stack != null && stack.getType() != Material.AIR)
+    	{
+			if(stack.hasItemMeta())
+			{
+				ItemMeta meta = stack.getItemMeta();  		
+	    		if(meta.hasLore())
+	    		{
+	    			ArrayList<String> lores = new ArrayList<String>();
+	    			lores.addAll(meta.getLore());
+	    			lore = ChatColor.stripColor(lore);
+	    			for(int i = 0 ; i < lores.size() ; ++i)
+	    			{  	
+	    				String lore1 = ChatColor.stripColor(lores.get(i));
+	    				if(lore1.contains(lore))
+	    				{
+	    					return i;
+	    				}
+	    			}
+	    		}
+			}
+			
+    	}
+		return -1;
+	}
+
+	public static boolean HasLore(ItemStack stack, String lore)
+	{
+		if(stack != null)
+		{
+			if(stack.hasItemMeta())
+			{
+				if(FindLoreIndex(stack, lore) > -1)
+				{
+					return true;
+				}
+			}
+		}
+				
+		return false;
+	}
+
+	public static String GetNameOrMaterial(ItemStack stack)
+	{
+		String displayName = stack.getType().name();
+		if(stack.hasItemMeta())
+		{
+			if(!TextUtils.IsNullOrEmpty(stack.getItemMeta().getDisplayName()))
+				displayName = stack.getItemMeta().getDisplayName();
+		}
+			
+		return displayName;
+
+	}
+
+	public static int GetEnchantCount(ItemStack stack, Enchantment searchEnch)
+	{
+		
+		if(!HasEnchant(stack, searchEnch)) return 0;
+		
+		for(Entry<Enchantment, Integer> ench : stack.getEnchantments().entrySet())
+		{
+			if(ench.getKey().equals(searchEnch)) return ench.getValue();
+		}
+		return 0;
+	}
+
+	public static ItemStack FortuneSimulation(ItemStack stack, int fortuneLevel) 
+	{
+		if(!ImusAPI.FortuneOres.contains(stack.getType())) return stack;
+
+	    int x = fortuneLevel;
+	    double chance = 1.0 - (2.0 / ((double)x + 2.0)); 
+
+	    int xx = stack.getAmount();
+	    
+	    if(ThreadLocalRandom.current().nextInt(100) < (chance*100.0))
+	    	xx *= ThreadLocalRandom.current().nextInt(2,x+1);
+   
+	    stack.setAmount(xx);
+	    return stack;
+	}
 }

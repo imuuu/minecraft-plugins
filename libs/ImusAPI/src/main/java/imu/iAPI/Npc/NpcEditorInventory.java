@@ -1,10 +1,11 @@
 package imu.iAPI.Npc;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Npc.NpcManager.NpcType;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.TextInputDialog;
 import org.bukkit.Bukkit;
@@ -67,7 +68,7 @@ public class NpcEditorInventory extends CustomInventory
         if (entity instanceof LivingEntity npc && npc.isValid())
             return npc;
 
-        getPlayer().sendMessage(Methods.msgC("&cThe NPC is gone (removed or its chunk unloaded)."));
+        getPlayer().sendMessage(TextUtils.Color("&cThe NPC is gone (removed or its chunk unloaded)."));
         close();
         return null;
     }
@@ -187,7 +188,7 @@ public class NpcEditorInventory extends CustomInventory
                     if (!e.isShiftClick())
                         return;
                     npc.remove();
-                    getPlayer().sendMessage(Methods.msgC("&9The NPC was removed."));
+                    getPlayer().sendMessage(TextUtils.Color("&9The NPC was removed."));
                     close();
                 }));
 
@@ -277,7 +278,7 @@ public class NpcEditorInventory extends CustomInventory
             if (!(target instanceof Mannequin mannequin))
                 return null;
 
-            getPlayer().sendMessage(Methods.msgC("&7Looking up the skin of &e" + name + "&7..."));
+            getPlayer().sendMessage(TextUtils.Color("&7Looking up the skin of &e" + name + "&7..."));
             _npcs.setSkin(mannequin, name, getPlayer());
             return null;
         });

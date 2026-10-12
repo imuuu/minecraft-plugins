@@ -7,7 +7,6 @@ import org.bukkit.inventory.ItemStack;
 
 import me.imu.imushellgear.Enums.ITEM_RARITY;
 import me.imu.imushellgear.other.RarityItem;
-import imu.iAPI.Other.Methods;
 
 public class Hell_Triple_Sword extends RarityItem
 {

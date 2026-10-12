@@ -1,5 +1,7 @@
 package me.imu.imusunstablefearsystem.Events;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,7 +75,6 @@ import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
 import me.imu.imusunstablefearsystem.other.PlayerFear;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ImusUtilities;
 import org.bukkit.ExplosionResult;
 import org.bukkit.NamespacedKey;
@@ -288,7 +289,7 @@ public class NetherEvents implements Listener
 		ItemStack newStack = stack.clone();
 		stack.setAmount(0);
 
-		Methods._ins.InventoryAddItemOrDrop(newStack, player);
+		InvUtil.AddItemOrDropGetSlots(newStack, player);
 
 		player.sendMessage("");
 		player.sendMessage(ChatColor.BLUE+ "Totem of Undying scares nethers darkness!");
@@ -528,7 +529,7 @@ public class NetherEvents implements Listener
 	        //boots.addEnchantment(Enchantment.PROTECTION, 1);
 	        zombie.getEquipment().setBoots(boots,false);
 	        
-	        Methods._ins.setPersistentData(zombie, "SPEED_ZOMBIE", PersistentDataType.INTEGER, 1);
+	        DataUtils.SetPersistentData(zombie, "SPEED_ZOMBIE", PersistentDataType.INTEGER, 1);
 	        
 	        
 	        return;
@@ -624,7 +625,7 @@ public class NetherEvents implements Listener
 	    
 	    //if(!(e.getEntity() instanceof Player)) return;
 	    	    
-	    if(Methods._ins.getPersistentData(e.getDamager(), "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
+	    if(DataUtils.GetPersistentData(e.getDamager(), "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
 	    
 	    if(difficulty == DIFFICULT.NO_FEAR) 
 	    {
@@ -924,7 +925,7 @@ public class NetherEvents implements Listener
 		
 		if(entity instanceof Zombie && _enableSpeedZombie)
 		{	        
-	        if(Methods._ins.getPersistentData(entity, "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
+	        if(DataUtils.GetPersistentData(entity, "SPEED_ZOMBIE", PersistentDataType.INTEGER) == null) return;
 	        
 	        if(_rand.nextInt(100) >= _speedZombieDropChance) return;
 	        
@@ -988,7 +989,7 @@ public class NetherEvents implements Listener
         
         int uses = _maxWaterBottleUses;
         
-        Integer us = Methods._ins.getPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER);
+        Integer us = DataUtils.GetPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER);
         
         if(us != null) uses = us;
         
@@ -998,12 +999,12 @@ public class NetherEvents implements Listener
         
         ItemUtils.SetDisplayName(stack, ChatColor.BLUE+"Water Bottle "+ChatColor.DARK_AQUA+uses +ChatColor.BLUE+" / "+ChatColor.DARK_PURPLE+_maxWaterBottleUses);
         
-        Methods._ins.setPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER, uses);
+        DataUtils.SetPersistentData(stack, "water_bottle_uses", PersistentDataType.INTEGER, uses);
         
         if(uses <= 0) 
         {
         	//stack.setType(Material.POTION);
-        	Methods._ins.removePersistentData(stack, "water_bottle_uses");
+        	DataUtils.RemovePersistentData(stack, "water_bottle_uses");
         	return;
         }
 

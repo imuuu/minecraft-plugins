@@ -1,7 +1,7 @@
 package me.imu.imusminiquests.Managers;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.LootTables.ImusLootTable;
-import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.Enums.OBJECTIVE_TYPE;
 import me.imu.imusminiquests.Quests.*;
 import org.bukkit.Material;
@@ -135,10 +135,10 @@ public class ManagerQuests
         String nameFormat = _plugin.getConfig().getString("item.name-format", "&6MiniQuest &8- %name%");
         return new Quest(
                 id,
-                Methods.msgC(nameFormat.replace("%name%", section.getString("name", id))),
+                TextUtils.Color(nameFormat.replace("%name%", section.getString("name", id))),
                 material,
                 model,
-                section.getStringList("lore").stream().map(Methods::msgC).toList(),
+                section.getStringList("lore").stream().map(TextUtils::Color).toList(),
                 Math.max(0, section.getInt("drop-weight", 0)),
                 objective,
                 Math.max(0, rolls),

@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Managers;
 
+import imu.iAPI.Utilities.DataUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -164,7 +165,7 @@ public class ManagerEnchants
 	//Void stone support from imusVoidStones
 	private static boolean IsVoidUnenchantable(ItemStack stack)
 	{	
-		return ItemUtils.GetPersistentData(stack, "VOID_UNENCHANTABLE", PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, "VOID_UNENCHANTABLE", PersistentDataType.INTEGER) != null;
 	}
 
 	@SuppressWarnings("incomplete-switch")

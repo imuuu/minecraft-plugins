@@ -1,10 +1,10 @@
 package imu.GS.command;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.GS.text.Messages;
 import imu.GS.GsService;
 import imu.GS.engine.pricing.Overflow;
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Methods;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,11 +32,11 @@ public class GetPriceCommand implements CommandInterface
 
         for (ItemStack stack : selection.items(player))
         {
-            String line = Messages.get("getprice.line", "item", stack.getType(), "price", Methods.Round(_service.getRules().value(stack)));
+            String line = Messages.get("getprice.line", "item", stack.getType(), "price", TextUtils.Round(_service.getRules().value(stack)));
             Overflow overflow = _service.getMaterials().get(stack.getType()).getOverflow();
             if (overflow != null)
                 line += Messages.get("getprice.drops-after", "amount", overflow.softCap());
-            player.sendMessage(Methods.msgC(line));
+            player.sendMessage(TextUtils.Color(line));
         }
         return true;
     }

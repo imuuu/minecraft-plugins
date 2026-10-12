@@ -1,6 +1,6 @@
 package imu.imusSpawners.Managers;
 
-import imu.iAPI.Other.Methods;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.HashMap;
 
@@ -86,7 +86,7 @@ public class Manager_Spawners
 //	{
 //		ItemStack stack = new ItemStack(Material.SPAWNER);
 //		ItemUtils.SetDisplayName(stack, ChatColor.GOLD + "SPAWNER: " + ChatColor.DARK_PURPLE + type.toString());
-//		Methods._ins.setPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
+//		DataUtils.SetPersistentData(stack, PD_SPAWNER_TYPE, PersistentDataType.STRING, type.toString());
 //		return stack;
 //	}
 	public void SaveAll()

@@ -1,10 +1,10 @@
 package me.imu.imusminiquests;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Other.ImusTabCompleter;
-import imu.iAPI.Other.Methods;
 import me.imu.imusminiquests.Commands.RootCmd;
 import me.imu.imusminiquests.Managers.*;
 import me.imu.imusminiquests.Quests.QuestItem;
@@ -125,7 +125,7 @@ public class ImusMiniQuests extends JavaPlugin
     {
         // getString(path) falls back to the jar's config.yml for messages added in an update
         String message = getConfig().getString("messages." + key);
-        return Methods.msgC(message != null ? message : key);
+        return TextUtils.Color(message != null ? message : key);
     }
 
     public ManagerQuests getQuests() {return _managerQuests;}

@@ -3,7 +3,6 @@ package me.imu.imushellgear.CustomItems;
 import imu.iAPI.Utilities.ItemUtils;
 import org.bukkit.inventory.ItemStack;
 
-import imu.iAPI.Other.Methods;
 
 public abstract class CustomItem
 {

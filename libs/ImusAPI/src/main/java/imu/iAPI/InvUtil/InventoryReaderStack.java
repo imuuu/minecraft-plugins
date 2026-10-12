@@ -1,5 +1,6 @@
 package imu.iAPI.InvUtil;
 
+import imu.iAPI.Utilities.DebugUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -71,7 +72,7 @@ public class InventoryReaderStack
 	public InventoryReaderStack(Inventory inv)
 	{
 		LoadInv(inv);
-		//Methods._ins.printHashMap(_info);
+		//DebugUtils.PrintMap(_info);
 	}
 	
 	public boolean Reduce(ItemStack stack, int amount)

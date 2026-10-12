@@ -1,5 +1,6 @@
 package imu.iAPI.Other;
 
+import imu.iAPI.Utilities.TextUtils;
 import java.util.HashMap;
 
 public class Cooldowns
@@ -51,7 +52,7 @@ public class Cooldowns
 
     public String GetCdInReadableTime(String cd_name)
     {
-        return Methods.FormatTime((long) (GetCdInSeconds(cd_name) * 1000));
+        return TextUtils.FormatTime((long) (GetCdInSeconds(cd_name) * 1000));
     }
 
     public String formatTime(long timeInMillis)

@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Events;
 
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtilToolsArmors;
 import imu.iAPI.Utilities.ItemUtils;
@@ -36,7 +37,7 @@ public class AnvilEvents implements Listener
             {
                 ItemStack newItem = itemToRepair.clone();
                 ItemUtils.SetDamage(newItem, 0);
-                ItemUtils.SetPersistentData(newItem, "ie_repairCount", PersistentDataType.INTEGER, getNextRepairCount(repairCount));
+                DataUtils.SetPersistentData(newItem, "ie_repairCount", PersistentDataType.INTEGER, getNextRepairCount(repairCount));
 
                 event.setResult(newItem);
             }
@@ -76,7 +77,7 @@ public class AnvilEvents implements Listener
 
     private int getRepairCount(ItemStack item)
     {
-        Integer repairCount = ItemUtils.GetPersistentData(item, "ie_repairCount", PersistentDataType.INTEGER);
+        Integer repairCount = DataUtils.GetPersistentData(item, "ie_repairCount", PersistentDataType.INTEGER);
         return repairCount == null ? 0 : repairCount;
     }
 

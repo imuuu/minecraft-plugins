@@ -1,8 +1,8 @@
 package imu.iAPI.Config;
 
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.ImusTabCompleter;
-import imu.iAPI.Other.Methods;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -128,7 +128,7 @@ public class ConfigMenu
     {
         if (!canEdit(player))
         {
-            player.sendMessage(Methods.msgC("&cYou don't have permission to change these settings!"));
+            player.sendMessage(TextUtils.Color("&cYou don't have permission to change these settings!"));
             return;
         }
         new ConfigMenuInventory(this).open(player);
@@ -143,7 +143,7 @@ public class ConfigMenu
     {
         if (!canEdit(player))
         {
-            player.sendMessage(Methods.msgC("&cYou don't have permission to change these settings!"));
+            player.sendMessage(TextUtils.Color("&cYou don't have permission to change these settings!"));
             return false;
         }
 
@@ -155,7 +155,7 @@ public class ConfigMenu
         _plugin.saveConfig();
         _plugin.getLogger().info(player.getName() + " changed " + entry.getPath() + ": "
                 + entry.format(oldValue) + " -> " + entry.format(value));
-        player.sendMessage(Methods.msgC("&9" + entry.getName() + " &7changed &c" + entry.format(oldValue)
+        player.sendMessage(TextUtils.Color("&9" + entry.getName() + " &7changed &c" + entry.format(oldValue)
                 + " &7-> &a" + entry.format(value)));
 
         try
@@ -164,7 +164,7 @@ public class ConfigMenu
                 _onChange.run();
         } catch (Exception e)
         {
-            player.sendMessage(Methods.msgC("&cThe value was saved, but applying it failed. See the console."));
+            player.sendMessage(TextUtils.Color("&cThe value was saved, but applying it failed. See the console."));
             _plugin.getLogger().severe("Applying config change of " + entry.getPath() + " failed");
             e.printStackTrace();
         }

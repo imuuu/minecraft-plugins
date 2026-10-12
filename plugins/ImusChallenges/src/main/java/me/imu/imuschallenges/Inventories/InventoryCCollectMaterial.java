@@ -1,11 +1,12 @@
 package me.imu.imuschallenges.Inventories;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Buttons.GridButton;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import me.imu.imuschallenges.Database.Tables.TableCollected_materials;
 import me.imu.imuschallenges.ImusChallenges;
@@ -242,7 +243,7 @@ public class InventoryCCollectMaterial extends CustomInventory
 
                             _managerCollectMaterial.addExcludedMaterialSQL_async(material, () ->
                             {
-                                getPlayer().sendMessage(Methods.msgC("&9Added &6" + material.name() + " &9to excluded database!"));
+                                getPlayer().sendMessage(TextUtils.Color("&9Added &6" + material.name() + " &9to excluded database!"));
                             });
                         });
                     }

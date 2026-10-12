@@ -1,6 +1,7 @@
 package imu.iWaystones.SubCmds;
 
 
+import imu.iAPI.Utilities.TextUtils;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -8,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import imu.iAPI.Interfaces.CommandInterface;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Other.ParticleAnimations;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Main.ImusWaystones;
@@ -37,7 +37,7 @@ public class SubWaystoneConfirmationCmd implements CommandInterface
     	_wManager.RemoveConfirmWaystone(p.getUniqueId());
     	if(!_wManager.IsValid(ws))
     	{
-    		sender.sendMessage(Methods.msgC("&4Waystone isn't valid!"));
+    		sender.sendMessage(TextUtils.Color("&4Waystone isn't valid!"));
     		return false;
     	}
     	
@@ -47,14 +47,14 @@ public class SubWaystoneConfirmationCmd implements CommandInterface
     		double distance = _wManager.IsNearByWaystones(ws);
     		if(distance > 0)
     		{
-    			sender.sendMessage(Methods.msgC("&4You can't build waystones close to each other &e(&9"+ Math.round(_wManager._buildDistance - distance)+"&e m)" ));
+    			sender.sendMessage(TextUtils.Color("&4You can't build waystones close to each other &e(&9"+ Math.round(_wManager._buildDistance - distance)+"&e m)" ));
         		return false;
     		}
     		
     	}
     	
     	_wManager.SaveWaystone(ws, true);
-    	sender.sendMessage(Methods.msgC("&3Waystone has been registered"));
+    	sender.sendMessage(TextUtils.Color("&3Waystone has been registered"));
     	p.playSound(ws.GetLoc(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.1f, 0.1f);
     	ParticleAnimations anim = new ParticleAnimations(ws.GetLoc().clone().add(0.5,0.5,0.5));
     	

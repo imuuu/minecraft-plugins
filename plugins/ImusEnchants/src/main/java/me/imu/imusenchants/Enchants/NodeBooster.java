@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Enchants;
 
+import imu.iAPI.Utilities.DataUtils;
 import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.Enums.DIRECTION;
 import me.imu.imusenchants.Enums.TOUCH_TYPE;
@@ -95,7 +96,7 @@ public class NodeBooster extends NodeDirectional
 		ItemUtils.AddLore(itemStack, "&6⚡: &2" + _power, true);
 		ItemUtils.HideFlag(itemStack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 		ItemUtils.AddGlow(itemStack);
-		ItemUtils.SetPersistentData(itemStack, PD_BOOSTER, PersistentDataType.INTEGER, _power);
+		DataUtils.SetPersistentData(itemStack, PD_BOOSTER, PersistentDataType.INTEGER, _power);
 		SetDirectionsPD(itemStack);
 		
 		
@@ -104,13 +105,13 @@ public class NodeBooster extends NodeDirectional
 
 	public static int GetPower(ItemStack stack)
 	{
-		Integer p = ItemUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER);
+		Integer p = DataUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER);
 		return p != null ? p : 0;
 	}
 
 	public static boolean IsBooster(ItemStack stack)
 	{
-		return ItemUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(stack, PD_BOOSTER, PersistentDataType.INTEGER) != null;
 	}
 
 	public boolean IsBoostingThis(INode node)

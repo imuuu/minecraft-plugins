@@ -1,5 +1,7 @@
 package me.imu.imusdifficult.Events;
 
+import imu.iAPI.Utilities.PlayerUtils;
+import imu.iAPI.Utilities.DataUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.Random;
 
@@ -22,7 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import me.imu.imusdifficult.ImusDifficult;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Cooldowns;
-import imu.iAPI.Other.Methods;
 import org.bukkit.persistence.PersistentDataType;
 
 
@@ -48,8 +49,8 @@ public class DotEvents implements Listener
 	// item's data so this plugin doesn't need ImusHellGear installed.
 	private static boolean HasHellFireProtection(Player player)
 	{
-		return Methods._ins.getPersistentData(player.getInventory().getLeggings(), "HELL_LEGGINS", PersistentDataType.INTEGER) != null
-				&& Methods._ins.getPersistentData(player.getInventory().getChestplate(), "HELL_CHESTPLATE", PersistentDataType.INTEGER) != null;
+		return DataUtils.GetPersistentData(player.getInventory().getLeggings(), "HELL_LEGGINS", PersistentDataType.INTEGER) != null
+				&& DataUtils.GetPersistentData(player.getInventory().getChestplate(), "HELL_CHESTPLATE", PersistentDataType.INTEGER) != null;
 	}
 	
 
@@ -120,7 +121,7 @@ public class DotEvents implements Listener
 			return;
 		}
 
-		int totalLevel = Methods._ins.GetArmorSlotEnchantCount(player, Enchantment.PROJECTILE_PROTECTION);
+		int totalLevel = PlayerUtils.GetArmorEnchantCount(player, Enchantment.PROJECTILE_PROTECTION);
 		int chance = _foodReduceChance -(totalLevel * 3);
 
 		if( _rand.nextInt(100) < chance)

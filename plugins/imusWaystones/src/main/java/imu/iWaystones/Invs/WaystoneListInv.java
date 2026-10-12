@@ -1,5 +1,7 @@
 package imu.iWaystones.Invs;
 
+import imu.iAPI.Utilities.DataUtils;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.ItemUtils;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -16,7 +18,6 @@ import org.bukkit.util.Vector;
 
 import imu.iAPI.Interfaces.IButton;
 import imu.iAPI.Other.CustomInvLayout;
-import imu.iAPI.Other.Methods;
 import imu.iWaystone.Waystones.Waystone;
 import imu.iWaystones.Main.ImusWaystones;
 import imu.iWaystones.Managers.WaystoneManager;
@@ -94,7 +95,7 @@ public class WaystoneListInv extends CustomInvLayout {
 			if(e.getClick() == ClickType.SHIFT_RIGHT)
 			{
 				_wManager.RemoveWaystone(GetWaystoneFromButton(e.getCurrentItem()));
-				_player.sendMessage(Methods.msgC("&eWaystone &2has &cREMOVED"));
+				_player.sendMessage(TextUtils.Color("&eWaystone &2has &cREMOVED"));
 				//_player.closeInventory();
 				Init();
 				return;
@@ -113,13 +114,13 @@ public class WaystoneListInv extends CustomInvLayout {
 		
 		if(ws == null)
 		{
-			_player.sendMessage(Methods.msgC("&cTarget waystone doesn't exist!"));
+			_player.sendMessage(TextUtils.Color("&cTarget waystone doesn't exist!"));
 			//return;
 		}
 		
 		if(!_wManager.IsValid(ws))
 		{
-			_player.sendMessage(Methods.msgC("&3Target Waystone &4isn't Valid!"));
+			_player.sendMessage(TextUtils.Color("&3Target Waystone &4isn't Valid!"));
 		}
 		
 		
@@ -164,7 +165,7 @@ public class WaystoneListInv extends CustomInvLayout {
 	
 	private Waystone GetWaystoneFromButton(ItemStack stack)
 	{
-		return _wManager.GetWaystone(UUID.fromString(Methods._ins.getPersistentData(stack, "iwm" ,PersistentDataType.STRING)));
+		return _wManager.GetWaystone(UUID.fromString(DataUtils.GetPersistentData(stack, "iwm" ,PersistentDataType.STRING)));
 	}
 	
 	private void LoadWaystones()
@@ -186,7 +187,7 @@ public class WaystoneListInv extends CustomInvLayout {
 			lores[4] = "&eLocation: &5"+ws.GetLoc().getWorld().getName() + " &2"+ws.GetLoc().getBlockX()+ " "+ ws.GetLoc().getBlockY() + " "+ws.GetLoc().getBlockZ();
 			
 			ItemUtils.SetLores(stack, lores, false);
-			Methods._ins.setPersistentData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
+			DataUtils.SetPersistentData(stack, "iwm", PersistentDataType.STRING, ws.GetUUID().toString());
 			SetButton(stack, BUTTON.WAYSTONE);
 			_inv.setItem(i, stack);
 		}

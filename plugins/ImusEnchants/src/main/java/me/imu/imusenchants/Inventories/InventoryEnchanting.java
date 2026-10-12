@@ -1,10 +1,11 @@
 package me.imu.imusenchants.Inventories;
 
+import imu.iAPI.Utilities.InvUtil;
+import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.Methods;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
 import me.imu.imusenchants.CONSTANTS;
@@ -210,13 +211,13 @@ public class InventoryEnchanting extends CustomInventory
         {
             if (CONSTANTS.SLOT_CORE_MODE && !EnchantedItem.HasSlots(stack))
             {
-                getPlayer().sendMessage(Methods.msgC("&cUse a &dSlot Core &con the item first!"));
+                getPlayer().sendMessage(TextUtils.Color("&cUse a &dSlot Core &con the item first!"));
                 return false;
             }
 
             if (!ManagerEnchants.IsValidToEnchant(stack))
             {
-                getPlayer().sendMessage(Methods.msgC("&cNot valid item to enchant!"));
+                getPlayer().sendMessage(TextUtils.Color("&cNot valid item to enchant!"));
                 return false;
             }
 
@@ -409,7 +410,7 @@ public class InventoryEnchanting extends CustomInventory
                     // since the last Enchant would still be handed back on close
                     if (hasPendingPieces())
                     {
-                        getPlayer().sendMessage(Methods.msgC("&cPress &eEnchant &cor take your pieces out first!"));
+                        getPlayer().sendMessage(TextUtils.Color("&cPress &eEnchant &cor take your pieces out first!"));
                         return false;
                     }
 
