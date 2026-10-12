@@ -16,8 +16,13 @@ import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.live.LiveEvents;
 import imu.GS.live.MarketEvents;
+import imu.GS.presets.ShopPreset;
+import imu.GS.presets.ShopPresets;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
+import org.bukkit.inventory.ItemStack;
+import imu.GS.engine.shop.StockRules;
+import imu.GS.engine.pricing.PriceRule;
 import imu.GS.engine.shop.ShopListener;
 import imu.GS.engine.shop.ShopSettings;
 import imu.GS.engine.trade.TradeService;
@@ -71,6 +76,7 @@ public class GsService implements Listener
     private final VaultWallet _wallet = new VaultWallet();
     private final TradeService _trades;
     private final PriceProfiles _profiles;
+    private final ShopPresets _presets;
     private final LiveEvents _live;
     private final MarketEvents _market;
 
@@ -117,6 +123,7 @@ public class GsService implements Listener
             _pressureDirty = true;
         });
         _profiles = new PriceProfiles(plugin);
+        _presets = new ShopPresets(plugin);
         _live = new LiveEvents(this);
         _market = new MarketEvents(this);
         _prices.setMarket(_market);
@@ -265,7 +272,10 @@ public class GsService implements Listener
             for (Shop shop : _shops.values())
                 shop.tick(now);
             _live.tick(now);
-            _market.tick(now, _live.liveShops());
+            // Only shops that buy can want something
+            List<Shop> buying = new ArrayList<>(_live.liveShops());
+            buying.removeIf(shop -> shop.getSettings().customersCanOnlyBuy());
+            _market.tick(now, buying);
         };
         // Once now, so the live events have their times from the start
         tick.run();
@@ -347,6 +357,14 @@ public class GsService implements Listener
      */
     public Shop createShop(String displayName)
     {
+        return createShop(plainName(displayName), displayName);
+    }
+
+    /**
+     * @param name the plain name commands use
+     */
+    public Shop createShop(String name, String displayName)
+    {
         FileConfiguration config = _plugin.getConfig();
         ShopSettings settings = new ShopSettings(
                 config.getDouble("new-shop.sell-multiplier"),
@@ -354,7 +372,7 @@ public class GsService implements Listener
                 config.getDouble("new-shop.expire-percent"),
                 config.getInt("new-shop.expire-cooldown-minutes"),
                 false, false, true, true);
-        Shop shop = new Shop(UUID.randomUUID(), plainName(displayName), displayName, settings);
+        Shop shop = new Shop(UUID.randomUUID(), name, displayName, settings);
         addShop(shop);
         saveNow(shop);
         _plugin.updateTabCompletion();
@@ -365,6 +383,32 @@ public class GsService implements Listener
     {
         _shops.put(shop.getId(), shop);
         shop.addListener(_dirtyMarker);
+    }
+
+    /**
+     * A new shop from a preset: its kind, whether players can sell to it, its lasting stock, and a first rotation.
+     */
+    public Shop createShop(ShopPreset preset, String name, String displayName)
+    {
+        Shop shop = createShop(name, displayName);
+        ShopSettings settings = shop.getSettings();
+        shop.setSettings(new ShopSettings(settings.sellMultiplier(), settings.buyMultiplier(), settings.expirePercent(),
+                settings.expireCooldownMinutes(), false, preset.buyOnly(), settings.absolutePositions(), true,
+                preset.isGeneral() ? null : preset.id()));
+        for (ShopPreset.StockItem item : preset.stock())
+        {
+            Listing listing = new Listing(UUID.randomUUID(), ItemKeys.of(new ItemStack(item.material())), item.max(), PriceRule.MATERIAL);
+            shop.addListing(listing);
+            shop.setStock(listing, new StockRules(item.max(), item.fill(), item.minutes()));
+        }
+        _live.rotate(shop);
+        saveNow(shop);
+        return shop;
+    }
+
+    public ShopPresets getPresets()
+    {
+        return _presets;
     }
 
     public void renameShop(Shop shop, String displayName)

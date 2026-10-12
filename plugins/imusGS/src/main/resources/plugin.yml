@@ -44,6 +44,7 @@ permissions:
        gs.flash: true
        gs.peek: true
        gs.stats: true
+       gs.remove.shop: true
        ia.npc.edit: true
    gs.create.shop:
      description: /gs create shop
@@ -104,6 +105,9 @@ permissions:
      default: op
    gs.flash:
      description: /gs flash start|end, /gs wanted start|end and /gs restock, start live events by hand
+     default: op
+   gs.remove.shop:
+     description: /gs remove shop <name> confirm, remove a shop and its NPCs
      default: op
    gs.stats:
      description: /gs stats [days] [shop], where the money went and what live events are doing

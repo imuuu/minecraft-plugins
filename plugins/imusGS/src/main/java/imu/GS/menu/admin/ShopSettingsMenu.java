@@ -196,7 +196,7 @@ public class ShopSettingsMenu extends AdminMenu
         }
 
         _shop.setSettings(new ShopSettings(_sellMultiplier, _buyMultiplier, _expirePercent, _expireCooldown,
-                _locked, _customersCanOnlyBuy, _absolutePositions, _liveEvents));
+                _locked, _customersCanOnlyBuy, _absolutePositions, _liveEvents, _shop.getSettings().kind()));
         if (!_displayName.equals(_shop.getDisplayName()))
         {
             Shop other = _service.getShop(_displayName);

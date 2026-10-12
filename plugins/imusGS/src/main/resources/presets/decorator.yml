@@ -1,0 +1,42 @@
+# imusGS shop preset: Decorator. /gs create preset decorator makes a shop of it with its NPC where you stand,
+# /gs village makes every preset at once. Edit this file to change what new shops of it get; shops made
+# already keep their stock, but their live events (rotation, flash deals, found items) follow this file.
+#
+# name, display-name   the shop's name and how players see it
+# buy-only             players can only buy here
+# npc                  the villager: profession, one of the names, and a title after it
+# tags                 material tags (see the price profile) the shop is about: its rotating stock and flash
+#                      deals come from these
+# found-tags           items of these tags that players find turn up here (default: the same as tags)
+# quality              over 1 brings rarer, pricier items more often
+# rotation             how many kinds of items come every rotation, and the share of enchanted gear
+# books                rotating stock and flash deals are enchanted books
+# flash                flash deals: share of enchanted gear, fun items (TNT...), rare specials (totems...)
+# gear                 gear this shop enchants and sells (default: the flash deal gear of config.yml)
+# stock                what the shop always has: at most max, fill more every minutes
+
+name: Decorator
+display-name: "&d&lDecorator"
+buy-only: true
+npc:
+  profession: shepherd
+  names: [Iris, Monet, Lily, Frida, Hue]
+  title: "&7the Decorator"
+tags: [decoration]
+quality: 1.5
+rotation:
+  items-min: 3
+  items-max: 5
+  gear-share: 0
+books: false
+flash:
+  gear-share: 0
+  fun: true
+stock:
+  - {item: WHITE_WOOL, max: 64, fill: 16, minutes: 30}
+  - {item: FLOWER_POT, max: 32, fill: 8, minutes: 30}
+  - {item: PAINTING, max: 16, fill: 4, minutes: 60}
+  - {item: ITEM_FRAME, max: 32, fill: 8, minutes: 30}
+  - {item: LANTERN, max: 32, fill: 8, minutes: 30}
+  - {item: CANDLE, max: 32, fill: 8, minutes: 30}
+  - {item: WHITE_DYE, max: 64, fill: 16, minutes: 30}

@@ -1,0 +1,45 @@
+# imusGS shop preset: Blacksmith. /gs create preset blacksmith makes a shop of it with its NPC where you stand,
+# /gs village makes every preset at once. Edit this file to change what new shops of it get; shops made
+# already keep their stock, but their live events (rotation, flash deals, found items) follow this file.
+#
+# name, display-name   the shop's name and how players see it
+# buy-only             players can only buy here
+# npc                  the villager: profession, one of the names, and a title after it
+# tags                 material tags (see the price profile) the shop is about: its rotating stock and flash
+#                      deals come from these
+# found-tags           items of these tags that players find turn up here (default: the same as tags)
+# quality              over 1 brings rarer, pricier items more often
+# rotation             how many kinds of items come every rotation, and the share of enchanted gear
+# books                rotating stock and flash deals are enchanted books
+# flash                flash deals: share of enchanted gear, fun items (TNT...), rare specials (totems...)
+# gear                 gear this shop enchants and sells (default: the flash deal gear of config.yml)
+# stock                what the shop always has: at most max, fill more every minutes
+
+name: Blacksmith
+display-name: "&8&l⚒ &7&lBlacksmith"
+buy-only: true
+npc:
+  profession: weaponsmith
+  names: [Bjorn, Hilda, Ragnar, Freya, Gunnar]
+  title: "&7the Blacksmith"
+tags: [tools, armor]
+found-tags: [tools, armor, ores, minerals]
+quality: 3
+rotation:
+  items-min: 2
+  items-max: 4
+  gear-share: 0.6
+books: false
+flash:
+  gear-share: 0.8
+gear: [IRON_SWORD, IRON_PICKAXE, IRON_AXE, IRON_SHOVEL, IRON_HELMET, IRON_CHESTPLATE, IRON_LEGGINGS, IRON_BOOTS,
+       DIAMOND_SWORD, DIAMOND_PICKAXE, DIAMOND_AXE, DIAMOND_SHOVEL, DIAMOND_HELMET, DIAMOND_CHESTPLATE,
+       DIAMOND_LEGGINGS, DIAMOND_BOOTS, NETHERITE_SWORD, NETHERITE_PICKAXE, NETHERITE_AXE, NETHERITE_HELMET,
+       NETHERITE_CHESTPLATE, NETHERITE_LEGGINGS, NETHERITE_BOOTS, BOW, CROSSBOW, SHIELD, MACE, TRIDENT]
+stock:
+  - {item: IRON_INGOT, max: 64, fill: 16, minutes: 30}
+  - {item: COAL, max: 64, fill: 16, minutes: 20}
+  - {item: IRON_PICKAXE, max: 4, fill: 1, minutes: 60}
+  - {item: IRON_SWORD, max: 4, fill: 1, minutes: 60}
+  - {item: SHIELD, max: 4, fill: 1, minutes: 60}
+  - {item: ANVIL, max: 2, fill: 1, minutes: 120}

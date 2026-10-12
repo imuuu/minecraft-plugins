@@ -1,0 +1,41 @@
+# imusGS shop preset: Builder. /gs create preset builder makes a shop of it with its NPC where you stand,
+# /gs village makes every preset at once. Edit this file to change what new shops of it get; shops made
+# already keep their stock, but their live events (rotation, flash deals, found items) follow this file.
+#
+# name, display-name   the shop's name and how players see it
+# buy-only             players can only buy here
+# npc                  the villager: profession, one of the names, and a title after it
+# tags                 material tags (see the price profile) the shop is about: its rotating stock and flash
+#                      deals come from these
+# found-tags           items of these tags that players find turn up here (default: the same as tags)
+# quality              over 1 brings rarer, pricier items more often
+# rotation             how many kinds of items come every rotation, and the share of enchanted gear
+# books                rotating stock and flash deals are enchanted books
+# flash                flash deals: share of enchanted gear, fun items (TNT...), rare specials (totems...)
+# gear                 gear this shop enchants and sells (default: the flash deal gear of config.yml)
+# stock                what the shop always has: at most max, fill more every minutes
+
+name: Builder
+display-name: "&e&lBuilder"
+buy-only: true
+npc:
+  profession: mason
+  names: [Bob, Wendy, Mason, Petra, Stone]
+  title: "&7the Builder"
+tags: [stone, earth, wood]
+quality: 1.5
+rotation:
+  items-min: 3
+  items-max: 5
+  gear-share: 0
+books: false
+flash:
+  gear-share: 0
+stock:
+  - {item: STONE, max: 256, fill: 64, minutes: 20}
+  - {item: COBBLESTONE, max: 256, fill: 64, minutes: 20}
+  - {item: OAK_LOG, max: 128, fill: 32, minutes: 20}
+  - {item: OAK_PLANKS, max: 256, fill: 64, minutes: 20}
+  - {item: GLASS, max: 128, fill: 32, minutes: 30}
+  - {item: SAND, max: 128, fill: 32, minutes: 30}
+  - {item: BRICKS, max: 64, fill: 16, minutes: 30}

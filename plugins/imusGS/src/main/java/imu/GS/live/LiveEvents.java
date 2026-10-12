@@ -11,6 +11,7 @@ import imu.GS.engine.live.FlashOffer;
 import imu.GS.engine.live.LiveRules;
 import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.shop.Shop;
+import imu.GS.presets.ShopPreset;
 import imu.GS.text.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -58,6 +59,7 @@ public class LiveEvents implements Listener
     private final ProgressTracker _tracker;
     private long _nextFlashMillis;
     private long _nextRotationMillis;
+    private int _flashTurn;
     private boolean _dealsDirty;
 
     public LiveEvents(GsService service)
@@ -174,11 +176,7 @@ public class LiveEvents implements Listener
             else if (now >= _nextFlashMillis)
             {
                 _nextFlashMillis = now + nextFlashDelay(flash);
-                for (Shop shop : liveShops())
-                {
-                    if (_deals.active(shop.getId(), now) == null)
-                        startFlashDeal(shop, now, true);
-                }
+                startFlashDeals(flash, now);
             }
         }
 
@@ -196,6 +194,30 @@ public class LiveEvents implements Listener
         }
     }
 
+    /**
+     * In "one-at-a-time" mode the next shop in turn gets a deal, otherwise every shop without one.
+     */
+    private void startFlashDeals(ConfigurationSection flash, long now)
+    {
+        List<Shop> shops = new ArrayList<>(liveShops());
+        shops.removeIf(shop -> _deals.active(shop.getId(), now) != null);
+        if (shops.isEmpty())
+            return;
+        if (!flash.getString("mode", "one-at-a-time").equalsIgnoreCase("one-at-a-time"))
+        {
+            for (Shop shop : shops)
+                startFlashDeal(shop, now, true);
+            return;
+        }
+        // Each shop in turn; a shop with nothing to offer passes its turn on
+        for (int tries = 0; tries < shops.size(); tries++)
+        {
+            Shop shop = shops.get(Math.floorMod(_flashTurn++, shops.size()));
+            if (startFlashDeal(shop, now, true) != null)
+                return;
+        }
+    }
+
     private long nextFlashDelay(ConfigurationSection flash)
     {
         int min = Math.max(1, flash.getInt("interval-minutes-min", 120));
@@ -206,16 +228,72 @@ public class LiveEvents implements Listener
     // Rotating stock =================================================================================================
 
     /**
-     * Brings a few random items of the rotation tags to the shop. Returns how many kinds came.
+     * The shop's preset, null for a general store (which follows config.yml).
+     */
+    public ShopPreset presetOf(Shop shop)
+    {
+        return shop.getSettings().isGeneral() ? null : _service.getPresets().get(shop.getSettings().kind());
+    }
+
+    /**
+     * The material tags the shop's rotating stock and flash deals come from.
+     */
+    private List<String> tagsOf(ShopPreset preset, ConfigurationSection fallback)
+    {
+        return preset != null && !preset.tags().isEmpty() ? preset.tags() : fallback.getStringList("tags");
+    }
+
+    private double valueScale(ShopPreset preset)
+    {
+        return config("rotation").getDouble("value-scale", 5) * (preset == null ? 1 : preset.quality());
+    }
+
+    /**
+     * Enchanted gear and books follow the flash deal progress setting, wherever they are sold.
+     */
+    private ServerProgress gearProgress()
+    {
+        return _tracker.appliesTo("flash-deals") ? _tracker.getProgress() : null;
+    }
+
+    private List<Material> gearOf(ShopPreset preset, Predicate<Material> allowed)
+    {
+        if (preset != null && !preset.gear().isEmpty())
+            return preset.gear().stream().filter(allowed).collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        return materials(config("flash-deals").getStringList("gear"), allowed);
+    }
+
+    /**
+     * Brings a few random items to the shop: of its preset's tags (or the rotation tags), and for a blacksmith or
+     * a librarian enchanted gear or books. Returns how many kinds came.
      */
     public int rotate(Shop shop)
     {
         ConfigurationSection rotation = config("rotation");
-        int count = between(rotation.getInt("items-min", 3), rotation.getInt("items-max", 6));
-        double budget = rotation.getDouble("budget", 2000);
-        List<Material> picked = ItemPool.pick(_service.getMaterials(), rotation.getStringList("tags"),
-                rotation.getDouble("value-scale", 5), count, m -> _tracker.allows("rotation", m), _random);
+        ShopPreset preset = presetOf(shop);
+        int count = preset != null ? between(preset.rotationMin(), preset.rotationMax())
+                : between(rotation.getInt("items-min", 3), rotation.getInt("items-max", 6));
+        Predicate<Material> allowed = m -> _tracker.allows("rotation", m);
         int added = 0;
+
+        int special = preset == null ? 0 : preset.books() ? count : (int) Math.round(count * preset.rotationGearShare());
+        List<Material> gear = gearOf(preset, m -> _tracker.allows("flash-deals", m));
+        ConfigurationSection flash = config("flash-deals");
+        for (int i = 0; i < special; i++)
+        {
+            ItemStack item = preset.books() ? GearGenerator.book(gearProgress(), flash.getDouble("over-max-level-chance", 0.15), _random)
+                    : gear.isEmpty() ? null : GearGenerator.generate(gear.get(_random.nextInt(gear.size())), flash.getInt("gear-enchants-min", 2),
+                    flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15), gearProgress(), _random);
+            if (item == null)
+                continue;
+            ItemKey key = ItemKeys.of(item);
+            if (LiveRules.restock(shop, key, 1, 1, _service.getPrices().priceForSoldItem(key)) > 0)
+                added++;
+        }
+
+        double budget = rotation.getDouble("budget", 2000) * (preset == null ? 1 : preset.quality());
+        List<Material> picked = preset != null && preset.books() ? List.of()
+                : ItemPool.pick(_service.getMaterials(), tagsOf(preset, rotation), valueScale(preset), count - special, allowed, _random);
         for (Material material : picked)
         {
             ItemStack stack = new ItemStack(material);
@@ -238,18 +316,26 @@ public class LiveEvents implements Listener
     public FlashDeal startFlashDeal(Shop shop, long now, boolean announce)
     {
         ConfigurationSection flash = config("flash-deals");
+        ShopPreset preset = presetOf(shop);
         int count = between(flash.getInt("offers-min", 4), flash.getInt("offers-max", 7));
-        int gearCount = (int) Math.round(count * flash.getDouble("gear-share", 0.4));
+        double gearShare = preset != null && preset.flashGearShare() != null ? preset.flashGearShare() : flash.getDouble("gear-share", 0.4);
+        int gearCount = preset != null && preset.books() ? count : (int) Math.round(count * gearShare);
         Predicate<Material> allowed = m -> _tracker.allows("flash-deals", m);
-        ServerProgress progress = _tracker.appliesTo("flash-deals") ? _tracker.getProgress() : null;
+        ServerProgress progress = gearProgress();
 
         List<FlashOffer> offers = new ArrayList<>();
-        List<Material> gear = materials(flash.getStringList("gear"), allowed);
-        List<Material> specials = materials(flash.getStringList("special-items"), allowed);
+        List<Material> gear = gearOf(preset, allowed);
+        List<Material> specials = preset == null || preset.specials() ? materials(flash.getStringList("special-items"), allowed) : List.of();
         for (int i = 0; i < gearCount; i++)
         {
             FlashOffer offer = null;
-            if (!specials.isEmpty() && (gear.isEmpty() || _random.nextDouble() < flash.getDouble("special-chance", 0.2)))
+            if (preset != null && preset.books())
+            {
+                ItemStack book = GearGenerator.book(progress, flash.getDouble("over-max-level-chance", 0.15), _random);
+                if (book != null)
+                    offer = offer(shop, book, between(flash.getInt("gear-stock-min", 2), flash.getInt("gear-stock-max", 5)),
+                            flash.getInt("gear-player-limit", 2), flash);
+            } else if (!specials.isEmpty() && (gear.isEmpty() || _random.nextDouble() < flash.getDouble("special-chance", 0.2)))
             {
                 ItemStack special = new ItemStack(specials.get(_random.nextInt(specials.size())));
                 offer = offer(shop, special, between(flash.getInt("special-stock-min", 2), flash.getInt("special-stock-max", 4)),
@@ -267,7 +353,7 @@ public class LiveEvents implements Listener
 
         // The rest are blocks and items, now and then a fun one (TNT, fireworks...)
         int blockCount = count - offers.size();
-        List<Material> fun = materials(flash.getStringList("fun-items"), allowed);
+        List<Material> fun = preset == null || preset.fun() ? materials(flash.getStringList("fun-items"), allowed) : new ArrayList<>();
         Collections.shuffle(fun, _random);
         List<Material> picked = new ArrayList<>();
         for (int i = 0; i < blockCount && !fun.isEmpty(); i++)
@@ -275,8 +361,9 @@ public class LiveEvents implements Listener
             if (_random.nextDouble() < flash.getDouble("fun-chance", 0.3))
                 picked.add(fun.removeFirst());
         }
-        picked.addAll(ItemPool.pick(_service.getMaterials(), flash.getStringList("tags"), config("rotation").getDouble("value-scale", 5),
-                blockCount - picked.size(), allowed.and(m -> !picked.contains(m)), _random));
+        if (preset == null || !preset.books())
+            picked.addAll(ItemPool.pick(_service.getMaterials(), tagsOf(preset, flash), valueScale(preset),
+                    blockCount - picked.size(), allowed.and(m -> !picked.contains(m)), _random));
         for (Material material : picked)
         {
             int stock = between(flash.getInt("block-stacks-min", 2), flash.getInt("block-stacks-max", 6)) * material.getMaxStackSize();
@@ -392,8 +479,49 @@ public class LiveEvents implements Listener
         List<Shop> shops = liveShops();
         if (shops.isEmpty())
             return;
-        Shop shop = shops.get(_random.nextInt(shops.size()));
         ItemKey item = ItemKeys.of(stack.asQuantity(1));
-        LiveRules.restock(shop, item, stack.getAmount(), found.getInt("max-per-item", 64), _service.getPrices().priceForSoldItem(item));
+        int cap = found.getInt("max-per-item", 64);
+
+        // The shops the item belongs to by its tags, and the general stores
+        java.util.Set<String> itemTags = _service.getMaterials().get(stack.getType()).getTags();
+        List<Shop> specialists = new ArrayList<>();
+        List<Shop> general = new ArrayList<>();
+        List<String> matchedTags = new ArrayList<>();
+        for (Shop shop : shops)
+        {
+            ShopPreset preset = presetOf(shop);
+            if (preset == null)
+            {
+                general.add(shop);
+                continue;
+            }
+            for (String tag : preset.foundOrShopTags())
+            {
+                if (itemTags.contains(tag))
+                {
+                    specialists.add(shop);
+                    matchedTags.add(tag);
+                    break;
+                }
+            }
+        }
+
+        boolean toGeneral = specialists.isEmpty() || (!general.isEmpty() && _random.nextDouble() < found.getDouble("general-share", 0.3));
+        List<Shop> targets = toGeneral ? (general.isEmpty() ? shops : general) : specialists;
+        Shop shop = targets.get(_random.nextInt(targets.size()));
+        LiveRules.restock(shop, item, stack.getAmount(), cap, _service.getPrices().priceForSoldItem(item));
+
+        // Now and then the general store gets something else of the same kind, so it always has a bit of everything
+        if (!toGeneral && !general.isEmpty() && _random.nextDouble() < found.getDouble("echo-chance", 0.2))
+        {
+            Material original = stack.getType();
+            List<Material> echo = ItemPool.pick(_service.getMaterials(), matchedTags, valueScale(null), 1,
+                    m -> m != original && _tracker.getProgress().hasSeen(m.name()), _random);
+            if (!echo.isEmpty())
+            {
+                ItemKey echoItem = ItemKeys.of(new ItemStack(echo.getFirst()));
+                LiveRules.restock(general.get(_random.nextInt(general.size())), echoItem, 1, cap, _service.getPrices().priceForSoldItem(echoItem));
+            }
+        }
     }
 }

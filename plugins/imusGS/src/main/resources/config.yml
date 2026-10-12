@@ -52,6 +52,11 @@ live:
     value-scale: 5
     # A shop never gets more found items of one kind than this
     max-per-item: 64
+    # With village shops (see /gs village) a found item goes to the shop of its kind: ores to the blacksmith,
+    # crops to the farmer... This share goes to a general store instead, so it always has something new.
+    general-share: 0.3
+    # When an item went to a village shop, a general store gets something else of the same kind with this chance
+    echo-chance: 0.2
     mining: true
     mobs: true
     fishing: true
@@ -69,6 +74,8 @@ live:
   # Items bought from a deal can't be sold back to a shop.
   flash-deals:
     enabled: true
+    # one-at-a-time: one shop has a deal at a time, the shops taking turns. every-shop: every shop at once
+    mode: one-at-a-time
     # A deal starts at a random time this many minutes after the last one
     interval-minutes-min: 120
     interval-minutes-max: 300

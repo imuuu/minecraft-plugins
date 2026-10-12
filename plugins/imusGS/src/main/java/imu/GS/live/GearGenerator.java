@@ -6,6 +6,7 @@ import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,5 +57,33 @@ final class GearGenerator
             added++;
         }
         return item;
+    }
+
+    /**
+     * An enchanted book of one random enchant; with the server's progress only an enchant players have had, up to
+     * the level they have had. Null when there is none.
+     */
+    static ItemStack book(ServerProgress progress, double overMaxChance, Random random)
+    {
+        List<Enchantment> candidates = new ArrayList<>();
+        for (Enchantment enchant : RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT))
+        {
+            if (!enchant.isCursed() && (progress == null || progress.seenLevel(enchant.getKey().toString()) > 0))
+                candidates.add(enchant);
+        }
+        if (candidates.isEmpty())
+            return null;
+        Enchantment enchant = candidates.get(random.nextInt(candidates.size()));
+        int max = enchant.getMaxLevel();
+        int seen = progress == null ? max : progress.seenLevel(enchant.getKey().toString());
+        int cap = ServerProgress.levelCap(max, seen);
+        int level = 1 + random.nextInt(cap);
+        if (max > 1 && ServerProgress.mayGoOverMax(max, seen) && random.nextDouble() < overMaxChance)
+            level = max + 1;
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+        meta.addStoredEnchant(enchant, level, true);
+        book.setItemMeta(meta);
+        return book;
     }
 }
