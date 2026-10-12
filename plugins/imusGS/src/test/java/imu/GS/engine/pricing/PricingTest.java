@@ -84,6 +84,22 @@ class PricingTest
     }
 
     @Test
+    void aFixedPriceUnderWhatTheShopPaysIsAProfit()
+    {
+        // The shop pays 10 for a diamond
+        assertEquals(7, _prices.buyBackProfit(_shop, listing("diamond", 1, new PriceRule.Fixed(3))));
+        assertEquals(0, _prices.buyBackProfit(_shop, listing("diamond", 1, new PriceRule.Fixed(12))));
+        assertEquals(0, _prices.buyBackProfit(_shop, listing("diamond", 1, PriceRule.MATERIAL)));
+    }
+
+    @Test
+    void aBuyMultiplierOverTheSellMultiplierIsAProfit()
+    {
+        _shop.setSettings(new ShopSettings(1, 2, 0.1, 60, false, false, true));
+        assertEquals(10, _prices.buyBackProfit(_shop, listing("diamond", 1, PriceRule.MATERIAL)));
+    }
+
+    @Test
     void fixedPriceIgnoresMultipliers()
     {
         Listing diamonds = listing("diamond", 64, new PriceRule.Fixed(3));

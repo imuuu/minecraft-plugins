@@ -267,10 +267,66 @@ class TradeServiceTest
     }
 
     @Test
-    void aWorthlessShulkerCantBeSold()
+    void anEmptyShulkerCantBeSold()
+    {
+        _inventory.putShulker(15, "box", Map.of());
+        assertEquals(Status.NOTHING_TO_SELL, _trades.sellShulker(_shop, _alex, 15).status());
+    }
+
+    // Selling for nothing ============================================================================================
+
+    private TradeService noZeroSells()
+    {
+        return new TradeService(new PriceCalculator(_rules), _bank, () -> false);
+    }
+
+    @Test
+    void worthlessItemsSellForNothingByDefault()
+    {
+        _inventory.put(10, "junk", 5, ItemCategory.BLOCKS);
+
+        TradeResult result = _trades.sell(_shop, _alex, item("junk"), 5);
+
+        assertTrue(result.isSuccess());
+        assertEquals(0, result.price());
+        assertEquals(0, _inventory.count(item("junk")));
+    }
+
+    @Test
+    void withZeroSellsOffWorthlessItemsStay()
+    {
+        _inventory.put(10, "junk", 5, ItemCategory.BLOCKS);
+        assertEquals(Status.ZERO_PRICE, noZeroSells().sell(_shop, _alex, item("junk"), 5).status());
+        assertEquals(5, _inventory.count(item("junk")));
+        assertNull(_shop.findSameKind(item("junk")));
+    }
+
+    @Test
+    void aWorthlessShulkerEmptiesByDefault()
     {
         _inventory.putShulker(15, "box", Map.of(item("junk"), 64));
-        assertEquals(Status.NOTHING_TO_SELL, _trades.sellShulker(_shop, _alex, 15).status());
+        assertTrue(_trades.sellShulker(_shop, _alex, 15).isSuccess());
+        assertTrue(_inventory.shulkerContents(15).isEmpty());
+    }
+
+    @Test
+    void withZeroSellsOffTheShulkerKeepsWhatTheShopDoesntBuy()
+    {
+        _inventory.putShulker(15, "box", Map.of(item("junk"), 64, item("diamond"), 2));
+
+        TradeResult result = noZeroSells().sellShulker(_shop, _alex, 15);
+
+        assertTrue(result.isSuccess());
+        assertEquals(20, balance(_alex));
+        assertEquals(Map.of(item("junk"), 64), _inventory.shulkerContents(15));
+        assertNull(_shop.findSameKind(item("junk")));
+    }
+
+    @Test
+    void withZeroSellsOffAWorthlessShulkerCantBeSold()
+    {
+        _inventory.putShulker(15, "box", Map.of(item("junk"), 64));
+        assertEquals(Status.NOTHING_TO_SELL, noZeroSells().sellShulker(_shop, _alex, 15).status());
         assertEquals(64, _inventory.shulkerContents(15).get(item("junk")));
     }
 }

@@ -2,6 +2,7 @@ package imu.iAPI.Handelers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import imu.iAPI.Interfaces.CommandInterface;
@@ -18,6 +19,8 @@ public class CommandHandler implements CommandExecutor
     static HashMap<String, CommandInterface> commands = new HashMap<String, CommandInterface>();
     static HashMap<String, ArrayList<String>> subCommands = new HashMap<String,ArrayList<String>>();
     HashMap<String, String> commandsPermissions = new HashMap<String, String>();
+    // Sub commands the console may run too, e.g. "gs limits"; every other command is for players only
+    HashSet<String> consoleCommands = new HashSet<String>();
     
     String lastCmdName = "";
     
@@ -74,6 +77,17 @@ public class CommandHandler implements CommandExecutor
     	commandsPermissions.put(cmdName.toLowerCase(), permissionName.toLowerCase());
     }
     
+    /**
+     * Lets the console run the sub command too. Its executor then gets a CommandSender that may not be a player.
+     *
+     * @param mainCmd    e.g. "gs"
+     * @param subCmdName e.g. "limits" or "reset limits"
+     */
+    public void allowConsole(String mainCmd, String subCmdName)
+    {
+    	consoleCommands.add(mainCmd.toLowerCase() + " " + subCmdName.toLowerCase());
+    }
+
     public String arrayConcatenate(String[] args)
     {
     	if(args.length <= 0)
@@ -200,6 +214,12 @@ public class CommandHandler implements CommandExecutor
         } 
         else 
         {
+            String foundSub = args.length > 0 ? findSubCmd(cmd.getName().toLowerCase(), args) : null;
+            if (foundSub != null && consoleCommands.contains(foundSub))
+            {
+                getExecutor(foundSub).onCommand(sender, cmd, commandLabel, args);
+                return true;
+            }
             sender.sendMessage(ChatColor.RED + "You must be a player to use this command.");
             return true;
         }

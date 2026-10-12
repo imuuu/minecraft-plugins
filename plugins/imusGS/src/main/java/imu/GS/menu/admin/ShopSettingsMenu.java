@@ -202,6 +202,7 @@ public class ShopSettingsMenu extends AdminMenu
         }
         _service.saveNow(_shop);
         getPlayer().sendMessage(Metods.msgC("&eShop data has been saved!"));
+        _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         openNext(new ShopEditorMenu(_service, _shop));
     }
 

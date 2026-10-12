@@ -5,6 +5,7 @@ import imu.GS.engine.ItemKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The customer's own inventory. Implemented on the Bukkit side over the player's inventory; tests use a fake.
@@ -46,7 +47,8 @@ public interface CustomerInventory
     Map<ItemKey, Integer> shulkerContents(int slot);
 
     /**
-     * Empties the shulker box in this slot; the box itself stays. Returns false when there was no box.
+     * Empties the shulker box in this slot except for the items in {@code keep}; the box itself stays.
+     * Returns false when there was no box.
      */
-    boolean emptyShulker(int slot);
+    boolean emptyShulker(int slot, Set<ItemKey> keep);
 }

@@ -9,6 +9,12 @@ shop:
   save-delay-seconds: 10
   # Shortest time between two clicks in the shop menu, in seconds
   click-cooldown-seconds: 0.2
+  # Players may sell items the shop pays nothing for (price 0), to empty their inventory quickly.
+  # They get nothing, and the items go into the shop. false = such items stay with the player.
+  allow-zero-price-sells: true
+  # Every trade is logged in the gs_trades table; rows older than this many days are deleted on start.
+  # 0 = keep them forever
+  trade-log-days: 90
 
 pricing:
   # Damaged tools and armor are worth (durability left - penalty) of their price.

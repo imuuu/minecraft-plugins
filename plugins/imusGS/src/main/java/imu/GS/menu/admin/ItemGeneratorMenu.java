@@ -322,6 +322,7 @@ public class ItemGeneratorMenu extends AdminMenu
             count++;
         }
         getPlayer().sendMessage(Metods.msgC("&9" + count + " &aitems added to the shop"));
+        _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         openNext(new ShopEditorMenu(_service, _shop));
     }
 }

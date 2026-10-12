@@ -169,6 +169,21 @@ public class GsDatabase
         st.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
     }
 
+    /**
+     * Deletes logged trades older than this many days. Startup only.
+     *
+     * @return rows deleted
+     */
+    public int deleteOldTrades(int days) throws SQLException
+    {
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM gs_trades WHERE time < NOW() - INTERVAL ? DAY"))
+        {
+            ps.setInt(1, days);
+            return ps.executeUpdate();
+        }
+    }
+
     // Loading, startup only ==========================================================================================
 
     public List<ShopRow> loadShops() throws SQLException
@@ -300,9 +315,12 @@ public class GsDatabase
     /**
      * Replaces everything stored of the shop, in one transaction.
      */
-    public void saveShop(ShopRow shop)
+    /**
+     * @param onFailure run on the database thread when the save fails, to try again later
+     */
+    public void saveShop(ShopRow shop, Runnable onFailure)
     {
-        write("save shop " + shop.name(), con ->
+        write("save shop " + shop.name(), onFailure, con ->
         {
             try (PreparedStatement deleteListings = con.prepareStatement("DELETE FROM gs_listings WHERE shop_id=?");
                  PreparedStatement upsertShop = con.prepareStatement("REPLACE INTO gs_shops (id, name, display_name, settings) VALUES (?,?,?,?)");
@@ -408,9 +426,9 @@ public class GsDatabase
     /**
      * Replaces the saved sell pressure with this snapshot.
      */
-    public void saveSellPressure(List<SellPressure.Entry> entries)
+    public void saveSellPressure(List<SellPressure.Entry> entries, Runnable onFailure)
     {
-        write("save sell pressure", con ->
+        write("save sell pressure", onFailure, con ->
         {
             try (Statement st = con.createStatement())
             {
@@ -521,6 +539,11 @@ public class GsDatabase
 
     private void write(String what, Write write)
     {
+        write(what, () -> {}, write);
+    }
+
+    private void write(String what, Runnable onFailure, Write write)
+    {
         if (_writer.isShutdown())
         {
             _logger.severe("Database is closed, couldn't " + what);
@@ -543,6 +566,7 @@ public class GsDatabase
             } catch (Exception e)
             {
                 _logger.log(Level.SEVERE, "Couldn't " + what + ", the database keeps its previous state", e);
+                onFailure.run();
             }
         });
     }

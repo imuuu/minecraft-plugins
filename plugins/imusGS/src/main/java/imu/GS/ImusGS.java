@@ -3,6 +3,7 @@ package imu.GS;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.command.GetPriceCommand;
 import imu.GS.command.GsCommands;
+import imu.GS.command.PricingCommands;
 import imu.GS.command.ItemSelection;
 import imu.GS.command.OpenForCommand;
 import imu.GS.command.SubCommand;
@@ -119,9 +120,10 @@ public class ImusGS extends JavaPlugin
         sub(handler, gs, "unset material smart_price", "gs.unset.material.smart_price", _commands::unsetSmartPrice);
         sub(handler, gs, "tag", "gs.tag", _commands::tag);
         sub(handler, gs, "config", "gs.config", _commands::config);
-        sub(handler, gs, "profile", "gs.profile", _commands::profile);
-        sub(handler, gs, "limits", "gs.limits", _commands::limits);
-        sub(handler, gs, "reset limits", "gs.limits", _commands::resetLimits);
+        PricingCommands pricing = new PricingCommands(_service);
+        consoleSub(handler, gs, "profile", "gs.profile", pricing::profile);
+        consoleSub(handler, gs, "limits", "gs.limits", pricing::limits);
+        consoleSub(handler, gs, "reset limits", "gs.limits", pricing::resetLimits);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
@@ -168,8 +170,18 @@ public class ImusGS extends JavaPlugin
 
     private void sub(CommandHandler handler, String root, String name, String permission, java.util.function.BiConsumer<Player, String[]> action)
     {
+        handler.registerSubCmd(root, name, SubCommand.players(action));
+        handler.setPermissionOnLastCmd(permission);
+    }
+
+    /**
+     * A sub command the console can run too.
+     */
+    private void consoleSub(CommandHandler handler, String root, String name, String permission, java.util.function.BiConsumer<CommandSender, String[]> action)
+    {
         handler.registerSubCmd(root, name, new SubCommand(action));
         handler.setPermissionOnLastCmd(permission);
+        handler.allowConsole(root, name);
     }
 
     /**
@@ -221,6 +233,14 @@ public class ImusGS extends JavaPlugin
         menu.addDouble("shop.click-cooldown-seconds", "Click cooldown", Material.STONE_BUTTON, 0, 5)
                 .description("Shortest time between two clicks in a shop")
                 .note("now");
+        menu.addBoolean("shop.allow-zero-price-sells", "Sell for nothing", Material.CAULDRON)
+                .description("Players may sell items worth 0")
+                .description("to empty their inventory")
+                .note("now");
+        menu.addInt("shop.trade-log-days", "Trade log days", Material.BOOK, 0, 3650)
+                .description("Trades older than this are deleted")
+                .description("0 = keep forever")
+                .note("on the next start");
         menu.addDouble("pricing.durability-penalty", "Durability penalty", Material.DAMAGED_ANVIL, 0, 1)
                 .description("Damaged items are worth durability left - this")
                 .description("0.1 = an item at 80% sells for 70%")

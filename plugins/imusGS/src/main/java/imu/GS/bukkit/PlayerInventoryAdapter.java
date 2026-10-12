@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A player's inventory for the trade engine.
@@ -149,12 +150,17 @@ public class PlayerInventoryAdapter implements CustomerInventory
     }
 
     @Override
-    public boolean emptyShulker(int slot)
+    public boolean emptyShulker(int slot, Set<ItemKey> keep)
     {
         ItemStack stack = _player.getInventory().getItem(slot);
         if (isEmpty(stack) || !(stack.getItemMeta() instanceof BlockStateMeta meta) || !(meta.getBlockState() instanceof ShulkerBox box))
             return false;
-        box.getInventory().clear();
+        ItemStack[] contents = box.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++)
+        {
+            if (!isEmpty(contents[i]) && !keep.contains(ItemKeys.of(contents[i])))
+                box.getInventory().setItem(i, null);
+        }
         meta.setBlockState(box);
         stack.setItemMeta(meta);
         _player.getInventory().setItem(slot, stack);

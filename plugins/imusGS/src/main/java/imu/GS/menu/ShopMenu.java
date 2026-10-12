@@ -25,6 +25,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -239,13 +240,19 @@ public class ShopMenu extends CustomInventory implements ShopListener
 
         if (entry.isShulker())
         {
-            Map<ItemKey, Integer> contents = _inventory.shulkerContents(entry.getShulkerSlot());
-            double price = prices.shulkerPrice(_shop, contents);
-            if (price <= 0)
+            Map<ItemKey, Integer> contents = new LinkedHashMap<>(_inventory.shulkerContents(entry.getShulkerSlot()));
+            if (contents.isEmpty())
                 return new Button(slot, Icons.icon(Material.PURPLE_STAINED_GLASS, "&6Shulker Content &aCleared!"));
+            contents.keySet().removeIf(content -> !_service.getTrades().buysItem(_shop, content));
+            if (contents.isEmpty())
+                return new Button(slot, Icons.withLore(item, List.of(amountLine(1), "&cThe shop doesn't buy anything in it")));
+            double price = prices.shulkerPrice(_shop, contents);
             return new Button(slot, Icons.withLore(item, List.of(amountLine(1), "&9Sell Content with &5" + Icons.money(price), "")),
                     e -> sellShulker(entry.getShulkerSlot()));
         }
+
+        if (!_service.getTrades().buysItem(_shop, entry.getItem()))
+            return new Button(slot, Icons.withLore(item, List.of(amountLine(entry.getAmount()), "&cThe shop doesn't buy this")));
 
         List<String> lore = priceLines("&3SELL ", entry.getAmount(), amount -> prices.sellPrice(_shop, entry.getItem(), amount));
         Overflow overflow = _service.getRules().uniquePrice(entry.getItem()) == null ? _service.getRules().overflow(entry.getItem()) : null;

@@ -102,3 +102,8 @@ test('/gs limits shows the full group', async () => {
   await bot.command(`gs limits ${SHOP}`)
   await bot.waitForMessage(/iron: sold [\d,.]+ \/ 25,?600, full/)
 })
+
+test('/gs limits works from the console too', async () => {
+  const text = await rcon.command(`gs limits ${SHOP}`)
+  assert.match(text, /iron: sold/)
+})

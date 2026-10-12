@@ -26,6 +26,7 @@ import imu.GS.prices.profile.ProfileCalculator;
 import imu.iAPI.Other.Metods;
 import imu.iAPI.Other.MySQL;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -102,7 +103,7 @@ public class GsService implements Listener
         _rules = new ServerPriceRules(_materials, _enchants, _uniques,
                 () -> plugin.getConfig().getDouble("pricing.durability-penalty"));
         _prices = new PriceCalculator(_rules, _pressure, System::currentTimeMillis);
-        _trades = new TradeService(_prices, _wallet);
+        _trades = new TradeService(_prices, _wallet, () -> plugin.getConfig().getBoolean("shop.allow-zero-price-sells", true));
         _trades.addListener((shop, customer, trade) ->
         {
             _db.logTrade(trade, shop.getName());
@@ -123,6 +124,13 @@ public class GsService implements Listener
             try
             {
                 _db.createTables();
+                int tradeLogDays = _plugin.getConfig().getInt("shop.trade-log-days", 90);
+                if (tradeLogDays > 0)
+                {
+                    int deleted = _db.deleteOldTrades(tradeLogDays);
+                    if (deleted > 0)
+                        _plugin.getLogger().info("Deleted " + deleted + " logged trades older than " + tradeLogDays + " days");
+                }
                 List<GsDatabase.ShopRow> shops = _db.loadShops();
                 List<GsDatabase.MaterialRow> materials = _db.loadMaterials();
                 EnchantPrices enchants = new EnchantPrices();
@@ -349,8 +357,9 @@ public class GsService implements Listener
 
     public void saveNow(Shop shop)
     {
-        _dirty.remove(shop.getId());
-        _db.saveShop(GsDatabase.ShopRow.of(shop));
+        UUID id = shop.getId();
+        _dirty.remove(id);
+        _db.saveShop(GsDatabase.ShopRow.of(shop), retryLater(() -> _dirty.add(id)));
     }
 
     private void saveDirty()
@@ -366,8 +375,48 @@ public class GsService implements Listener
         {
             _pressureDirty = false;
             _pressure.forgetRefilled(_materials.getLimits(), System.currentTimeMillis());
-            _db.saveSellPressure(_pressure.entries());
+            _db.saveSellPressure(_pressure.entries(), retryLater(() -> _pressureDirty = true));
         }
+    }
+
+    /**
+     * Tells the admin when players can buy items of the shop and sell them back for more, e.g. after a price change.
+     */
+    public void warnAboutBuyBackProfit(CommandSender admin, Shop shop)
+    {
+        List<Listing> profitable = new ArrayList<>();
+        for (Listing listing : shop.getListings())
+        {
+            if (_prices.buyBackProfit(shop, listing) > 0)
+                profitable.add(listing);
+        }
+        if (profitable.isEmpty())
+            return;
+        Listing example = profitable.getFirst();
+        admin.sendMessage(Metods.msgC("&c&lWarning: &e" + profitable.size() + " &citem(s) of " + shop.getName()
+                + " &csell back for more than they cost, e.g. &e" + ItemKeys.template(example.getItem()).getType()
+                + "&c: buy &e" + Metods.Round(_prices.buyUnitPrice(shop, example)) + "&c, sells back for &e"
+                + Metods.Round(_prices.sellUnitPrice(shop, example.getItem())) + "&c. Players can make money from nothing."));
+    }
+
+    /**
+     * For a failed save: marks the data changed again on the main thread, so the next autosave tries again.
+     * Nothing to do once the plugin is shutting down; the error is in the log.
+     */
+    private Runnable retryLater(Runnable markChanged)
+    {
+        return () ->
+        {
+            if (!_plugin.isEnabled())
+                return;
+            try
+            {
+                Bukkit.getScheduler().runTask(_plugin, markChanged);
+            } catch (org.bukkit.plugin.IllegalPluginAccessException e)
+            {
+                // Disabled in the meantime
+            }
+        };
     }
 
     /**

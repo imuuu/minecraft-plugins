@@ -179,11 +179,11 @@ public final class Fakes
         }
 
         @Override
-        public boolean emptyShulker(int slot)
+        public boolean emptyShulker(int slot, Set<ItemKey> keep)
         {
             if (!shulkers.containsKey(slot))
                 return false;
-            shulkers.put(slot, new LinkedHashMap<>());
+            shulkers.get(slot).keySet().removeIf(item -> !keep.contains(item));
             return true;
         }
     }

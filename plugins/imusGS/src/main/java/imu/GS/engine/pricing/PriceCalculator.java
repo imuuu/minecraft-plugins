@@ -78,6 +78,18 @@ public class PriceCalculator
 
     public record CustomCost(List<PriceRule.ItemCost> items, double money) {}
 
+    /**
+     * How much more the shop pays for one unit of the listing than it sells it for. Over 0, players make money
+     * buying it and selling it back: a fixed price under what the shop pays, or a buy multiplier over the sell
+     * multiplier. 0 for a custom price.
+     */
+    public double buyBackProfit(Shop shop, Listing listing)
+    {
+        if (listing.getPrice() instanceof PriceRule.Custom)
+            return 0;
+        return Math.max(0, round(sellUnitPrice(shop, listing.getItem()) - buyUnitPrice(shop, listing)));
+    }
+
     // Players selling ================================================================================================
 
     /**

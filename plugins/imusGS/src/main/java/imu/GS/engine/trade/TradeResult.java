@@ -25,8 +25,10 @@ public record TradeResult(Status status, int amount, double price)
         NOT_ENOUGH_ITEMS,
         /** The shop doesn't buy from customers */
         SHOP_DOESNT_BUY,
-        /** A shulker box that is empty or worth nothing */
+        /** A shulker box that is empty, or holds nothing the shop buys */
         NOTHING_TO_SELL,
+        /** The shop pays nothing for the item, and selling for nothing is off */
+        ZERO_PRICE,
         /** The economy plugin refused the payment */
         PAYMENT_FAILED
     }

@@ -5,7 +5,6 @@ import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.ItemKey;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.PriceRule;
-import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.StockRules;
@@ -15,8 +14,6 @@ import imu.GS.menu.admin.UniquesMenu;
 import imu.GS.npc.ShopNpcAction;
 import imu.GS.prices.MaterialPrices;
 import imu.GS.prices.UniqueItems;
-import imu.GS.prices.profile.PriceProfiles;
-import imu.GS.prices.profile.ProfileCalculator;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Metods;
@@ -24,13 +21,14 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
+
+import static imu.GS.command.CommandText.number;
+import static imu.GS.command.CommandText.rest;
+import static imu.GS.command.CommandText.send;
 
 /**
  * Every /gs sub command. Each gets the whole argument list, its own words included: for "/gs create shop Smith"
@@ -45,39 +43,6 @@ public class GsCommands
     {
         _service = service;
         _configMenu = configMenu;
-    }
-
-    private static void send(Player player, String message)
-    {
-        player.sendMessage(Metods.msgC(message));
-    }
-
-    /**
-     * The words from {@code from} on, joined with spaces, without quotes.
-     */
-    private static String rest(String[] args, int from)
-    {
-        if (args.length <= from)
-            return "";
-        return String.join(" ", Arrays.copyOfRange(args, from, args.length)).replace("\"", "").trim();
-    }
-
-    private static String format(double value)
-    {
-        if (value == Math.rint(value) && Math.abs(value) < 1e15)
-            return String.valueOf((long) value);
-        return String.valueOf(Math.round(value * 100) / 100.0);
-    }
-
-    private static Double number(String text)
-    {
-        try
-        {
-            return Double.parseDouble(text.replace(',', '.'));
-        } catch (NumberFormatException e)
-        {
-            return null;
-        }
     }
 
     private Shop shopOrMessage(Player player, String name)
@@ -242,6 +207,8 @@ public class GsCommands
             send(player, "&b" + material + " &eprice set to: &2 " + now + " &7From " + old + change);
         }
         _service.saveMaterials(changed);
+        for (Shop shop : _service.getShops())
+            _service.warnAboutBuyBackProfit(player, shop);
     }
 
     /**
@@ -325,128 +292,6 @@ public class GsCommands
             _service.getMaterials().setSmartMultiplier(material, null);
         _service.saveMaterials(materials);
         send(player, "&bSmart price has been &cremoved &bfrom &2" + materials.size() + " &9materials");
-    }
-
-    // Price profiles =================================================================================================
-
-    /**
-     * /gs profile list, and /gs profile apply &lt;name&gt; [diamond price] [confirm]: without confirm it only shows what
-     * the profile would do.
-     */
-    public void profile(Player player, String[] args)
-    {
-        if (args.length >= 2 && args[1].equalsIgnoreCase("list"))
-        {
-            send(player, "&9Price profiles &7(plugins/imusGS/profiles): &e" + String.join(", ", _service.getProfiles().names()));
-            send(player, "&7/gs profile apply <name> [diamond price] confirm");
-            return;
-        }
-        if (args.length < 3 || !args[1].equalsIgnoreCase("apply"))
-        {
-            send(player, "&c/gs profile list  &7or  &c/gs profile apply <name> [diamond price] [confirm]");
-            return;
-        }
-
-        String name = args[2];
-        boolean confirm = args[args.length - 1].equalsIgnoreCase("confirm");
-        double diamond = 1000;
-        if (args.length >= 4 && !args[3].equalsIgnoreCase("confirm"))
-        {
-            Double value = number(args[3]);
-            if (value == null || value <= 0)
-            {
-                send(player, "&cThe diamond price must be a number over 0");
-                return;
-            }
-            diamond = value;
-        }
-
-        ProfileCalculator.Result result;
-        try
-        {
-            result = PriceProfiles.calculate(_service.getProfiles().load(name), _service.getMaterials(), diamond);
-        } catch (IllegalArgumentException e)
-        {
-            send(player, "&c" + e.getMessage());
-            return;
-        }
-
-        if (!confirm)
-        {
-            send(player, "&9Profile &e" + name + " &9with diamond = &e" + format(diamond) + "&9 would price &e"
-                    + result.prices().size() + " &9materials:");
-            send(player, "&7  " + result.count(ProfileCalculator.Source.EXACT) + " by name, "
-                    + result.count(ProfileCalculator.Source.WILDCARD) + " by wildcard, "
-                    + result.count(ProfileCalculator.Source.RECIPE) + " from recipes, "
-                    + result.count(ProfileCalculator.Source.DEFAULT) + " with the default price");
-            StringBuilder examples = new StringBuilder("&7  ");
-            for (String example : List.of("DIAMOND", "IRON_INGOT", "OAK_LOG", "OAK_PLANKS", "STONE", "BREAD", "DIAMOND_SWORD", "IRON_BLOCK"))
-            {
-                Double price = result.prices().get(example);
-                if (price != null)
-                    examples.append(example).append(" &e").append(format(price)).append("&7, ");
-            }
-            send(player, examples.substring(0, Math.max(3, examples.length() - 2)));
-            Set<String> tags = new HashSet<>();
-            result.tags().values().forEach(tags::addAll);
-            send(player, "&7  Tags (&e" + tags.size() + "&7): " + String.join(", ", new TreeSet<>(tags)));
-            for (Map.Entry<String, SellLimit> limit : result.limits().entrySet())
-            {
-                long count = result.limitGroups().values().stream().filter(limit.getKey()::equals).count();
-                send(player, "&7  Sell limit &e" + limit.getKey() + "&7: " + count + " materials, full price for &e"
-                        + format(limit.getValue().allowance()) + "&7, &e" + format(limit.getValue().refillPerHour())
-                        + "&7 back per hour, never under &e" + Math.round(limit.getValue().minFraction() * 100) + "%");
-            }
-            if (!result.unusedNames().isEmpty())
-                send(player, "&7  Not items in this version: " + String.join(", ", result.unusedNames()));
-            send(player, "&cThis replaces the price, tags and sell limits of every material. &eAdd &aconfirm &eto the end to apply it.");
-            return;
-        }
-
-        _service.applyProfile(result);
-        send(player, "&aPriced &e" + result.prices().size() + " &amaterials with the profile &e" + name
-                + " &a(diamond = " + format(diamond) + ")");
-    }
-
-    // Sell limits ====================================================================================================
-
-    /**
-     * /gs limits &lt;shop&gt;: how much of each sell limit group the shop still buys at the full price.
-     */
-    public void limits(Player player, String[] args)
-    {
-        Shop shop = shopOrMessage(player, rest(args, 1));
-        if (shop == null)
-            return;
-        Map<String, SellLimit> limits = _service.getMaterials().getLimits();
-        if (limits.isEmpty())
-        {
-            send(player, "&eThere are no sell limits. A price profile sets them: /gs profile");
-            return;
-        }
-        send(player, "&9Sell limits of &e" + shop.getName() + "&9 (shared by every seller):");
-        for (Map.Entry<String, Double> entry : _service.sellPressure(shop).entrySet())
-        {
-            SellLimit limit = limits.get(entry.getKey());
-            double sold = entry.getValue();
-            String state = sold < limit.allowance()
-                    ? "&a" + format(limit.allowance() - sold) + " &7left at the full price"
-                    : "&cfull, &e" + Math.round(limit.multiplier(sold) * 100) + "% &cprice";
-            send(player, "&7  " + entry.getKey() + ": sold &e" + format(sold) + "&7 / " + format(limit.allowance())
-                    + ", " + state + "&7, +" + format(limit.refillPerHour()) + "/h");
-        }
-    }
-
-    /**
-     * /gs reset limits &lt;shop&gt;
-     */
-    public void resetLimits(Player player, String[] args)
-    {
-        Shop shop = shopOrMessage(player, rest(args, 2));
-        if (shop == null)
-            return;
-        _service.resetSellPressure(shop);
-        send(player, "&aEvery sell limit of &e" + shop.getName() + "&a is back to the full price");
     }
 
     // Tags ===========================================================================================================
@@ -552,6 +397,7 @@ public class GsCommands
         }
         String tag = args[3].toLowerCase();
         int count = 0;
+        Set<Shop> changed = new java.util.LinkedHashSet<>();
         for (Shop shop : _service.getShops())
         {
             for (Listing listing : shop.getListings())
@@ -560,11 +406,14 @@ public class GsCommands
                     continue;
                 double price = action.equals("set_price") ? value : fixed.price() * value;
                 shop.setPrice(listing, new PriceRule.Fixed(Math.round(price * 100) / 100.0));
+                changed.add(shop);
                 count++;
             }
         }
         send(player, "&2All shopitems&7(&e" + count + "&7)&2 with tag '&b" + tag + "&2' "
                 + (action.equals("set_price") ? "the price is set to: &a" : "the price is increased by: &b") + value);
+        for (Shop shop : changed)
+            _service.warnAboutBuyBackProfit(player, shop);
     }
 
     /**

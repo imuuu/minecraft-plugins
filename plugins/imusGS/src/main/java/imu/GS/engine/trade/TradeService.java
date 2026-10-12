@@ -11,10 +11,13 @@ import imu.GS.engine.shop.Shop;
 import imu.GS.engine.trade.TradeResult.Status;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /**
  * Buying from and selling to shops. Every check, the payment and moving the items happen in one call, so on the
@@ -24,12 +27,31 @@ public class TradeService
 {
     private final PriceCalculator _prices;
     private final Wallet _wallet;
+    private final BooleanSupplier _allowZeroPriceSells;
     private final List<TradeListener> _listeners = new CopyOnWriteArrayList<>();
 
     public TradeService(PriceCalculator prices, Wallet wallet)
     {
+        this(prices, wallet, () -> true);
+    }
+
+    /**
+     * @param allowZeroPriceSells whether customers may sell items the shop pays nothing for, to empty their
+     *                            inventory; when false such items stay with them
+     */
+    public TradeService(PriceCalculator prices, Wallet wallet, BooleanSupplier allowZeroPriceSells)
+    {
         _prices = prices;
         _wallet = wallet;
+        _allowZeroPriceSells = allowZeroPriceSells;
+    }
+
+    /**
+     * Whether the shop takes the item: it pays something for it, or selling for nothing is allowed.
+     */
+    public boolean buysItem(Shop shop, ItemKey item)
+    {
+        return _allowZeroPriceSells.getAsBoolean() || _prices.sellUnitPrice(shop, item) > 0;
     }
 
     public PriceCalculator getPrices()
@@ -137,6 +159,8 @@ public class TradeService
         CustomerInventory inventory = customer.inventory();
         if (inventory.count(item) < amount)
             return TradeResult.fail(Status.NOT_ENOUGH_ITEMS);
+        if (!buysItem(shop, item))
+            return TradeResult.fail(Status.ZERO_PRICE);
 
         PriceCalculator.SellQuote quote = _prices.quote(shop, item, amount, new HashMap<>());
         double price = quote.price();
@@ -157,7 +181,8 @@ public class TradeService
     }
 
     /**
-     * The customer sells everything in the shulker box in this slot. The box itself stays with them, empty.
+     * The customer sells everything in the shulker box in this slot that the shop buys (see {@link #buysItem}).
+     * The box itself stays with them, with only what the shop didn't buy.
      */
     public TradeResult sellShulker(Shop shop, Customer customer, int slot)
     {
@@ -165,7 +190,9 @@ public class TradeService
             return TradeResult.fail(Status.SHOP_DOESNT_BUY);
 
         CustomerInventory inventory = customer.inventory();
-        Map<ItemKey, Integer> contents = inventory.shulkerContents(slot);
+        Map<ItemKey, Integer> contents = new LinkedHashMap<>(inventory.shulkerContents(slot));
+        Set<ItemKey> kept = new HashSet<>();
+        contents.keySet().removeIf(item -> !buysItem(shop, item) && kept.add(item));
         if (contents.isEmpty())
             return TradeResult.fail(Status.NOTHING_TO_SELL);
 
@@ -180,12 +207,10 @@ public class TradeService
             total += quote.price();
         }
         total = PriceCalculator.round(total);
-        if (total <= 0)
-            return TradeResult.fail(Status.NOTHING_TO_SELL);
 
         if (!_wallet.deposit(customer.id(), total))
             return TradeResult.fail(Status.PAYMENT_FAILED);
-        if (!inventory.emptyShulker(slot))
+        if (!inventory.emptyShulker(slot, kept))
         {
             _wallet.withdraw(customer.id(), total);
             return TradeResult.fail(Status.NOTHING_TO_SELL);

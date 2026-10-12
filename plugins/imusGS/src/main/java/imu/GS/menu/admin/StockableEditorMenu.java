@@ -53,7 +53,10 @@ public class StockableEditorMenu extends AdminMenu
         addButton(new Button(18, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&a<< CONFIRM"), e ->
         {
             if (_shop.positionOf(_listing) != null)
+            {
                 _draft.applyTo(_shop, _listing);
+                _service.warnAboutBuyBackProfit(getPlayer(), _shop);
+            }
             returnToEditor();
         }));
         addButton(new Button(9, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of())));
@@ -81,6 +84,7 @@ public class StockableEditorMenu extends AdminMenu
                 count++;
             }
             getPlayer().sendMessage(Metods.msgC("&3Data has been changed total of &2" + count + " &3items"));
+            _service.warnAboutBuyBackProfit(getPlayer(), _shop);
         }));
 
         addButton(valueButton(2, "Max stock amount", _draft.maxAmount < 0 ? null : String.valueOf(_draft.maxAmount), List.of(), e ->
