@@ -212,7 +212,7 @@ public class MarketEvents implements Market
 
         _wanted.clear(shop.getId());
         List<WantedRequests.Wanted> started = new ArrayList<>();
-        for (Material material : ItemPool.pick(_service.getMaterials(), wanted.getStringList("tags"), wanted.getDouble("value-scale", 5), count, _random))
+        for (Material material : ItemPool.pick(_service.getMaterials(), wanted.getStringList("tags"), wanted.getDouble("value-scale", 5), count, m -> true, _random))
         {
             // Bonuses in steps of 5%
             double bonus = (bonusMin + 5 * _random.nextInt((bonusMax - bonusMin) / 5 + 1)) / 100.0;

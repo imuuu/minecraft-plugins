@@ -3,21 +3,24 @@ package imu.GS.command;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
 import imu.GS.engine.live.FlashDeal;
+import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.engine.shop.Shop;
 import imu.GS.live.MarketEvents;
+import imu.GS.live.ProgressTracker;
 import imu.GS.menu.FlashDealMenu;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 import static imu.GS.command.CommandText.rest;
 import static imu.GS.command.CommandText.send;
 
 /**
- * /gs peek, /gs flash start|end, /gs wanted start|end and /gs restock.
+ * /gs peek, /gs flash start|end, /gs wanted start|end, /gs progress and /gs restock.
  */
 public class LiveCommands
 {
@@ -72,6 +75,11 @@ public class LiveCommands
             return;
         }
         FlashDeal deal = _service.getLive().startFlashDeal(shop, System.currentTimeMillis(), true);
+        if (deal == null)
+        {
+            send(sender, "&eNothing to offer: players have had nothing a flash deal could have yet (/gs progress)");
+            return;
+        }
         send(sender, "&aStarted a flash deal with &e" + deal.offers().size() + " &aoffers in &r" + shop.getDisplayName());
     }
 
@@ -99,6 +107,29 @@ public class LiveCommands
         for (WantedRequests.Wanted request : wanted)
             items.add(MarketEvents.itemName(ItemKeys.template(request.item()).getType()) + " +" + Math.round(request.bonus() * 100) + "%");
         send(sender, "&a" + shop.getDisplayName() + " &anow wants: &e" + String.join(", ", items));
+    }
+
+    /**
+     * /gs progress [scan|reset]: what non-op players have had, which flash deals follow.
+     */
+    public void progress(CommandSender sender, String[] args)
+    {
+        ProgressTracker tracker = _service.getLive().getTracker();
+        ServerProgress progress = tracker.getProgress();
+        if (args.length >= 2 && args[1].equalsIgnoreCase("scan"))
+        {
+            tracker.scanAll();
+            send(sender, "&aLooked at every player's items now");
+        } else if (args.length >= 2 && args[1].equalsIgnoreCase("reset"))
+        {
+            progress.clear();
+            send(sender, "&eThe server's progress is forgotten; it is gathered again from what players have");
+            return;
+        }
+        send(sender, "&9Players have had &e" + progress.items().size() + " &9kinds of items. Enchants:");
+        List<String> enchants = new ArrayList<>();
+        new TreeMap<>(progress.enchants()).forEach((enchant, level) -> enchants.add(enchant.replace("minecraft:", "") + " " + level));
+        send(sender, "&7" + (enchants.isEmpty() ? "none yet" : String.join(", ", enchants)));
     }
 
     /**

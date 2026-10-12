@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Random materials for rotating stock and flash deals: those of the given material tags that have a price,
@@ -21,15 +22,18 @@ final class ItemPool
 
     /**
      * Up to {@code count} different materials, picked at random by rarity.
+     *
+     * @param allowed only materials this accepts
      */
-    static List<Material> pick(MaterialPrices materials, Collection<String> tags, double valueScale, int count, Random random)
+    static List<Material> pick(MaterialPrices materials, Collection<String> tags, double valueScale, int count,
+                               Predicate<Material> allowed, Random random)
     {
         Set<Material> pool = new LinkedHashSet<>();
         for (String tag : tags)
         {
             for (Material material : materials.withTag(tag))
             {
-                if (material.isItem() && !material.isAir() && materials.price(material) > 0)
+                if (material.isItem() && !material.isAir() && materials.price(material) > 0 && allowed.test(material))
                     pool.add(material);
             }
         }

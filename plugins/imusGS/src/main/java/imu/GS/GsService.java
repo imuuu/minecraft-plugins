@@ -11,6 +11,7 @@ import imu.GS.engine.customer.Customer;
 import imu.GS.engine.pricing.PriceCalculator;
 import imu.GS.engine.pricing.SellLimit;
 import imu.GS.engine.pricing.SellPressure;
+import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.live.LiveEvents;
 import imu.GS.live.MarketEvents;
@@ -148,6 +149,8 @@ public class GsService implements Listener
                 List<SellPressure.Entry> pressure = _db.loadSellPressure();
                 Map<UUID, String> flashDeals = _db.loadFlashDeals();
                 List<WantedRequests.Wanted> wanted = _db.loadWanted();
+                ServerProgress progress = new ServerProgress();
+                _db.loadProgress(progress);
                 Bukkit.getScheduler().runTask(_plugin, () ->
                 {
                     _materials.setLimits(limits);
@@ -155,6 +158,10 @@ public class GsService implements Listener
                     apply(shops, materials, enchants, uniques);
                     _live.load(flashDeals);
                     _market.load(wanted);
+                    ServerProgress tracked = _live.getTracker().getProgress();
+                    progress.items().forEach(tracked::seeItem);
+                    progress.enchants().forEach(tracked::seeEnchant);
+                    tracked.takeDirty();
                 });
             } catch (SQLException e)
             {
@@ -260,6 +267,8 @@ public class GsService implements Listener
             _market.tick(now, _live.liveShops());
         }, tickTicks, tickTicks);
 
+        _live.getTracker().start();
+
         long saveTicks = Math.max(1, config.getInt("shop.save-delay-seconds")) * 20L;
         _saveTask = Bukkit.getScheduler().runTaskTimer(_plugin, this::saveDirty, saveTicks, saveTicks);
     }
@@ -275,6 +284,9 @@ public class GsService implements Listener
             _saveTask.cancel();
         for (ShopMenu menu : new ArrayList<>(_openMenus.values()))
             menu.getPlayer().closeInventory();
+        _live.getTracker().stop();
+        if (_loaded)
+            _live.getTracker().scanAll();
         saveDirty();
         _db.close();
     }
@@ -395,6 +407,9 @@ public class GsService implements Listener
         }
         _live.save(retryLater(_live::markDirty));
         _market.save(retryLater(_market::markDirty));
+        ServerProgress progress = _live.getTracker().getProgress();
+        if (progress.takeDirty())
+            _db.saveProgress(progress.items(), progress.enchants(), retryLater(progress::markDirty));
     }
 
     /**

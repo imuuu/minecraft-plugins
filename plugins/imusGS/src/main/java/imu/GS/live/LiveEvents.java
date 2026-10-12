@@ -9,6 +9,7 @@ import imu.GS.engine.live.FlashDeal;
 import imu.GS.engine.live.FlashDeals;
 import imu.GS.engine.live.FlashOffer;
 import imu.GS.engine.live.LiveRules;
+import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.shop.Shop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -54,6 +56,7 @@ public class LiveEvents implements Listener
     private final FlashDeals _deals = new FlashDeals();
     private final PlacedBlocks _placed = new PlacedBlocks(50_000);
     private final Random _random = new Random();
+    private final ProgressTracker _tracker;
     private long _nextFlashMillis;
     private long _nextRotationMillis;
     private boolean _dealsDirty;
@@ -62,6 +65,12 @@ public class LiveEvents implements Listener
     {
         _service = service;
         _deals.addListener(shopId -> _dealsDirty = true);
+        _tracker = new ProgressTracker(service);
+    }
+
+    public ProgressTracker getTracker()
+    {
+        return _tracker;
     }
 
     public FlashDeals getDeals()
@@ -193,7 +202,7 @@ public class LiveEvents implements Listener
         int count = between(rotation.getInt("items-min", 3), rotation.getInt("items-max", 6));
         double budget = rotation.getDouble("budget", 2000);
         List<Material> picked = ItemPool.pick(_service.getMaterials(), rotation.getStringList("tags"),
-                rotation.getDouble("value-scale", 5), count, _random);
+                rotation.getDouble("value-scale", 5), count, m -> _tracker.allows("rotation", m), _random);
         int added = 0;
         for (Material material : picked)
         {
@@ -209,7 +218,8 @@ public class LiveEvents implements Listener
     // Flash deals ====================================================================================================
 
     /**
-     * Starts a new flash deal in the shop, replacing one that is on.
+     * Starts a new flash deal in the shop, replacing one that is on. With the progress check on, it offers only
+     * what players have had. Returns null, and starts nothing, when there is nothing to offer.
      *
      * @param announce tell every player that deals are on
      */
@@ -218,14 +228,16 @@ public class LiveEvents implements Listener
         ConfigurationSection flash = config("flash-deals");
         int count = between(flash.getInt("offers-min", 4), flash.getInt("offers-max", 7));
         int gearCount = (int) Math.round(count * flash.getDouble("gear-share", 0.4));
+        Predicate<Material> allowed = m -> _tracker.allows("flash-deals", m);
+        ServerProgress progress = _tracker.appliesTo("flash-deals") ? _tracker.getProgress() : null;
 
         List<FlashOffer> offers = new ArrayList<>();
-        List<Material> gear = materials(flash.getStringList("gear"));
-        List<Material> specials = materials(flash.getStringList("special-items"));
+        List<Material> gear = materials(flash.getStringList("gear"), allowed);
+        List<Material> specials = materials(flash.getStringList("special-items"), allowed);
         for (int i = 0; i < gearCount; i++)
         {
-            FlashOffer offer;
-            if (!specials.isEmpty() && _random.nextDouble() < flash.getDouble("special-chance", 0.2))
+            FlashOffer offer = null;
+            if (!specials.isEmpty() && (gear.isEmpty() || _random.nextDouble() < flash.getDouble("special-chance", 0.2)))
             {
                 ItemStack special = new ItemStack(specials.get(_random.nextInt(specials.size())));
                 offer = offer(shop, special, between(flash.getInt("special-stock-min", 2), flash.getInt("special-stock-max", 4)),
@@ -233,24 +245,35 @@ public class LiveEvents implements Listener
             } else if (!gear.isEmpty())
             {
                 ItemStack item = GearGenerator.generate(gear.get(_random.nextInt(gear.size())), flash.getInt("gear-enchants-min", 2),
-                        flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15), _random);
+                        flash.getInt("gear-enchants-max", 5), flash.getDouble("over-max-level-chance", 0.15), progress, _random);
                 offer = offer(shop, item, between(flash.getInt("gear-stock-min", 2), flash.getInt("gear-stock-max", 5)),
                         flash.getInt("gear-player-limit", 2), flash);
-            } else
-                offer = null;
+            }
             if (offer != null)
                 offers.add(offer);
         }
 
-        List<Material> blocks = ItemPool.pick(_service.getMaterials(), flash.getStringList("tags"),
-                config("rotation").getDouble("value-scale", 5), count - offers.size(), _random);
-        for (Material material : blocks)
+        // The rest are blocks and items, now and then a fun one (TNT, fireworks...)
+        int blockCount = count - offers.size();
+        List<Material> fun = materials(flash.getStringList("fun-items"), allowed);
+        Collections.shuffle(fun, _random);
+        List<Material> picked = new ArrayList<>();
+        for (int i = 0; i < blockCount && !fun.isEmpty(); i++)
+        {
+            if (_random.nextDouble() < flash.getDouble("fun-chance", 0.3))
+                picked.add(fun.removeFirst());
+        }
+        picked.addAll(ItemPool.pick(_service.getMaterials(), flash.getStringList("tags"), config("rotation").getDouble("value-scale", 5),
+                blockCount - picked.size(), allowed.and(m -> !picked.contains(m)), _random));
+        for (Material material : picked)
         {
             int stock = between(flash.getInt("block-stacks-min", 2), flash.getInt("block-stacks-max", 6)) * material.getMaxStackSize();
             FlashOffer offer = offer(shop, new ItemStack(material), stock, flash.getInt("block-player-limit", 128), flash);
             if (offer != null)
                 offers.add(offer);
         }
+        if (offers.isEmpty())
+            return null;
         Collections.shuffle(offers, _random);
 
         long duration = Math.max(1, flash.getInt("duration-minutes", 20)) * MINUTE;
@@ -278,13 +301,13 @@ public class LiveEvents implements Listener
         return new FlashOffer(UUID.randomUUID(), marked, stock, price, Math.min(stock, Math.max(1, playerLimit)));
     }
 
-    private static List<Material> materials(List<String> names)
+    private static List<Material> materials(List<String> names, Predicate<Material> allowed)
     {
         List<Material> materials = new ArrayList<>();
         for (String name : names)
         {
             Material material = Material.matchMaterial(name);
-            if (material != null && material.isItem())
+            if (material != null && material.isItem() && allowed.test(material))
                 materials.add(material);
         }
         return materials;

@@ -62,6 +62,7 @@ test('shops, stock and prices are the same after a restart', { skip: !run && 'se
   const before = await snapshot(shops)
   const priceBefore = await bot.waitForMessage(/DIAMOND price is/)
   const ironBefore = await ironSold()
+  await rcon.command('ia config imusgs set live.progress.flash-deals false')
   await rcon.command('gs flash start BotFlash')
   await rcon.command('gs wanted start BotMarket')
 

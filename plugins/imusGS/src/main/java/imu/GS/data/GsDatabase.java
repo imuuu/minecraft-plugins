@@ -1,6 +1,7 @@
 package imu.GS.data;
 
 import imu.GS.engine.ItemKey;
+import imu.GS.engine.live.ServerProgress;
 import imu.GS.engine.live.WantedRequests;
 import imu.GS.engine.pricing.Overflow;
 import imu.GS.engine.pricing.SellLimit;
@@ -134,6 +135,11 @@ public class GsDatabase
                     + "item MEDIUMTEXT NOT NULL, "
                     + "bonus DOUBLE NOT NULL, "
                     + "end_millis BIGINT NOT NULL)");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_progress ("
+                    + "kind VARCHAR(16) NOT NULL, "
+                    + "name VARCHAR(128) NOT NULL, "
+                    + "level INT NOT NULL, "
+                    + "PRIMARY KEY (kind, name))");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_pressure ("
                     + "shop_id CHAR(36) NOT NULL, "
                     + "grp VARCHAR(64) NOT NULL, "
@@ -167,7 +173,7 @@ public class GsDatabase
                     + "INDEX (player_id), INDEX (shop_id))");
             // Item components and names can hold any character, e.g. the flash deal mark or an emoji
             for (String table : List.of("gs_shops", "gs_listings", "gs_materials", "gs_enchants", "gs_enchant_settings",
-                    "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_wanted", "gs_sell_pressure"))
+                    "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_wanted", "gs_progress", "gs_sell_pressure"))
                 useUtf8mb4(con, st, table);
         }
     }
@@ -289,6 +295,60 @@ public class GsDatabase
                 deals.put(UUID.fromString(rs.getString(1)), rs.getString(2));
         }
         return deals;
+    }
+
+    /**
+     * Fills the progress with what players have had, see {@link ServerProgress}.
+     */
+    public void loadProgress(ServerProgress progress) throws SQLException
+    {
+        try (Connection con = _sql.GetConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT kind, name, level FROM gs_progress");
+             ResultSet rs = ps.executeQuery())
+        {
+            while (rs.next())
+            {
+                if (rs.getString(1).equals("item"))
+                    progress.seeItem(rs.getString(2));
+                else
+                    progress.seeEnchant(rs.getString(2), rs.getInt(3));
+            }
+        }
+        progress.takeDirty();
+    }
+
+    /**
+     * Replaces the saved progress with this snapshot.
+     */
+    public void saveProgress(Set<String> items, Map<String, Integer> enchants, Runnable onFailure)
+    {
+        List<String> itemCopy = List.copyOf(items);
+        Map<String, Integer> enchantCopy = new LinkedHashMap<>(enchants);
+        write("save progress", onFailure, con ->
+        {
+            try (Statement st = con.createStatement())
+            {
+                st.executeUpdate("DELETE FROM gs_progress");
+            }
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO gs_progress (kind, name, level) VALUES (?,?,?)"))
+            {
+                for (String item : itemCopy)
+                {
+                    ps.setString(1, "item");
+                    ps.setString(2, truncate(item, 128));
+                    ps.setInt(3, 0);
+                    ps.addBatch();
+                }
+                for (Map.Entry<String, Integer> enchant : enchantCopy.entrySet())
+                {
+                    ps.setString(1, "enchant");
+                    ps.setString(2, truncate(enchant.getKey(), 128));
+                    ps.setInt(3, enchant.getValue());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        });
     }
 
     public List<WantedRequests.Wanted> loadWanted() throws SQLException

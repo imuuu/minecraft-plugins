@@ -49,6 +49,7 @@ public class ImusGS extends JavaPlugin
         _service = new GsService(this, new MySQL(this, 10, "imusGS"));
         getServer().getPluginManager().registerEvents(_service, this);
         getServer().getPluginManager().registerEvents(_service.getLive(), this);
+        getServer().getPluginManager().registerEvents(_service.getLive().getTracker(), this);
 
         ImusAPI._instance.GetNpcManager().registerAction(new ShopNpcAction(_service));
 
@@ -132,10 +133,11 @@ public class ImusGS extends JavaPlugin
         consoleSub(handler, gs, "flash", "gs.flash", live::flash);
         consoleSub(handler, gs, "restock", "gs.flash", live::restock);
         consoleSub(handler, gs, "wanted", "gs.flash", live::wanted);
+        consoleSub(handler, gs, "progress", "gs.flash", live::progress);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc" });
         arguments.put("open", new String[] { "shop" });
@@ -147,6 +149,7 @@ public class ImusGS extends JavaPlugin
         arguments.put("reset", new String[] { "limits" });
         arguments.put("flash", new String[] { "start", "end" });
         arguments.put("wanted", new String[] { "start", "end" });
+        arguments.put("progress", new String[] { "scan", "reset" });
         _tabCompleter = new ImusTabCompleter(gs, new HashMap<>(arguments), "gs.tabcompleter");
         getCommand(gs).setTabCompleter(_tabCompleter);
 
@@ -259,6 +262,10 @@ public class ImusGS extends JavaPlugin
                 .note("on the next start");
         menu.addBoolean("live.flash-deals.enabled", "Flash deals", Material.NETHER_STAR)
                 .description("Limited time offers every few hours")
+                .note("now");
+        menu.addBoolean("live.progress.flash-deals", "Flash deals follow progress", Material.EXPERIENCE_BOTTLE)
+                .description("Only items and enchants non-op players")
+                .description("have had can be in flash deals")
                 .note("now");
         menu.addBoolean("live.wanted.enabled", "Wanted requests", Material.GOAT_HORN)
                 .description("Shops pay a bonus for some items for a while")

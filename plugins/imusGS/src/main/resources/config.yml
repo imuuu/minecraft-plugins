@@ -102,6 +102,20 @@ live:
     block-stacks-max: 6
     block-player-limit: 128
     tags: [stone, earth, wood, farming, food, decoration, ores, minerals, nether, end, ocean, redstone, mob_drops]
+    # Each block offer is one of these fun items with this chance
+    fun-chance: 0.3
+    fun-items: [TNT, FIREWORK_ROCKET, FIREWORK_STAR, SLIME_BLOCK, HONEY_BLOCK, ENDER_PEARL, SNOWBALL, EGG, NAME_TAG,
+                SADDLE, LEAD, SPYGLASS, GOAT_HORN, JUKEBOX, MUSIC_DISC_CAT, MUSIC_DISC_PIGSTEP, CAKE, COOKIE,
+                ARMOR_STAND, ITEM_FRAME, GLOW_ITEM_FRAME, PAINTING, FLOWER_POT, BELL, CAMPFIRE, LANTERN, SCAFFOLDING,
+                TARGET, NOTE_BLOCK, SPONGE, SEA_LANTERN, CANDLE, GOLDEN_APPLE, EXPERIENCE_BOTTLE]
+  # Flash deals (and rotating stock) can follow the server's progress: they offer only items, enchants and
+  # enchant levels that players who aren't ops, in survival or adventure, have already had. Their inventories,
+  # ender chests and the shulker boxes in them are looked at every scan-seconds and when they leave.
+  # Gear goes over an enchant's normal max only after someone has had the max. See /gs progress.
+  progress:
+    flash-deals: true
+    rotation: false
+    scan-seconds: 60
   # Now and then a shop wants a few items for a while and pays a bonus for them. The bonus never makes the
   # shop pay as much as it sells the item for, and sell limits still count.
   wanted:
