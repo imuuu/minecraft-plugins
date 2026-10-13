@@ -292,6 +292,8 @@ public final class PaperMenus implements Listener
         private final MenuSession _session;
         private Window _window;
         private BukkitTask _ticker;
+        private BukkitTask _flush;
+        private int _lastFlushTick = Integer.MIN_VALUE / 2;
         private long _lastClick;
         private boolean _clicking;
         private boolean _opening;
@@ -392,6 +394,26 @@ public final class PaperMenus implements Listener
             });
         }
 
+        // Changes from outside a click wait for the menu's delay since the last such drawing, and many make one
+        @Override
+        public void refreshRequested()
+        {
+            if (_flush != null)
+                return;
+            Menu menu = _session.current();
+            int delay = menu == null ? 1 : Math.max(1, menu.refreshDelayTicks());
+            int wait = Math.max(1, _lastFlushTick + delay - Bukkit.getCurrentTick());
+            _flush = Bukkit.getScheduler().runTaskLater(_plugin, () ->
+            {
+                _flush = null;
+                _lastFlushTick = Bukkit.getCurrentTick();
+                if (!_opening)
+                    _session.flush();
+                else
+                    refreshRequested();
+            }, wait);
+        }
+
         @Override
         public Object cursor()
         {
@@ -434,6 +456,9 @@ public final class PaperMenus implements Listener
 
         private void cancelTicker()
         {
+            if (_flush != null)
+                _flush.cancel();
+            _flush = null;
             if (_ticker != null)
                 _ticker.cancel();
             _ticker = null;

@@ -73,12 +73,22 @@ public abstract class Menu
     }
 
     /**
-     * Draws the menu again if it is shown, e.g. after its data changed outside a click.
+     * Draws the menu again if it is shown, after its data changed outside a click (another player's trade, data
+     * from the database). The drawing waits for the next {@link #refreshDelayTicks()}: many changes in between
+     * make one drawing, so a busy shop can't make every viewer draw on every trade. A click draws at once anyway.
      */
     public void refresh()
     {
         if (_session != null && _session.current() == this)
-            _session.refresh();
+            _session.requestRefresh();
+    }
+
+    /**
+     * How often changes from {@link #refresh()} are drawn at most, in ticks (20 = a second).
+     */
+    public int refreshDelayTicks()
+    {
+        return 5;
     }
 
     public Component title()

@@ -27,7 +27,15 @@ const ADVANCEMENTS = {
   task: [['story/mine_stone', 'Stone Age'], ['story/smelt_iron', 'Acquire Hardware'], ['story/obtain_armor', 'Suit Up'],
     ['story/lava_bucket', 'Hot Stuff'], ['story/form_obsidian', 'Ice Bucket Challenge'], ['story/mine_diamond', 'Diamonds!'],
     ['husbandry/plant_seed', 'A Seedy Place'], ['husbandry/fishy_business', 'Fishy Business'], ['adventure/trade', 'What a Deal!'],
-    ['adventure/sleep_in_bed', 'Sweet Dreams'], ['adventure/shoot_arrow', 'Take Aim'], ['story/enchant_item', 'Enchanter']],
+    ['adventure/sleep_in_bed', 'Sweet Dreams'], ['adventure/shoot_arrow', 'Take Aim'], ['story/enchant_item', 'Enchanter'],
+    ['story/upgrade_tools', 'Getting an Upgrade'], ['story/iron_tools', "Isn't It Iron Pick"], ['story/enter_the_nether', 'We Need to Go Deeper'],
+    ['story/shiny_gear', 'Cover Me with Diamonds'], ['story/deflect_arrow', 'Not Today, Thank You'], ['story/follow_ender_eye', 'Eye Spy'],
+    ['story/enter_the_end', 'The End?'], ['nether/obtain_ancient_debris', 'Hidden in the Depths'],
+    ['nether/obtain_crying_obsidian', 'Who is Cutting Onions?'], ['nether/distract_piglin', 'Oh Shiny'],
+    ['nether/find_fortress', 'A Terrible Fortress'], ['nether/obtain_blaze_rod', 'Into Fire'],
+    ['husbandry/tame_an_animal', 'Best Friends Forever'], ['husbandry/breed_an_animal', 'The Parrots and the Bats'],
+    ['adventure/kill_a_mob', 'Monster Hunter'], ['adventure/voluntary_exile', 'Voluntary Exile'], ['end/kill_dragon', 'Free the End'],
+    ['end/enter_end_gateway', 'Remote Getaway'], ['end/find_end_city', 'The City at the End of the Game']],
   goal: [['story/cure_zombie_villager', 'Zombie Doctor'], ['adventure/totem_of_undying', 'Postmortal'],
     ['adventure/summon_iron_golem', 'Hired Help'], ['end/dragon_breath', 'You Need a Mint'], ['end/elytra', "Sky's the Limit"],
     ['end/respawn_dragon', 'The End... Again...'],
@@ -128,7 +136,15 @@ test('admins add, set and reset challenge points, also from the console', async 
   await waitForPoints(BOT, { points: 2, lifetime: 5 })
   await rcon.command(`ic set lifetime 9 ${BOT}`)
   await waitForPoints(BOT, { points: 2, lifetime: 9 })
-  assert.match(await rcon.command(`scoreboard players get ${BOT} ic_points`), /has 9 /, 'the scoreboard shows the lifetime points')
+  // The scoreboard follows the database a moment later
+  let score = ''
+  const deadline = Date.now() + 4000
+  while (!/has 9 /.test(score) && Date.now() < deadline) {
+    score = await rcon.command(`scoreboard players get ${BOT} ic_points`)
+    if (!/has 9 /.test(score))
+      await sleep(200)
+  }
+  assert.match(score, /has 9 /, 'the scoreboard shows the lifetime points')
   await rcon.command(`ic reset points ${BOT}`)
   await waitForPoints(BOT, { points: 0, lifetime: 0 })
 })

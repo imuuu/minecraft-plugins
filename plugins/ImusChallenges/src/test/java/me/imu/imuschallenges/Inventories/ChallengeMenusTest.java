@@ -83,6 +83,8 @@ class ChallengeMenusTest
     {
         MenuTester menu = MenuTester.open(new InventoryChallengeShop(_shop));
         _shop.answer();
+        // The answer is drawn a moment later, like the server does
+        menu.flush();
         return menu;
     }
 
@@ -96,6 +98,8 @@ class ChallengeMenusTest
         assertTrue(menu.icon(21).hideTooltip(), "nothing yet");
 
         _shop.answer();
+        assertTrue(menu.icon(21).hideTooltip(), "drawn a moment after the answer");
+        menu.flush();
         assertEquals("Bread", menu.name(21));
         assertTrue(menu.lore(21).contains("Cost: 5 Challenge points"));
         assertEquals("Coal", menu.name(23));

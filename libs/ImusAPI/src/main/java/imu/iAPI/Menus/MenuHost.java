@@ -18,6 +18,12 @@ public interface MenuHost
     void set(int slot, Icon icon);
 
     /**
+     * The menu shown changed outside a click. The host calls {@link MenuSession#flush()} later, at most every
+     * {@link Menu#refreshDelayTicks()}, however many times this was called in between.
+     */
+    void refreshRequested();
+
+    /**
      * Shows the prompt in place of the menu. Answers go to {@link MenuSession#answer(String)}, and the end, saved
      * or cancelled, to {@link MenuSession#promptClosed()}.
      */

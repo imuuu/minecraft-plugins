@@ -109,6 +109,10 @@ PaperMenus.open(player, new ShopMenu());
   itemit omassa tilassaan ja antaa ne takaisin `onClose`ssa (esim. ImusEnchantsin enchant-pöytä). Shift-klikkaus
   omasta inventorysta menuun on aina estetty; yhden slotin raahaus on sama kuin klikkaus.
 - Toisen menun avaamista ei tarvitse viivästää itse; `PaperMenus` avaa sen seuraavalla tickillä.
+- **Ulkopuoliset muutokset odottavat hetken.** Klikkaus piirtää menun heti. `menu.refresh()` (esim. toisen pelaajan
+  kauppa tai tietokannasta tullut data) piirtää vasta `refreshDelayTicks()` jälkeen (oletus 5 tickiä), ja monta
+  muutosta siinä välissä tekee yhden piirron. Näin kiireinen kauppa ei piirrä jokaisen katsojan menua jokaisesta
+  kaupasta. Testissä `MenuTester.flush()` piirtää odottavan muutoksen.
 - **Vikasietoisuus.** Jos menu heittää poikkeuksen (piirto, klikkaus, promptin vastaus, ajastin), sen pelaajan kaikki
   menut suljetaan heti ja virhe kirjataan konsoliin: rikkinäinen menu ei jää auki, ja `onClose` antaa itemit takaisin.
   Yhden menun kaatuva `onClose` ei estä muita sulkeutumasta. Kun plugin sammuu (myös serverin sammuessa), sen menut

@@ -27,6 +27,8 @@ public final class MenuSession
     private boolean _ended;
     // While a menu is being shown; a refresh from its onOpen waits for the first drawing
     private boolean _showing;
+    // A change from outside a click waits to be drawn
+    private boolean _dirty;
 
     public MenuSession(Viewer viewer, MenuHost host)
     {
@@ -179,6 +181,8 @@ public final class MenuSession
         Objects.requireNonNull(menu, "menu");
         _current = menu;
         _prompt = null;
+        // Drawn whole now, so nothing waits any more
+        _dirty = false;
         menu._session = this;
         _showing = true;
         try
@@ -246,10 +250,31 @@ public final class MenuSession
     }
 
     /**
-     * Draws the menu shown again and sends the slots that changed.
+     * Marks the menu shown as changed; the host draws it with {@link #flush()} a little later.
+     */
+    public void requestRefresh()
+    {
+        if (_ended || _current == null || _showing || _dirty)
+            return;
+        _dirty = true;
+        _host.refreshRequested();
+    }
+
+    /**
+     * Draws the menu now if it waits to be drawn.
+     */
+    public void flush()
+    {
+        if (_dirty)
+            refresh();
+    }
+
+    /**
+     * Draws the menu shown again at once and sends the slots that changed.
      */
     public void refresh()
     {
+        _dirty = false;
         if (_ended || _current == null || _prompt != null || _showing)
             return;
         try

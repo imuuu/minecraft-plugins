@@ -35,6 +35,7 @@ public final class MenuTester implements MenuHost
     private Prompt _prompt;
     private boolean _closed;
     private Object _cursor;
+    private int _refreshRequests;
     // Null: a menu that throws fails the test. Otherwise the errors are kept, to test what happens after one
     private List<String> _errors;
 
@@ -209,6 +210,24 @@ public final class MenuTester implements MenuHost
     }
 
     /**
+     * Draws a menu that changed outside a click, as the server does a moment after {@link Menu#refresh()}.
+     */
+    public MenuTester flush()
+    {
+        _session.flush();
+        return this;
+    }
+
+    /**
+     * How many times the session asked to be drawn later so far; many {@link Menu#refresh()} calls before a
+     * {@link #flush()} ask once.
+     */
+    public int refreshRequests()
+    {
+        return _refreshRequests;
+    }
+
+    /**
      * Runs the menu's timer once, as the server does every {@link Menu#refreshTicks()}.
      */
     public MenuTester tick()
@@ -321,6 +340,12 @@ public final class MenuTester implements MenuHost
     public void prompt(Prompt prompt)
     {
         _prompt = prompt;
+    }
+
+    @Override
+    public void refreshRequested()
+    {
+        _refreshRequests++;
     }
 
     @Override

@@ -92,6 +92,8 @@ class MenusTest
 
             public void prompt(Prompt prompt) {}
 
+            public void refreshRequested() {}
+
             public Object cursor() { return null; }
 
             public void setCursor(Object item) {}
@@ -480,5 +482,69 @@ class MenusTest
         assertNull(prompt.answer("x"), "the dialog closes");
         assertTrue(prompt.isClosed(), "and the menu doesn't come back");
         assertEquals(1, asking.closed);
+    }
+
+    // Changes from outside a click ============================================================================
+
+    /**
+     * Counts its drawings; its data changes from outside, like a shop other players trade in.
+     */
+    static class Watched extends Menu
+    {
+        int drawn;
+        int stock = 10;
+
+        Watched()
+        {
+            super("Watched", 1);
+        }
+
+        @Override
+        protected void render(Canvas canvas)
+        {
+            drawn++;
+            canvas.set(0, Icon.of(Material.DIAMOND, "Stock " + stock), click -> stock--);
+        }
+    }
+
+    @Test
+    void manyOutsideChangesMakeOneDrawing()
+    {
+        Watched shop = new Watched();
+        MenuTester menu = MenuTester.open(shop);
+        assertEquals(1, shop.drawn);
+
+        // A hundred trades of other players before the next drawing
+        for (int i = 0; i < 100; i++)
+        {
+            shop.stock++;
+            shop.refresh();
+        }
+        assertEquals(1, shop.drawn, "nothing drawn yet");
+        assertEquals("Stock 10", menu.name(0));
+        assertEquals(1, menu.refreshRequests(), "the host is asked once");
+
+        menu.flush();
+        assertEquals(2, shop.drawn, "one drawing for all of them");
+        assertEquals("Stock 110", menu.name(0));
+        menu.flush();
+        assertEquals(2, shop.drawn, "nothing left to draw");
+    }
+
+    @Test
+    void aClickDrawsAtOnceAndTakesAWaitingChangeAlong()
+    {
+        Watched shop = new Watched();
+        MenuTester menu = MenuTester.open(shop);
+        shop.stock = 50;
+        shop.refresh();
+        menu.click(0);
+        assertEquals("Stock 49", menu.name(0), "the click shows the outside change too");
+        int drawn = shop.drawn;
+        menu.flush();
+        assertEquals(drawn, shop.drawn, "the click's drawing covered it");
+
+        shop.refresh();
+        assertEquals(2, menu.refreshRequests(), "and a new change asks again");
     }
 }
