@@ -21,6 +21,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -61,16 +62,50 @@ public final class PaperMenus implements Listener
     }
 
     /**
-     * Closes every menu.
+     * Closes every menu, giving back the items they hold. ImusAPI calls this when it is disabled.
      */
     public static void disable()
     {
         if (_instance == null)
             return;
         for (Host host : Map.copyOf(_instance._hosts).values())
-            host._session.close();
+            _instance.closeSafely(host);
         HandlerList.unregisterAll(_instance);
         _instance = null;
+    }
+
+    /**
+     * Closes the menus of a plugin while its code still runs. Done on its own when the plugin is disabled; a
+     * plugin may call it first in its onDisable.
+     */
+    public static void closeAll(Plugin plugin)
+    {
+        if (_instance == null)
+            return;
+        ClassLoader loader = plugin.getClass().getClassLoader();
+        for (Host host : Map.copyOf(_instance._hosts).values())
+        {
+            boolean ours = host._session.menus().stream().anyMatch(menu -> menu.getClass().getClassLoader() == loader);
+            if (ours)
+                _instance.closeSafely(host);
+        }
+    }
+
+    // One player's menus failing to close doesn't stop the others
+    private void closeSafely(Host host)
+    {
+        try
+        {
+            host._session.close();
+        } catch (RuntimeException e)
+        {
+            _plugin.getLogger().log(Level.SEVERE, "Closing the menus of " + host._player.getName() + " failed", e);
+        } finally
+        {
+            host.end();
+            if (host._player.getOpenInventory().getTopInventory().getHolder(false) instanceof Window)
+                host._player.closeInventory();
+        }
     }
 
     /**
@@ -126,7 +161,15 @@ public final class PaperMenus implements Listener
             event.setCancelled(true);
             if (window != host._window || host._opening || !host.clickAllowed())
                 return;
-            host.click(raw, kind(event.getClick()), event.getHotbarButton());
+            try
+            {
+                host.click(raw, kind(event.getClick()), event.getHotbarButton());
+            } catch (RuntimeException e)
+            {
+                // The session closes a menu that throws; this is for anything that slipped past it
+                _plugin.getLogger().log(Level.SEVERE, "A menu click of " + host._player.getName() + " failed", e);
+                closeSafely(host);
+            }
             return;
         }
 
@@ -180,6 +223,14 @@ public final class PaperMenus implements Listener
             return;
         host.end();
         host._session.closedByViewer();
+    }
+
+    // A plugin's menus close while its code is still there to give their items back
+    @EventHandler
+    public void onPluginDisable(PluginDisableEvent event)
+    {
+        if (event.getPlugin() != _plugin)
+            closeAll(event.getPlugin());
     }
 
     @EventHandler
@@ -372,7 +423,7 @@ public final class PaperMenus implements Listener
         public void error(String what, RuntimeException error)
         {
             _plugin.getLogger().log(Level.SEVERE, what + " failed for " + _player.getName(), error);
-            _player.sendMessage(Text.of("&cSomething went wrong, see the console."));
+            _player.sendMessage(Text.of("&cSomething went wrong and the menu was closed. See the console."));
         }
 
         private void end()

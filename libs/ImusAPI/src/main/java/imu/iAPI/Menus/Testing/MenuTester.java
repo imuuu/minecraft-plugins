@@ -35,6 +35,8 @@ public final class MenuTester implements MenuHost
     private Prompt _prompt;
     private boolean _closed;
     private Object _cursor;
+    // Null: a menu that throws fails the test. Otherwise the errors are kept, to test what happens after one
+    private List<String> _errors;
 
     private MenuTester(TestViewer viewer)
     {
@@ -55,6 +57,25 @@ public final class MenuTester implements MenuHost
         MenuTester tester = new MenuTester(viewer);
         tester._session.open(menu);
         return tester;
+    }
+
+    /**
+     * Opens the menu, keeping errors instead of failing the test on them; see {@link #errors()}.
+     */
+    public static MenuTester openKeepingErrors(Menu menu)
+    {
+        MenuTester tester = new MenuTester(TestViewer.admin("Tester"));
+        tester._errors = new ArrayList<>();
+        tester._session.open(menu);
+        return tester;
+    }
+
+    /**
+     * What threw so far, with {@link #openKeepingErrors(Menu)}.
+     */
+    public List<String> errors()
+    {
+        return _errors == null ? List.of() : List.copyOf(_errors);
     }
 
     // What is shown ==================================================================================================
@@ -317,6 +338,8 @@ public final class MenuTester implements MenuHost
     @Override
     public void error(String what, RuntimeException error)
     {
-        throw new AssertionError(what + " failed", error);
+        if (_errors == null)
+            throw new AssertionError(what + " failed", error);
+        _errors.add(what + ": " + error.getMessage());
     }
 }

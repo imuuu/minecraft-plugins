@@ -1,14 +1,20 @@
 package imu.iAPI.Menus;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 /**
  * One viewer's way through menus: the menu shown, the ones to go back to, and an open prompt. It draws the menus
  * and tells its {@link MenuHost} what changed; it doesn't know about the server.
+ * <p>
+ * A menu that throws (drawing, a click, a prompt answer, its timer) is closed at once with every menu under it:
+ * a menu in a broken state could hand out items it shouldn't, and closing gives back the items the menus hold.
+ * One menu's {@code onClose} throwing doesn't stop the others from closing.
  */
 public final class MenuSession
 {
@@ -54,6 +60,20 @@ public final class MenuSession
     public boolean canGoBack()
     {
         return !_previous.isEmpty();
+    }
+
+    /**
+     * The menu shown and the ones to go back to, the shown one first; empty when the session has ended.
+     */
+    public List<Menu> menus()
+    {
+        List<Menu> menus = new ArrayList<>();
+        if (_ended)
+            return menus;
+        if (_current != null)
+            menus.add(_current);
+        menus.addAll(_previous);
+        return menus;
     }
 
     /**
@@ -135,6 +155,25 @@ public final class MenuSession
         _buttons = Map.of();
     }
 
+    /**
+     * Something a menu did threw: tell the host and close every menu.
+     */
+    private void fail(String what, RuntimeException error)
+    {
+        try
+        {
+            _host.error(what, error);
+        } finally
+        {
+            close();
+        }
+    }
+
+    private static String nameOf(Menu menu)
+    {
+        return menu == null ? "a menu" : menu.getClass().getSimpleName();
+    }
+
     private void show(Menu menu)
     {
         Objects.requireNonNull(menu, "menu");
@@ -146,18 +185,38 @@ public final class MenuSession
         {
             menu.onOpen(_viewer);
             _buttons = render(menu);
+        } catch (RuntimeException e)
+        {
+            _showing = false;
+            fail("Opening " + nameOf(menu), e);
+            return;
         } finally
         {
             _showing = false;
         }
-        _host.show(menu, icons(_buttons));
+        try
+        {
+            _host.show(menu, icons(_buttons));
+        } catch (RuntimeException e)
+        {
+            fail("Showing " + nameOf(menu), e);
+        }
     }
 
+    // Each menu closes on its own, so one that throws doesn't keep the others (and their items) open
     private void closeMenu(Menu menu)
     {
-        menu.onClose(_viewer);
-        if (menu._session == this && !_previous.contains(menu))
-            menu._session = null;
+        try
+        {
+            menu.onClose(_viewer);
+        } catch (RuntimeException e)
+        {
+            _host.error("Closing " + nameOf(menu), e);
+        } finally
+        {
+            if (menu._session == this && !_previous.contains(menu))
+                menu._session = null;
+        }
     }
 
     private void checkActive()
@@ -193,17 +252,23 @@ public final class MenuSession
     {
         if (_ended || _current == null || _prompt != null || _showing)
             return;
-        Map<Integer, Button> next = render(_current);
-        for (int slot = 0; slot < _current.size(); slot++)
+        try
         {
-            Button before = _buttons.get(slot);
-            Button after = next.get(slot);
-            Icon was = before == null ? null : before.icon();
-            Icon now = after == null ? null : after.icon();
-            if (!Objects.equals(was, now))
-                _host.set(slot, now);
+            Map<Integer, Button> next = render(_current);
+            for (int slot = 0; slot < _current.size(); slot++)
+            {
+                Button before = _buttons.get(slot);
+                Button after = next.get(slot);
+                Icon was = before == null ? null : before.icon();
+                Icon now = after == null ? null : after.icon();
+                if (!Objects.equals(was, now))
+                    _host.set(slot, now);
+            }
+            _buttons = next;
+        } catch (RuntimeException e)
+        {
+            fail("Drawing " + nameOf(_current), e);
         }
-        _buttons = next;
     }
 
     /**
@@ -213,7 +278,16 @@ public final class MenuSession
     {
         if (_ended || _current == null)
             return;
-        if (_current.onTick())
+        boolean changed;
+        try
+        {
+            changed = _current.onTick();
+        } catch (RuntimeException e)
+        {
+            fail("The timer of " + nameOf(_current), e);
+            return;
+        }
+        if (changed)
             refresh();
     }
 
@@ -246,7 +320,8 @@ public final class MenuSession
             button.action().accept(new Click(this, menu, slot, kind, hotbarKey));
         } catch (RuntimeException e)
         {
-            _host.error("Clicking slot " + slot + " of " + menu.getClass().getSimpleName(), e);
+            fail("Clicking slot " + slot + " of " + nameOf(menu), e);
+            return;
         }
         refresh();
     }
@@ -272,8 +347,9 @@ public final class MenuSession
             return _prompt.onAnswer().apply(text);
         } catch (RuntimeException e)
         {
-            _host.error("Answering the prompt of " + _current.getClass().getSimpleName(), e);
-            return "Something went wrong, see the console";
+            // Accepted, so the dialog closes; the session has ended and the menu doesn't come back
+            fail("Answering the prompt of " + nameOf(_current), e);
+            return null;
         }
     }
 

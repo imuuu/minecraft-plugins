@@ -361,4 +361,124 @@ class MenusTest
         assertEquals("Sword", menu.cursor());
         assertNull(menu.icon(4));
     }
+
+    // A menu that throws closes ============================================================================
+
+    /**
+     * A menu that throws where it is told to, and counts how often it was closed.
+     */
+    static class Fragile extends Menu
+    {
+        boolean throwOnRender;
+        boolean throwOnClose;
+        boolean throwOnTick;
+        int closed;
+
+        Fragile()
+        {
+            super("Fragile", 1);
+        }
+
+        @Override
+        protected void render(Canvas canvas)
+        {
+            if (throwOnRender)
+                throw new IllegalStateException("render");
+            canvas.set(0, Icon.of(Material.STONE, "Break"), click -> { throw new IllegalStateException("click"); });
+            canvas.set(1, Icon.of(Material.ARROW, "Deeper"), click -> click.open(new Fragile()));
+            canvas.set(2, Icon.of(Material.NAME_TAG, "Ask"), click -> click.prompt(Prompt.of("Ask", List.of(), "", 5,
+                    text -> { throw new IllegalStateException("answer"); })));
+            canvas.set(3, Icon.of(Material.FEATHER, "Redraw fails"), click -> throwOnRender = true);
+        }
+
+        @Override
+        protected void onClose(Viewer viewer)
+        {
+            closed++;
+            if (throwOnClose)
+                throw new IllegalStateException("close");
+        }
+
+        @Override
+        public int refreshTicks()
+        {
+            return 20;
+        }
+
+        @Override
+        protected boolean onTick()
+        {
+            if (throwOnTick)
+                throw new IllegalStateException("tick");
+            return true;
+        }
+    }
+
+    @Test
+    void aFailingClickClosesEveryMenu()
+    {
+        Fragile first = new Fragile();
+        MenuTester menu = MenuTester.openKeepingErrors(first);
+        menu.click("Deeper");
+        Fragile second = menu.assertShowing(Fragile.class);
+        menu.click("Break");
+
+        assertTrue(menu.isClosed(), "a broken menu doesn't stay open");
+        assertTrue(menu.session().hasEnded());
+        assertEquals(1, first.closed, "the menu under it closes too, giving back what it holds");
+        assertEquals(1, second.closed);
+        assertEquals(List.of("Clicking slot 0 of Fragile: click"), menu.errors());
+    }
+
+    @Test
+    void aMenuThatCantBeDrawnClosesAtOnce()
+    {
+        Fragile broken = new Fragile();
+        broken.throwOnRender = true;
+        MenuTester menu = MenuTester.openKeepingErrors(broken);
+        assertTrue(menu.isClosed());
+        assertEquals(1, broken.closed);
+        assertEquals(List.of("Opening Fragile: render"), menu.errors());
+
+        Fragile later = new Fragile();
+        MenuTester redraw = MenuTester.openKeepingErrors(later);
+        redraw.click("Redraw fails");
+        assertTrue(redraw.isClosed(), "also when only a redraw fails");
+        assertEquals(List.of("Drawing Fragile: render"), redraw.errors());
+    }
+
+    @Test
+    void oneMenuFailingToCloseDoesntKeepTheOthersOpen()
+    {
+        Fragile first = new Fragile();
+        MenuTester menu = MenuTester.openKeepingErrors(first);
+        menu.click("Deeper");
+        Fragile second = menu.assertShowing(Fragile.class);
+        second.throwOnClose = true;
+
+        menu.closeWindow();
+        assertEquals(1, second.closed);
+        assertEquals(1, first.closed, "closed although the one above it threw");
+        assertEquals(List.of("Closing Fragile: close"), menu.errors());
+    }
+
+    @Test
+    void aFailingTimerOrAnswerClosesTheMenu()
+    {
+        Fragile ticking = new Fragile();
+        MenuTester timer = MenuTester.openKeepingErrors(ticking);
+        timer.tick();
+        assertFalse(timer.isClosed());
+        ticking.throwOnTick = true;
+        timer.tick();
+        assertTrue(timer.isClosed());
+        assertEquals(1, ticking.closed);
+
+        Fragile asking = new Fragile();
+        MenuTester prompt = MenuTester.openKeepingErrors(asking);
+        prompt.click("Ask");
+        assertNull(prompt.answer("x"), "the dialog closes");
+        assertTrue(prompt.isClosed(), "and the menu doesn't come back");
+        assertEquals(1, asking.closed);
+    }
 }

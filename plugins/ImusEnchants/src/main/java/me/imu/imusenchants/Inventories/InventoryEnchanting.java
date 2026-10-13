@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * The enchanting table: an item with slots goes in the bottom slot, its grid opens above, and books, boosters and
@@ -82,9 +83,16 @@ public class InventoryEnchanting extends Menu
     {
         for (InventoryEnchanting table : new ArrayList<>(OPEN))
         {
-            MenuSession session = table.session();
-            if (session != null)
-                session.close();
+            // One table failing to close doesn't keep the others' items
+            try
+            {
+                MenuSession session = table.session();
+                if (session != null)
+                    session.close();
+            } catch (RuntimeException e)
+            {
+                ImusEnchants.Instance.getLogger().log(Level.SEVERE, "Closing an enchanting table failed", e);
+            }
         }
         OPEN.clear();
     }

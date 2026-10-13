@@ -36,7 +36,7 @@ public interface MenuHost
     void close();
 
     /**
-     * A button or a prompt answer threw.
+     * A menu threw. The session closes every menu right after, unless only a menu's onClose threw.
      */
     void error(String what, RuntimeException error);
 }
