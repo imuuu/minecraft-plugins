@@ -26,7 +26,6 @@ public class SubOpenEnchant_InvCmd implements CommandInterface
 
     	//ManagerEnchants.Instance.OpenEnchantingInventory((Player)sender);
     	
-    	//new TestINv().Open((Player)sender);
     	
     	Player player = ((Player)sender);
     	

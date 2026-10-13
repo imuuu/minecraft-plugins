@@ -19,6 +19,8 @@ public final class MenuSession
     private Map<Integer, Button> _buttons = Map.of();
     private Prompt _prompt;
     private boolean _ended;
+    // While a menu is being shown; a refresh from its onOpen waits for the first drawing
+    private boolean _showing;
 
     public MenuSession(Viewer viewer, MenuHost host)
     {
@@ -134,8 +136,15 @@ public final class MenuSession
         _current = menu;
         _prompt = null;
         menu._session = this;
-        menu.onOpen(_viewer);
-        _buttons = render(menu);
+        _showing = true;
+        try
+        {
+            menu.onOpen(_viewer);
+            _buttons = render(menu);
+        } finally
+        {
+            _showing = false;
+        }
         _host.show(menu, icons(_buttons));
     }
 
@@ -173,7 +182,7 @@ public final class MenuSession
      */
     public void refresh()
     {
-        if (_ended || _current == null || _prompt != null)
+        if (_ended || _current == null || _prompt != null || _showing)
             return;
         Map<Integer, Button> next = render(_current);
         for (int slot = 0; slot < _current.size(); slot++)

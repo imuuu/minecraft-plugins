@@ -1,5 +1,6 @@
 package imu.waystones;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.waystones.engine.Destinations;
 import imu.waystones.engine.Visibility;
 import org.bukkit.Location;
@@ -55,7 +56,7 @@ final class WaystoneCommands implements TabExecutor
             case "list" ->
             {
                 if (admin(sender) && sender instanceof Player player)
-                    new ListMenu(_plugin).open(player);
+                    PaperMenus.open(player, new ListMenu(_plugin.menuGame()));
             }
             case "reload" ->
             {

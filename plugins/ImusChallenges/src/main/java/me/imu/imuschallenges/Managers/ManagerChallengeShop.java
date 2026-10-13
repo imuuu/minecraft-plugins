@@ -1,5 +1,6 @@
 package me.imu.imuschallenges.Managers;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Utilities.TextUtils;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -14,6 +15,7 @@ import me.imu.imuschallenges.Enums.POINT_TYPE;
 import me.imu.imuschallenges.ImusChallenges;
 import me.imu.imuschallenges.Interfaces.ShopStatsCallback;
 import me.imu.imuschallenges.Inventories.InventoryChallengeShop;
+import me.imu.imuschallenges.Inventories.PaperShopMenuGame;
 import me.imu.imuschallenges.Factories.ItemFactory;
 import me.imu.imuschallenges.Shop.ShopTier;
 import net.kyori.adventure.text.Component;
@@ -139,7 +141,7 @@ public class ManagerChallengeShop
 
     public void openShop(Player player)
     {
-        new InventoryChallengeShop().open(player);
+        PaperMenus.open(player, new InventoryChallengeShop(new PaperShopMenuGame()));
     }
 
     public void addPlayerToShop(Player player)

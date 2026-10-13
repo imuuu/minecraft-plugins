@@ -1,197 +1,130 @@
 package imu.waystones;
 
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.ItemUtils;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Pager;
+import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.TextUtils;
-import imu.waystones.engine.Destinations;
-import imu.waystones.engine.Stone;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A waystone's menu: the waystones the player can go to, the upgrades, and for admins its settings.
  */
-final class WaystoneMenu extends CustomInventory
+final class WaystoneMenu extends Menu
 {
-    private static final int PER_PAGE = 27;
-    private static final int PREVIOUS = 27, VISIBILITY = 28, UNBREAKABLE = 29, MAX_OUT = 30, UPGRADES = 31, ENABLED = 32,
+    static final int PREVIOUS = 27, VISIBILITY = 28, UNBREAKABLE = 29, MAX_OUT = 30, UPGRADES = 31, ENABLED = 32,
             REMOVE = 33, NEXT = 35;
 
-    private final ImusWaystones _plugin;
+    private final WaystoneGame _game;
     private final Waystone _ws;
-    private int _page;
+    private final Pager<Waystone> _pager;
 
-    WaystoneMenu(ImusWaystones plugin, Waystone ws)
+    WaystoneMenu(WaystoneGame game, Waystone ws)
     {
-        super(plugin, ws.name, 36);
-        _plugin = plugin;
+        super(ws.name, 4);
+        _game = game;
         _ws = ws;
-    }
-
-    static ItemStack named(Material material, String name, List<String> lore)
-    {
-        ItemStack item = new ItemStack(material);
-        ItemUtils.SetDisplayName(item, name);
-        if (!lore.isEmpty())
-            ItemUtils.SetLores(item, lore, false);
-        return item;
+        _pager = Pager.<Waystone>rows(0, 3).arrows(Icon.of("arrow", game.text("menu-previous")), Icon.of("arrow", game.text("menu-next")));
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void render(Canvas canvas)
     {
-        return INVENTORY_AREA.UPPER_INV;
-    }
+        Viewer viewer = canvas.viewer();
+        canvas.fillRow(3, Icon.filler("cyan_stained_glass_pane"));
 
-    @Override
-    public void onAwake()
-    {
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        render();
-    }
-
-    private void render()
-    {
-        Player player = getPlayer();
-        clearButtons();
-        ItemStack bar = ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.CYAN_STAINED_GLASS_PANE));
-        for (int i = PER_PAGE; i < getSize(); i++)
-            addButton(new Button(i, bar.clone()));
-
-        String closed = closedReason(player);
+        String closed = closedReason(viewer);
         if (closed != null)
-            addButton(new Button(13, named(Material.BARRIER, closed, List.of())));
+            canvas.set(13, Icon.of("barrier", closed));
         else
-            renderDestinations(player);
+            renderDestinations(canvas, viewer);
 
-        addButton(new Button(UPGRADES, named(Material.BEACON, _plugin.text("menu-upgrades"), List.of(_plugin.text("menu-upgrades-lore"))),
-                e -> Bukkit.getScheduler().runTask(_plugin, () -> new UpgradeMenu(_plugin, _ws).open(player))));
-        if (player.hasPermission(ImusWaystones.ADMIN))
-            renderAdmin();
-        updateButtons(true);
+        canvas.set(UPGRADES, Icon.of("beacon", _game.text("menu-upgrades"), _game.text("menu-upgrades-lore")),
+                click -> click.open(new UpgradeMenu(_game, _ws)));
+        if (viewer.hasPermission(ImusWaystones.ADMIN))
+            renderAdmin(canvas);
     }
 
     /**
      * Why the player can't leave from here now, or null.
      */
-    private String closedReason(Player player)
+    private String closedReason(Viewer viewer)
     {
         if (!_ws.enabled)
-            return _plugin.text("closed-disabled");
+            return _game.text("closed-disabled");
         if (!_ws.visibility.canDepart())
-            return _plugin.text("closed-arrival-only");
-        long left = _plugin.teleports().cooldownLeft(player, _ws);
+            return _game.text("closed-arrival-only");
+        long left = _game.cooldownLeft(viewer, _ws);
         if (left > 0)
-            return _plugin.text("closed-cooldown", "time", TextUtils.FormatTime(left));
+            return _game.text("closed-cooldown", "time", TextUtils.FormatTime(left));
         return null;
     }
 
-    private void renderDestinations(Player player)
+    private void renderDestinations(Canvas canvas, Viewer viewer)
     {
-        List<Stone> list = Destinations.from(_ws.stone(), _plugin.waystones().stones(), _plugin.waystones().discovered(player.getUniqueId()),
-                _ws.panel(player.getUniqueId()), _plugin.rules());
+        List<Waystone> list = _game.destinations(_ws, viewer.id());
         if (list.isEmpty())
         {
-            addButton(new Button(13, named(Material.MAP, _plugin.text("no-destinations"), List.of(_plugin.text("no-destinations-lore")))));
+            canvas.set(13, Icon.of("map", _game.text("no-destinations"), _game.text("no-destinations-lore")));
             return;
         }
-        int pages = (list.size() + PER_PAGE - 1) / PER_PAGE;
-        _page = Math.max(0, Math.min(_page, pages - 1));
-        for (int i = 0; i < PER_PAGE && _page * PER_PAGE + i < list.size(); i++)
+        _pager.render(canvas, list, to -> Button.of(_game.icon(to).name(to.name).lore(
+                _game.text("destination-owner", "owner", to.ownerName),
+                _game.text("destination-world", "world", to.world),
+                " ",
+                _game.text("destination-click")), click ->
         {
-            Waystone to = _plugin.waystones().get(list.get(_page * PER_PAGE + i).id());
-            if (to == null)
-                continue;
-            ItemStack icon = to.icon.clone();
-            ItemUtils.SetDisplayName(icon, to.name);
-            List<String> lore = new ArrayList<>();
-            lore.add(_plugin.text("destination-owner", "owner", to.ownerName));
-            lore.add(_plugin.text("destination-world", "world", to.world));
-            lore.add(" ");
-            lore.add(_plugin.text("destination-click"));
-            ItemUtils.SetLores(icon, lore, false);
-            addButton(new Button(i, icon, e -> go(player, to)));
-        }
-        if (_page > 0)
-            addButton(new Button(PREVIOUS, named(Material.ARROW, _plugin.text("menu-previous"), List.of()), e -> { _page--; render(); }));
-        if (_page < pages - 1)
-            addButton(new Button(NEXT, named(Material.ARROW, _plugin.text("menu-next"), List.of()), e -> { _page++; render(); }));
+            click.close();
+            _game.travel(click.viewer(), _ws, to);
+        }), PREVIOUS, NEXT);
     }
 
-    private void go(Player player, Waystone to)
+    private void renderAdmin(Canvas canvas)
     {
-        player.closeInventory();
-        if (!_plugin.structure().isWhole(to))
-        {
-            _plugin.send(player, "destination-gone");
-            return;
-        }
-        int levels = Teleports.isFree(player, _ws) ? 0 : _plugin.rules().xpLevels(_ws.panel(player.getUniqueId()));
-        if (player.getLevel() < levels)
-        {
-            _plugin.send(player, "not-enough-xp", "levels", levels);
-            return;
-        }
-        _plugin.teleports().begin(player, _ws, to);
-    }
-
-    private void renderAdmin()
-    {
-        addButton(new Button(VISIBILITY, toggle(Material.SPYGLASS, "admin-visibility", _plugin.text("visibility." + _ws.visibility.name())), e ->
+        canvas.set(VISIBILITY, toggle("spyglass", "admin-visibility", _game.text("visibility." + _ws.visibility.name())), click ->
         {
             _ws.visibility = _ws.visibility.next();
-            _plugin.waystones().save(_ws);
-            render();
-        }));
-        addButton(new Button(UNBREAKABLE, toggle(Material.BEDROCK, "admin-unbreakable", onOff(_ws.unbreakable)), e ->
+            _game.save(_ws);
+        });
+        canvas.set(UNBREAKABLE, toggle("bedrock", "admin-unbreakable", onOff(_ws.unbreakable)), click ->
         {
             _ws.unbreakable = !_ws.unbreakable;
-            _plugin.waystones().save(_ws);
-            render();
-        }));
-        addButton(new Button(MAX_OUT, toggle(Material.NETHER_STAR, "admin-max-out", onOff(_ws.maxedOut)), e ->
+            _game.save(_ws);
+        });
+        canvas.set(MAX_OUT, toggle("nether_star", "admin-max-out", onOff(_ws.maxedOut)), click ->
         {
             _ws.maxedOut = !_ws.maxedOut;
-            _plugin.waystones().save(_ws);
-            render();
-        }));
-        addButton(new Button(ENABLED, toggle(Material.LEVER, "admin-enabled", onOff(_ws.enabled)), e ->
+            _game.save(_ws);
+        });
+        canvas.set(ENABLED, toggle("lever", "admin-enabled", onOff(_ws.enabled)), click ->
         {
             _ws.enabled = !_ws.enabled;
-            _plugin.waystones().save(_ws);
-            render();
-        }));
-        addButton(new Button(REMOVE, named(Material.LAVA_BUCKET, _plugin.text("admin-remove"), List.of(_plugin.text("admin-remove-lore"))), e ->
-        {
-            if (!e.isShiftClick())
-                return;
-            getPlayer().closeInventory();
-            _plugin.waystones().remove(_ws);
-            getPlayer().playSound(getPlayer().getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.3f, 1f);
-            _plugin.send(getPlayer(), "removed", "name", _ws.name);
-        }));
+            _game.save(_ws);
+        });
+        canvas.set(REMOVE, Icon.of("lava_bucket", _game.text("admin-remove"), _game.text("admin-remove-lore")), this::remove);
     }
 
-    private ItemStack toggle(Material material, String key, String value)
+    private void remove(Click click)
     {
-        return named(material, _plugin.text(key), List.of(_plugin.text("admin-current", "value", value), _plugin.text("admin-click")));
+        if (!click.isShift())
+            return;
+        click.close();
+        _game.remove(_ws);
+        _game.sound(click.viewer(), "entity.lightning_bolt.impact", 0.3f, 1f);
+        _game.send(click.viewer(), "removed", "name", _ws.name);
+    }
+
+    private Icon toggle(String material, String key, String value)
+    {
+        return Icon.of(material, _game.text(key), _game.text("admin-current", "value", value), _game.text("admin-click"));
     }
 
     private String onOff(boolean value)
     {
-        return _plugin.text(value ? "on" : "off");
+        return _game.text(value ? "on" : "off");
     }
 }

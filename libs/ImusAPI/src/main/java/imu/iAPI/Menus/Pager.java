@@ -20,6 +20,8 @@ public final class Pager<T>
 {
     private final int[] _slots;
     private int _page;
+    private Icon _previous = Icon.of("arrow", "&e<- Previous page");
+    private Icon _next = Icon.of("arrow", "&eNext page ->");
 
     public Pager(int... slots)
     {
@@ -35,6 +37,16 @@ public final class Pager<T>
         for (int i = 0; i < slots.length; i++)
             slots[i] = firstRow * 9 + i;
         return new Pager<>(slots);
+    }
+
+    /**
+     * The arrows to show instead of the default ones; the page number is added to their lore.
+     */
+    public Pager<T> arrows(Icon previous, Icon next)
+    {
+        _previous = previous;
+        _next = next;
+        return this;
     }
 
     public int page()
@@ -58,7 +70,8 @@ public final class Pager<T>
     }
 
     /**
-     * Draws the page's items, and an arrow in each arrow slot when there is a page that way.
+     * Draws the page's items, and an arrow in each arrow slot when there is a page that way. Slots past the last
+     * item keep what the menu drew there before, e.g. its background.
      *
      * @param previousSlot slot of the previous page arrow, -1 for none
      * @param nextSlot     slot of the next page arrow, -1 for none
@@ -74,14 +87,12 @@ public final class Pager<T>
             int index = first + i;
             if (index < items.size())
                 canvas.set(_slots[i], button.apply(items.get(index)));
-            else
-                canvas.clear(_slots[i]);
         }
 
         String pageText = "&7Page " + (_page + 1) + "/" + pages;
         if (previousSlot >= 0 && _page > 0)
-            canvas.set(previousSlot, Icon.of("arrow", "&e<- Previous page", pageText), click -> _page--);
+            canvas.set(previousSlot, _previous.addLore(pageText), click -> _page--);
         if (nextSlot >= 0 && _page < pages - 1)
-            canvas.set(nextSlot, Icon.of("arrow", "&eNext page ->", pageText), click -> _page++);
+            canvas.set(nextSlot, _next.addLore(pageText), click -> _page++);
     }
 }

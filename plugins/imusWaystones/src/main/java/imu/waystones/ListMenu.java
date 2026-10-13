@@ -1,98 +1,54 @@
 package imu.waystones;
 
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.ItemUtils;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.ItemStack;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.ClickKind;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Pager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * /waystones list: every waystone for admins. Click goes there at once, shift right click removes it.
  */
-final class ListMenu extends CustomInventory
+final class ListMenu extends Menu
 {
-    private static final int PER_PAGE = 45, PREVIOUS = 45, NEXT = 53;
+    static final int PREVIOUS = 45, NEXT = 53;
 
-    private final ImusWaystones _plugin;
-    private int _page;
+    private final WaystoneGame _game;
+    private final Pager<Waystone> _pager;
 
-    ListMenu(ImusWaystones plugin)
+    ListMenu(WaystoneGame game)
     {
-        super(plugin, plugin.text("list-title", "count", plugin.waystones().all().size()), 54);
-        _plugin = plugin;
+        super(game.text("list-title", "count", game.all().size()), 6);
+        _game = game;
+        _pager = Pager.<Waystone>rows(0, 5).arrows(Icon.of("arrow", game.text("menu-previous")), Icon.of("arrow", game.text("menu-next")));
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void render(Canvas canvas)
     {
-        return INVENTORY_AREA.UPPER_INV;
+        canvas.fillRow(5, Icon.filler("cyan_stained_glass_pane"));
+        _pager.render(canvas, new ArrayList<>(_game.all()), ws -> Button.of(_game.icon(ws).name(ws.name).lore(
+                _game.text("destination-owner", "owner", ws.ownerName),
+                _game.text("list-location", "world", ws.world, "x", ws.x, "y", ws.y, "z", ws.z),
+                _game.text("list-visibility", "visibility", _game.text("visibility." + ws.visibility.name())),
+                " ",
+                _game.text("list-click")), click -> click(click, ws)), PREVIOUS, NEXT);
     }
 
-    @Override
-    public void onAwake()
+    private void click(Click click, Waystone ws)
     {
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        render();
-    }
-
-    private void render()
-    {
-        clearButtons();
-        List<Waystone> all = new ArrayList<>(_plugin.waystones().all());
-        int pages = Math.max(1, (all.size() + PER_PAGE - 1) / PER_PAGE);
-        _page = Math.max(0, Math.min(_page, pages - 1));
-        ItemStack bar = ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.CYAN_STAINED_GLASS_PANE));
-        for (int i = PER_PAGE; i < getSize(); i++)
-            addButton(new Button(i, bar.clone()));
-        for (int i = 0; i < PER_PAGE && _page * PER_PAGE + i < all.size(); i++)
+        if (click.kind() == ClickKind.SHIFT_RIGHT)
         {
-            Waystone ws = all.get(_page * PER_PAGE + i);
-            ItemStack icon = ws.icon.clone();
-            ItemUtils.SetDisplayName(icon, ws.name);
-            ItemUtils.SetLores(icon, List.of(
-                    _plugin.text("destination-owner", "owner", ws.ownerName),
-                    _plugin.text("list-location", "world", ws.world, "x", ws.x, "y", ws.y, "z", ws.z),
-                    _plugin.text("list-visibility", "visibility", _plugin.text("visibility." + ws.visibility.name())),
-                    " ",
-                    _plugin.text("list-click")), false);
-            addButton(new Button(i, icon, e -> click(ws, e.getClick())));
-        }
-        if (_page > 0)
-            addButton(new Button(PREVIOUS, WaystoneMenu.named(Material.ARROW, _plugin.text("menu-previous"), List.of()), e -> { _page--; render(); }));
-        if (_page < pages - 1)
-            addButton(new Button(NEXT, WaystoneMenu.named(Material.ARROW, _plugin.text("menu-next"), List.of()), e -> { _page++; render(); }));
-        updateButtons(true);
-    }
-
-    private void click(Waystone ws, ClickType click)
-    {
-        Player player = getPlayer();
-        if (click == ClickType.SHIFT_RIGHT)
-        {
-            _plugin.waystones().remove(ws);
-            _plugin.send(player, "removed", "name", ws.name);
-            render();
+            _game.remove(ws);
+            _game.send(click.viewer(), "removed", "name", ws.name);
             return;
         }
-        Location to = Teleports.landing(ws);
-        if (to == null)
-        {
-            _plugin.send(player, "world-not-loaded", "world", ws.world);
-            return;
-        }
-        player.closeInventory();
-        player.teleport(to);
+        click.close();
+        if (!_game.teleport(click.viewer(), ws))
+            _game.send(click.viewer(), "world-not-loaded", "world", ws.world);
     }
 }

@@ -45,5 +45,10 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Tests of the menus, which don't touch Bukkit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
     </dependencies>
 </project>

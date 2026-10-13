@@ -29,7 +29,9 @@ const ADVANCEMENTS = {
     ['husbandry/plant_seed', 'A Seedy Place'], ['husbandry/fishy_business', 'Fishy Business'], ['adventure/trade', 'What a Deal!'],
     ['adventure/sleep_in_bed', 'Sweet Dreams'], ['adventure/shoot_arrow', 'Take Aim'], ['story/enchant_item', 'Enchanter']],
   goal: [['story/cure_zombie_villager', 'Zombie Doctor'], ['adventure/totem_of_undying', 'Postmortal'],
-    ['adventure/summon_iron_golem', 'Hired Help']],
+    ['adventure/summon_iron_golem', 'Hired Help'], ['end/dragon_breath', 'You Need a Mint'], ['end/elytra', "Sky's the Limit"],
+    ['end/find_end_city', 'The City at the End of the Game'], ['end/respawn_dragon', 'The End... Again...'],
+    ['nether/create_full_beacon', 'Beaconator']],
   challenge: [['adventure/kill_all_mobs', 'Monsters Hunted'], ['adventure/sniper_duel', 'Sniper Duel'],
     ['adventure/two_birds_one_arrow', 'Two Birds, One Arrow'], ['nether/return_to_sender', 'Return to Sender'],
     ['adventure/arbalistic', 'Arbalistic']]

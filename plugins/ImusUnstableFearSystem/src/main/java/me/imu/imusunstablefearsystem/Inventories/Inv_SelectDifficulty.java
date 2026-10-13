@@ -1,106 +1,68 @@
 package me.imu.imusunstablefearsystem.Inventories;
 
-
-import java.util.Date;
-
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Viewer;
 import me.imu.imusunstablefearsystem.Enums.DIFFICULT;
-import me.imu.imusunstablefearsystem.Managers.Manager_Difficult;
-import me.imu.imusunstablefearsystem.ImusUnstableFearSystem;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.ItemUtils;
 
-public class Inv_SelectDifficulty extends CustomInventory
+/**
+ * Shown at the portal: the player picks fear or no fear for the next days. Closing it gives the portal back.
+ */
+public class Inv_SelectDifficulty extends Menu
 {
-	
-	public Inv_SelectDifficulty()
+	static final int NO_FEAR = 9 + 2;
+	static final int FEAR = 9 + 6;
+
+	/**
+	 * What picking does on the server.
+	 */
+	public interface Choice
 	{
-		super(ImusUnstableFearSystem.Instance, "&9Select your difficulty, last 4 days", 3*9);
-		
+		void choose(Viewer viewer, DIFFICULT difficult);
+
+		void closed(Viewer viewer);
+	}
+
+	private final Choice _choice;
+	private boolean _chosen;
+
+	public Inv_SelectDifficulty(Choice choice)
+	{
+		super("&9Select your difficulty, last 4 days", 3);
+		_choice = choice;
 	}
 
 	@Override
-	public INVENTORY_AREA setInventoryLock()
+	public boolean locksOwnInventory()
 	{
-		return INVENTORY_AREA.UPPER_LOWER_INV;
+		return true;
 	}
 
 	@Override
-	public void onAwake()
+	protected void render(Canvas canvas)
 	{
-		// Buttons are rebuilt on every open (see onOpen), so there is nothing
-		// to set up once.
+		canvas.fill(Icon.filler("black_stained_glass_pane"));
+		canvas.set(NO_FEAR, Icon.of("iron_horse_armor", "&cNO FEAR SYSTEM", DIFFICULT.getLore(DIFFICULT.NO_FEAR)),
+				click -> Choose(click, DIFFICULT.NO_FEAR));
+		canvas.set(FEAR, Icon.of("diamond_horse_armor", "&4FEAR SYSTEM ENABLED", DIFFICULT.getLore(DIFFICULT.FEAR)),
+				click -> Choose(click, DIFFICULT.FEAR));
+	}
+
+	private void Choose(Click click, DIFFICULT difficult)
+	{
+		// Once only, also when clicked again before the menu is gone
+		if (_chosen)
+			return;
+		_chosen = true;
+		_choice.choose(click.viewer(), difficult);
+		click.close();
 	}
 
 	@Override
-	public void onOpen()
+	protected void onClose(Viewer viewer)
 	{
-		super.onOpen();
-		intButtons();
+		_choice.closed(viewer);
 	}
-	
-	@Override
-	public void onClose()
-	{
-		super.onClose();
-		
-		Manager_Difficult.Instance.restorePortal(getPlayer().getUniqueId());
-	}
-
-	private void intButtons()
-	{
-		for(int i = 0; i < getSize(); i++)
-		{
-			IMenuButton ibuttonn = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
-			addButton(ibuttonn);
-		}
-		
-		ItemStack stack = new ItemStack(Material.IRON_HORSE_ARMOR);
-		ItemUtils.SetDisplayName(stack, "&cNO FEAR SYSTEM");
-		ItemUtils.SetLores(stack, DIFFICULT.getLore(DIFFICULT.NO_FEAR), false);
-		Button button = new Button(9+2, stack, inventoryClickEvent ->
-		{
-			System.out.println("NO FEAR: "+getPlayer().getName());
-			Manager_Difficult.Instance.setPlayerDifficulty(getPlayer().getUniqueId(), DIFFICULT.NO_FEAR, new Date());
-			getButton(9+2).setEnableAction(false);
-			OnButtonCloseInv();
-			
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(Material.DIAMOND_HORSE_ARMOR);
-		ItemUtils.SetDisplayName(stack, "&4FEAR SYSTEM ENABLED");
-		ItemUtils.SetLores(stack, DIFFICULT.getLore(DIFFICULT.FEAR), false);
-		button = new Button(9+6, stack, inventoryClickEvent ->
-		{
-			System.out.println("FEAR! "+getPlayer().getName());
-			Manager_Difficult.Instance.setPlayerDifficulty(getPlayer().getUniqueId(), DIFFICULT.FEAR, new Date());
-			getButton(9+6).setEnableAction(false);
-			OnButtonCloseInv();
-	    });
-		addButton(button);
-		
-		updateButtons(false);
-	}
-	
-	private void OnButtonCloseInv()
-	{
-		new BukkitRunnable() 
-		{
-			
-			@Override
-			public void run()
-			{
-				getPlayer().closeInventory();
-			}
-		}.runTaskLater(ImusUnstableFearSystem.Instance, 10);
-	}
-	
-
 }

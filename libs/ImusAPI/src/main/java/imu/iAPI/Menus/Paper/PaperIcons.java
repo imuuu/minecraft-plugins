@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
+
 /**
  * Icons to item stacks and back.
  */
@@ -16,11 +18,19 @@ public final class PaperIcons
     private PaperIcons() {}
 
     /**
-     * An icon showing a ready item as it is, e.g. a plugin's custom item.
+     * An icon showing a ready item as it is, e.g. a plugin's custom item. Its name and lore are copied into the
+     * icon, so lore added to the icon comes after the item's own.
      */
     public static Icon of(ItemStack stack)
     {
-        return Icon.of(stack.getType().getKey().toString()).amount(stack.getAmount()).base(stack.clone());
+        Icon icon = Icon.of(stack.getType().getKey().toString()).amount(stack.getAmount()).base(stack.clone());
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null)
+            return icon;
+        if (meta.hasCustomName())
+            icon = icon.name(meta.customName());
+        List<Component> lore = meta.lore();
+        return lore == null ? icon : icon.lore(lore);
     }
 
     public static ItemStack stack(Icon icon)

@@ -1,238 +1,140 @@
 package me.imu.imuschallenges.Inventories;
 
-import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.TextUtils;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Buttons.GridButton;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Managers.Manager_Vault;
-import imu.iAPI.Utilities.ItemUtils;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Viewer;
 import me.imu.imuschallenges.CONSTANTS;
-import me.imu.imuschallenges.Database.Tables.TablePlayerShopStats;
-import me.imu.imuschallenges.Enums.POINT_TYPE;
-import me.imu.imuschallenges.ImusChallenges;
-import me.imu.imuschallenges.Managers.ManagerChallengeShop;
-import me.imu.imuschallenges.Managers.ManagerPlayerPoints;
-import me.imu.imuschallenges.Shop.ShopTier;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class InventoryChallengeShop extends CustomInventory
+/**
+ * The challenge shop: a special side (a column on the left) and a normal side (a block on the right). A player
+ * buys one item a side per refresh with challenge points, and more slots with money: click a slot for sale, then
+ * right-click it to confirm.
+ */
+public class InventoryChallengeShop extends Menu
 {
-    private ManagerChallengeShop _managerChallengeShop = ManagerChallengeShop.getInstance();
+    static final int SPECIAL_START = 1 + 9;
+    static final int NORMAL_START = 3 + 9 + 9;
 
-    private final int _normalOffset = 3 + 9 + 9;
-    private final int _specialOffset = 1 + 9;
+    private final ShopMenuGame _game;
+    private List<ShopMenuGame.Tier> _tiers;
+    // Slots for sale clicked once, waiting for the right click
+    private final Set<Integer> _armed = new HashSet<>();
 
-    public InventoryChallengeShop()
+    public InventoryChallengeShop(ShopMenuGame game)
     {
-        super(ImusChallenges.getInstance(), "&6Challenge Shop", 6 * 9);
+        super("&6Challenge Shop", 6);
+        _game = game;
+    }
 
+    /**
+     * The menu slot of a side's item.
+     */
+    static int slot(boolean special, int index)
+    {
+        return special
+                ? SPECIAL_START + index * 9
+                : NORMAL_START + index % CONSTANTS.NORMAL_SLOT_COLUMNS + index / CONSTANTS.NORMAL_SLOT_COLUMNS * 9;
+    }
+
+    private static int size(boolean special)
+    {
+        return special ? CONSTANTS.SPECIAL_SLOTS : CONSTANTS.NORMAL_SLOT_COLUMNS * CONSTANTS.NORMAL_SLOT_ROWS;
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void onOpen(Viewer viewer)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;
-    }
-
-    @Override
-    public void onAwake()
-    {
-
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        ManagerChallengeShop.getInstance().addPlayerToShop(getPlayer());
-        InitButtons();
-
-    }
-
-    @Override
-    public void onClose()
-    {
-        super.onClose();
-        ManagerChallengeShop.getInstance().removePlayerFromShop(getPlayer());
-    }
-
-    private void InitButtons()
-    {
-        for (int i = 0; i < getSize(); i++)
+        _game.opened(viewer);
+        if (_tiers == null)
         {
-            IMenuButton button = getEmptyButton(i, Material.BLACK_STAINED_GLASS_PANE);
-            addButton(button);
-        }
-
-        ShopTier special = _managerChallengeShop.getSpecial();
-        IMenuButton button = getEmptyButton(1, Material.BLUE_STAINED_GLASS_PANE);
-        ItemUtils.SetDisplayName(button.getItemStack(), TextUtils.Color("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
-        addButton(button);
-
-        button = getEmptyButton(1+9*5, Material.BLUE_STAINED_GLASS_PANE);
-        ItemUtils.SetDisplayName(button.getItemStack(), TextUtils.Color("&6&lResets in &c&l" + _managerChallengeShop.timeLeft(special)));
-        addButton(button);
-
-        updateButtons(false);
-
-        ItemStack stack = getEmptyButton(-1, Material.BLUE_STAINED_GLASS_PANE).getItemStack();
-        ItemUtils.SetDisplayName(stack, TextUtils.Color("&9&lResets in &c&l" + _managerChallengeShop.timeLeft(_managerChallengeShop.getNormal())));
-        ArrayList<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < 4; i++)
-        {
-            items.add(stack.clone());
-        }
-
-        GridButton gridButton = new GridButton(_normalOffset-9, 4, 1, items);
-        addGrid(gridButton);
-        gridButton.update();
-
-        gridButton = new GridButton(_normalOffset-9 + 9 * 3, 4, 1, items);
-        addGrid(gridButton);
-        gridButton.update();
-
-        _managerChallengeShop.getShopStatsAsync(getPlayer(), shopStats ->
-        {
-            initTierSlots(_managerChallengeShop.getSpecial(), shopStats, _specialOffset, 1, CONSTANTS.SPECIAL_SLOTS);
-            initTierSlots(_managerChallengeShop.getNormal(), shopStats, _normalOffset, CONSTANTS.NORMAL_SLOT_COLUMNS, CONSTANTS.NORMAL_SLOT_ROWS);
-        });
-    }
-
-    private void setTierClosed(int offset, int columns, int rows)
-    {
-        GridButton gridButton = new GridButton(new ArrayList<>(), offset, columns, rows);
-        gridButton.setEmptyStack(ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.RED_STAINED_GLASS_PANE)));
-        addGrid(gridButton);
-        gridButton.update();
-    }
-
-    private void initTierSlots(ShopTier tier, TablePlayerShopStats shopStats, int offset, int columns, int rows)
-    {
-        if (shopStats == null || tier.hasBought(getPlayer().getUniqueId()))
-        {
-            setTierClosed(offset, columns, rows);
-            return;
-        }
-
-        String tierName = tier.isSpecial() ? "&6Special" : "&2Normal";
-        ArrayList<IMenuButton> buttons = new ArrayList<>();
-        int boughtSlots = tier.getBoughtSlots(shopStats);
-        final int nextSlot = boughtSlots - tier.getDefaultSlots();
-
-        for (int i = 0; i < tier.getItems().size(); i++)
-        {
-            final int index = i;
-            if (i < boughtSlots)
+            _game.load(viewer, tiers ->
             {
-                ItemStack stack = tier.getItems().get(i).clone();
-                ItemUtils.AddLore(stack, TextUtils.Color(" "), true);
-                ItemUtils.AddLore(stack, TextUtils.Color("&a&lCost: " + tier.getCosts().get(i) + " &4Challenge points"), true);
-                Button button = new Button(i, stack, inventoryClickEvent ->
-                {
-                    onBuyItem(tier, index);
-                });
-                buttons.add(button);
-                continue;
-            }
-
-            ItemStack stack = getEmptyButton(i, Material.PURPLE_STAINED_GLASS_PANE).getItemStack();
-            String displayName = TextUtils.Color("&c&lBuy " + tierName + " &9slot");
-            ItemUtils.SetDisplayName(stack, displayName);
-            ItemUtils.AddLore(stack, TextUtils.Color(" "), true);
-            ItemUtils.AddLore(stack, TextUtils.Color("&aCost: " + tier.getSlotPrice(nextSlot) + " &2$"), true);
-            Button button = new Button(i, stack);
-            button.setAction(inventoryClickEvent ->
-            {
-                IMenuButton thisButton = getButton(button.getUUID());
-                if (inventoryClickEvent.isLeftClick())
-                {
-                    ItemUtils.SetDisplayName(thisButton.getItemStack(), displayName + " &6&k#&r &e(Confirm by &bM2)");
-                    ItemUtils.AddGlow(thisButton.getItemStack());
-                    ItemUtils.SetTag(thisButton.getItemStack(), "buy");
-                    updateButton(thisButton);
-
-                }
-                if (inventoryClickEvent.isRightClick() && ItemUtils.HasTag(button.getItemStack(), "buy"))
-                {
-                    onBuySlot(tier, nextSlot);
-                }
+                _tiers = tiers;
+                refresh();
             });
-            buttons.add(button);
         }
-
-        GridButton gridButton = new GridButton(buttons, offset, columns, rows);
-        gridButton.setEmptyStack(ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.PURPLE_STAINED_GLASS_PANE)));
-        addGrid(gridButton);
-        gridButton.update();
     }
 
-    private void onBuyItem(ShopTier tier, int index)
+    @Override
+    protected void onClose(Viewer viewer)
     {
-        Player player = getPlayer();
-        UUID uuid = player.getUniqueId();
-        if (tier.hasBought(uuid) || index >= tier.getItems().size())
-        {
-            player.closeInventory();
-            return;
-        }
-
-        ItemStack item = tier.getItems().get(index).clone();
-        int cost = tier.getCosts().get(index);
-        if (!_managerChallengeShop.canDeliver(item))
-        {
-            player.sendMessage(TextUtils.Color("&cThis item can't be bought right now!"));
-            return;
-        }
-
-        // Marked before the points are taken, so the shop can't be reopened for a second purchase meanwhile
-        int generation = tier.getGeneration();
-        tier.setBought(uuid, true);
-        player.closeInventory();
-
-        ManagerPlayerPoints.getInstance().trySpendPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, cost, spent ->
-        {
-            if (!spent)
-            {
-                if (tier.getGeneration() == generation)
-                    tier.setBought(uuid, false);
-                player.sendMessage(TextUtils.Color("&cYou don't have enough points!"));
-                return;
-            }
-
-            _managerChallengeShop.saveState();
-            if (!player.isOnline())
-            {
-                ManagerPlayerPoints.getInstance().refundPointsAsync(player, POINT_TYPE.CHALLENGE_POINT, cost);
-                if (tier.getGeneration() == generation)
-                    tier.setBought(uuid, false);
-                _managerChallengeShop.saveState();
-                return;
-            }
-            _managerChallengeShop.onGiveItemStack(player, item);
-            player.sendMessage(TextUtils.Color("&9You bought an item(s) with &2" + cost + " &6challenge points!"));
-        });
+        _game.closed(viewer);
     }
 
-    private void onBuySlot(ShopTier tier, int slotNumber)
+    @Override
+    protected void render(Canvas canvas)
     {
-        Player player = getPlayer();
-        int price = tier.getSlotPrice(slotNumber);
-        if (!Manager_Vault.takeMoney(player, price))
+        canvas.fill(Icon.filler("black_stained_glass_pane"));
+        Icon special = Icon.of("blue_stained_glass_pane", "&6&lResets in &c&l" + _game.resetsIn(true));
+        canvas.set(1, special);
+        canvas.set(1 + 9 * 5, special);
+        Icon normal = Icon.of("blue_stained_glass_pane", "&9&lResets in &c&l" + _game.resetsIn(false));
+        for (int i = 0; i < CONSTANTS.NORMAL_SLOT_COLUMNS; i++)
         {
-            player.sendMessage(TextUtils.Color("&cYou don't have enough money!"));
+            canvas.set(NORMAL_START - 9 + i, normal);
+            canvas.set(NORMAL_START - 9 + 9 * 3 + i, normal);
+        }
+
+        if (_tiers != null)
+        {
+            for (ShopMenuGame.Tier tier : _tiers)
+                renderTier(canvas, tier);
+        }
+    }
+
+    private void renderTier(Canvas canvas, ShopMenuGame.Tier tier)
+    {
+        boolean special = tier.special();
+        if (tier.closed())
+        {
+            for (int i = 0; i < size(special); i++)
+                canvas.set(slot(special, i), Icon.filler("red_stained_glass_pane"));
             return;
         }
 
-        _managerChallengeShop.addSlotsToPlayerShopAsync(player, 1, tier);
-        player.closeInventory();
-        player.sendMessage(TextUtils.Color("&aYou bought a slot! &9Cost: &2" + price));
+        String tierName = special ? "&6Special" : "&2Normal";
+        for (int i = 0; i < size(special); i++)
+        {
+            int slot = slot(special, i);
+            int index = i;
+            if (i >= tier.items().size())
+                canvas.set(slot, Icon.filler("purple_stained_glass_pane"));
+            else if (i < tier.boughtSlots())
+            {
+                Icon item = tier.items().get(i).addLore(" ", "&a&lCost: " + tier.costs().get(i) + " &4Challenge points");
+                canvas.set(slot, item, click ->
+                {
+                    if (_game.buyItem(click.viewer(), special, index))
+                        click.close();
+                });
+            }
+            else
+            {
+                boolean armed = _armed.contains(slot);
+                String name = "&c&lBuy " + tierName + " &9slot" + (armed ? " &6&k#&r &e(Confirm by &bM2)" : "");
+                Icon forSale = Icon.of("purple_stained_glass_pane", name, " ", "&aCost: " + tier.slotPrice() + " &2$").glow(armed);
+                canvas.set(slot, forSale, click ->
+                {
+                    if (click.isLeft())
+                        _armed.add(slot);
+                    else if (click.isRight() && _armed.contains(slot) && _game.buySlot(click.viewer(), special, tier.nextSlot()))
+                        click.close();
+                });
+            }
+        }
+    }
+
+    /**
+     * Both sides as loaded, for tests.
+     */
+    List<ShopMenuGame.Tier> tiers()
+    {
+        return _tiers == null ? List.of() : new ArrayList<>(_tiers);
     }
 }

@@ -1,5 +1,6 @@
 package imu.waystones;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Events.FakeBlockBreakEvent;
 import imu.waystones.engine.Panel;
 import imu.waystones.engine.Visibility;
@@ -110,7 +111,7 @@ final class WaystoneListener implements Listener
             _plugin.send(player, "upgrades-applied");
             return;
         }
-        new WaystoneMenu(_plugin, ws).open(player);
+        PaperMenus.open(player, new WaystoneMenu(_plugin.menuGame(), ws));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

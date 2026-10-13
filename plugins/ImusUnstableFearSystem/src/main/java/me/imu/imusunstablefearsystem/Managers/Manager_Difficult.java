@@ -1,5 +1,7 @@
 package me.imu.imusunstablefearsystem.Managers;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
+import imu.iAPI.Menus.Viewer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -120,7 +122,20 @@ public class Manager_Difficult implements Listener
 				@Override
 				public void run()
 				{
-					new Inv_SelectDifficulty().open(player);
+					PaperMenus.open(player, new Inv_SelectDifficulty(new Inv_SelectDifficulty.Choice()
+					{
+						@Override
+						public void choose(Viewer viewer, DIFFICULT difficult)
+						{
+							setPlayerDifficulty(viewer.id(), difficult, new Date());
+						}
+
+						@Override
+						public void closed(Viewer viewer)
+						{
+							restorePortal(viewer.id());
+						}
+					}));
 				}
 			}.runTaskLater(_main, 15);
 			

@@ -1,145 +1,76 @@
 package me.imu.imusenchants.Inventories;
 
-import imu.iAPI.Utilities.TextUtils;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.ItemUtils;
-import me.imu.imusenchants.CustomEnchants.CustomEnchant;
-import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
-import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
-import me.imu.imusenchants.CustomEnchants.EnchantSettings;
-import me.imu.imusenchants.ImusEnchants;
-import me.imu.imusenchants.Items.SlotCore;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import imu.iAPI.Config.ConfigEntriesMenu;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.ClickKind;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Pager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // /ien admin: switch vanilla and custom enchants on or off for the whole server,
 // middle click an enchant to get its book, and take Slot Cores
-public class InventoryEnchantAdmin extends CustomInventory
+public class InventoryEnchantAdmin extends Menu
 {
 	private enum Tab { VANILLA, CUSTOM }
 
-	private static final int SLOT_TAB_VANILLA = 3;
-	private static final int SLOT_TAB_CUSTOM = 5;
-	private static final int SLOT_CORE = 8;
-	private static final int SLOT_SETTINGS = 0;
-	private static final int FIRST_ENTRY_SLOT = 9;
-	private static final int ENTRIES_PER_PAGE = 36;
-	private static final int SLOT_PREVIOUS = 45;
-	private static final int SLOT_ENABLE_ALL = 48;
-	private static final int SLOT_CLOSE = 49;
-	private static final int SLOT_DISABLE_ALL = 50;
-	private static final int SLOT_NEXT = 53;
+	static final int SLOT_TAB_VANILLA = 3;
+	static final int SLOT_TAB_CUSTOM = 5;
+	static final int SLOT_CORE = 8;
+	static final int SLOT_SETTINGS = 0;
+	static final int SLOT_PREVIOUS = 45;
+	static final int SLOT_ENABLE_ALL = 48;
+	static final int SLOT_CLOSE = 49;
+	static final int SLOT_DISABLE_ALL = 50;
+	static final int SLOT_NEXT = 53;
 
+	private final EnchantAdminGame _game;
+	private final Pager<EnchantAdminGame.Entry> _pager = Pager.<EnchantAdminGame.Entry>rows(1, 4)
+			.arrows(Icon.of("arrow", "&ePrevious page"), Icon.of("arrow", "&eNext page"));
 	private Tab _tab = Tab.VANILLA;
-	private int _page = 0;
 
-	public InventoryEnchantAdmin()
+	public InventoryEnchantAdmin(EnchantAdminGame game)
 	{
-		super(ImusEnchants.Instance, "&0Enchant Admin", 6 * 9);
+		super("&0Enchant Admin", 6);
+		_game = game;
 	}
 
 	@Override
-	public INVENTORY_AREA setInventoryLock()
+	protected void render(Canvas canvas)
 	{
-		return INVENTORY_AREA.UPPER_INV;
+		canvas.fill(Icon.filler("black_stained_glass_pane"));
+
+		canvas.set(SLOT_TAB_VANILLA, TabIcon(Tab.VANILLA), click -> SwitchTab(Tab.VANILLA));
+		canvas.set(SLOT_TAB_CUSTOM, TabIcon(Tab.CUSTOM), click -> SwitchTab(Tab.CUSTOM));
+		canvas.set(SLOT_CORE, _game.coreIcon().addLore("&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", "&eClick &8» &f1 core", "&eShift-click &8» &f64 cores"),
+				click -> _game.giveCores(click.viewer(), click.isShift() ? 64 : 1));
+		if (_game.settings() != null)
+			canvas.set(SLOT_SETTINGS, Icon.of("comparator", "&bSettings"), click -> click.open(new ConfigEntriesMenu(_game.settings())));
+
+		_pager.render(canvas, Entries(), entry -> Button.of(EntryIcon(entry), click -> ClickEntry(click, entry)), SLOT_PREVIOUS, SLOT_NEXT);
+
+		canvas.set(SLOT_ENABLE_ALL, Icon.of("lime_dye", "&aEnable all on this tab"), click -> SetAll(click, true));
+		canvas.set(SLOT_DISABLE_ALL, Icon.of("gray_dye", "&cDisable all on this tab"), click -> SetAll(click, false));
+		canvas.set(SLOT_CLOSE, Icon.of("barrier", "&cClose"), Click::close);
 	}
 
-	@Override
-	public void onAwake()
+	private List<EnchantAdminGame.Entry> Entries()
 	{
+		return _tab == Tab.VANILLA ? _game.vanilla() : _game.custom();
 	}
 
-	@Override
-	public void onOpen()
+	private void ClickEntry(Click click, EnchantAdminGame.Entry entry)
 	{
-		super.onOpen();
-		Render();
-	}
-
-	private void Render()
-	{
-		clearButtons();
-
-		ItemStack background = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-		ItemUtils.SetDisplayNameEmpty(background);
-		for (int i = 0; i < getSize(); i++)
-			addButton(new Button(i, background.clone()));
-
-		addButton(new Button(SLOT_TAB_VANILLA, TabItem(Tab.VANILLA), e -> SwitchTab(Tab.VANILLA)));
-		addButton(new Button(SLOT_TAB_CUSTOM, TabItem(Tab.CUSTOM), e -> SwitchTab(Tab.CUSTOM)));
-		addButton(new Button(SLOT_CORE, CoreItem(), e -> Give(SlotCore.Create(e.isShiftClick() ? 64 : 1))));
-		addButton(new Button(SLOT_SETTINGS, Named(Material.COMPARATOR, "&bSettings"),
-				e -> ImusEnchants.Instance.GetSettingsMenu().open(getPlayer())));
-
-		int count = _tab == Tab.VANILLA ? EnchantSettings.GetAllVanilla().size() : CustomEnchantRegistry.GetAll().size();
-		int pages = Math.max(1, (count + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE);
-		_page = Math.max(0, Math.min(_page, pages - 1));
-
-		if (_tab == Tab.VANILLA)
-			RenderVanilla();
-		else
-			RenderCustom();
-
-		if (_page > 0)
-			addButton(new Button(SLOT_PREVIOUS, Named(Material.ARROW, "&ePrevious page"), e -> { _page--; Render(); }));
-		if (_page < pages - 1)
-			addButton(new Button(SLOT_NEXT, Named(Material.ARROW, "&eNext page"), e -> { _page++; Render(); }));
-
-		addButton(new Button(SLOT_ENABLE_ALL, Named(Material.LIME_DYE, "&aEnable all on this tab"), e -> SetAll(true)));
-		addButton(new Button(SLOT_DISABLE_ALL, Named(Material.GRAY_DYE, "&cDisable all on this tab"), e -> SetAll(false)));
-		addButton(new Button(SLOT_CLOSE, Named(Material.BARRIER, "&cClose"), e -> getPlayer().closeInventory()));
-
-		updateButtons(true);
-	}
-
-	private void RenderVanilla()
-	{
-		List<Enchantment> all = EnchantSettings.GetAllVanilla();
-		int start = _page * ENTRIES_PER_PAGE;
-		for (int i = start; i < Math.min(all.size(), start + ENTRIES_PER_PAGE); i++)
+		if (IsMiddleClick(click))
 		{
-			Enchantment enchant = all.get(i);
-			addButton(new Button(FIRST_ENTRY_SLOT + i - start, VanillaItem(enchant), e ->
-			{
-				if (IsMiddleClick(e))
-				{
-					Give(VanillaBook(enchant));
-					return;
-				}
-				EnchantSettings.SetEnabled(enchant, !EnchantSettings.IsEnabled(enchant));
-				Render();
-			}));
+			_game.giveBook(click.viewer(), entry.key());
+			return;
 		}
-	}
-
-	private void RenderCustom()
-	{
-		List<CustomEnchant> all = new ArrayList<>(CustomEnchantRegistry.GetAll());
-		int start = _page * ENTRIES_PER_PAGE;
-		for (int i = start; i < Math.min(all.size(), start + ENTRIES_PER_PAGE); i++)
-		{
-			CustomEnchant enchant = all.get(i);
-			addButton(new Button(FIRST_ENTRY_SLOT + i - start, CustomItem(enchant), e ->
-			{
-				if (IsMiddleClick(e))
-				{
-					Give(CustomEnchantBook.Create(enchant, enchant.GetMaxLevel()));
-					return;
-				}
-				EnchantSettings.SetEnabled(enchant, !EnchantSettings.IsEnabled(enchant));
-				Render();
-			}));
-		}
+		_game.setEnabled(entry.key(), !_game.isEnabled(entry.key()));
 	}
 
 	private void SwitchTab(Tab tab)
@@ -148,125 +79,42 @@ public class InventoryEnchantAdmin extends CustomInventory
 			return;
 
 		_tab = tab;
-		_page = 0;
-		Render();
+		_pager.setPage(0);
 	}
 
-	private void SetAll(boolean enabled)
+	private void SetAll(Click click, boolean enabled)
 	{
-		if (_tab == Tab.VANILLA)
-		{
-			for (Enchantment enchant : EnchantSettings.GetAllVanilla())
-				EnchantSettings.SetEnabled(enchant, enabled);
-		}
-		else
-		{
-			for (CustomEnchant enchant : CustomEnchantRegistry.GetAll())
-				EnchantSettings.SetEnabled(enchant, enabled);
-		}
+		for (EnchantAdminGame.Entry entry : Entries())
+			_game.setEnabled(entry.key(), enabled);
 
-		getPlayer().sendMessage(TextUtils.Color((enabled ? "&aEnabled" : "&cDisabled") + " &7all "
-				+ (_tab == Tab.VANILLA ? "vanilla" : "custom") + " enchants"));
-		Render();
+		click.message((enabled ? "&aEnabled" : "&cDisabled") + " &7all " + (_tab == Tab.VANILLA ? "vanilla" : "custom") + " enchants");
 	}
 
-	// ClickType.MIDDLE in survival and creative; creative players have no middle click in
+	// Middle click in survival and creative; creative players have no middle click in
 	// menus without a pick-block key, so shift + right click works as well
-	private static boolean IsMiddleClick(InventoryClickEvent e)
+	private static boolean IsMiddleClick(Click click)
 	{
-		return e.getClick() == ClickType.MIDDLE || e.getClick() == ClickType.SHIFT_RIGHT;
+		return click.kind() == ClickKind.MIDDLE || click.kind() == ClickKind.SHIFT_RIGHT;
 	}
 
-	private void Give(ItemStack stack)
-	{
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), stack);
-	}
-
-	private static ItemStack VanillaBook(Enchantment enchant)
-	{
-		ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
-		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-		meta.addStoredEnchant(enchant, enchant.getMaxLevel(), true);
-		book.setItemMeta(meta);
-		return book;
-	}
-
-	private static ItemStack CoreItem()
-	{
-		ItemStack stack = SlotCore.Create(1);
-		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
-		ItemUtils.AddLore(stack, "&eClick &8» &f1 core", true);
-		ItemUtils.AddLore(stack, "&eShift-click &8» &f64 cores", true);
-		return stack;
-	}
-
-	private ItemStack TabItem(Tab tab)
+	private Icon TabIcon(Tab tab)
 	{
 		boolean selected = _tab == tab;
-		ItemStack stack = new ItemStack(tab == Tab.VANILLA ? Material.ENCHANTING_TABLE : Material.AMETHYST_SHARD);
-		ItemUtils.SetDisplayName(stack, (selected ? "&a&l" : "&7") + (tab == Tab.VANILLA ? "Vanilla Enchants" : "Custom Enchants"));
-		ItemUtils.AddLore(stack, selected ? "&aSelected" : "&eClick to open", true);
-		if (selected)
-			ItemUtils.AddGlow(stack);
-		return stack;
+		String name = (selected ? "&a&l" : "&7") + (tab == Tab.VANILLA ? "Vanilla Enchants" : "Custom Enchants");
+		return Icon.of(tab == Tab.VANILLA ? "enchanting_table" : "amethyst_shard", name, selected ? "&aSelected" : "&eClick to open")
+				.glow(selected);
 	}
 
-	private static ItemStack VanillaItem(Enchantment enchant)
+	private Icon EntryIcon(EnchantAdminGame.Entry entry)
 	{
-		boolean enabled = EnchantSettings.IsEnabled(enchant);
-		ItemStack stack = new ItemStack(enabled ? Material.ENCHANTED_BOOK : Material.GRAY_DYE);
-		if (enabled)
-		{
-			EnchantmentStorageMeta meta = (EnchantmentStorageMeta) stack.getItemMeta();
-			meta.addStoredEnchant(enchant, enchant.getMaxLevel(), true);
-			stack.setItemMeta(meta);
-		}
-
-		ItemUtils.SetDisplayName(stack, (enabled ? "&e" : "&7") + PrettyName(enchant));
-		ItemUtils.AddLore(stack, "&7Max level: &f" + CustomEnchant.ToRoman(enchant.getMaxLevel()), true);
-		AddStatusLore(stack, enabled);
-		return stack;
-	}
-
-	private static ItemStack CustomItem(CustomEnchant enchant)
-	{
-		boolean enabled = EnchantSettings.IsEnabled(enchant);
-		ItemStack stack = new ItemStack(enabled ? Material.ENCHANTED_BOOK : Material.GRAY_DYE);
-		ItemUtils.SetDisplayName(stack, (enabled ? (enchant.IsCurse() ? "&c" : "&d") : "&7") + enchant.GetName());
-		ItemUtils.AddLore(stack, "&7" + enchant.GetDescription(enchant.GetMaxLevel()), true);
-		ItemUtils.AddLore(stack, "&7Max level: &f" + CustomEnchant.ToRoman(enchant.GetMaxLevel()), true);
-		ItemUtils.AddLore(stack, "&7For: &f" + enchant.GetAppliesToText(), true);
-		if (enchant.IsCurse())
-			ItemUtils.AddLore(stack, "&4Curse", true);
-		AddStatusLore(stack, enabled);
-		return stack;
-	}
-
-	private static void AddStatusLore(ItemStack stack, boolean enabled)
-	{
-		ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
-		ItemUtils.AddLore(stack, enabled ? "&a&lENABLED" : "&c&lDISABLED", true);
-		ItemUtils.AddLore(stack, "&eClick &8» &f" + (enabled ? "disable" : "enable"), true);
-		ItemUtils.AddLore(stack, "&bMiddle-click &8» &fget book", true);
-		ItemUtils.AddLore(stack, "&bShift + right-click &8» &fget book", true);
-	}
-
-	private static ItemStack Named(Material material, String name)
-	{
-		ItemStack stack = new ItemStack(material);
-		ItemUtils.SetDisplayName(stack, name);
-		return stack;
-	}
-
-	private static String PrettyName(Enchantment enchant)
-	{
-		StringBuilder sb = new StringBuilder();
-		for (String word : enchant.getKey().getKey().split("_"))
-		{
-			if (sb.length() > 0)
-				sb.append(' ');
-			sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-		}
-		return sb.toString();
+		boolean enabled = _game.isEnabled(entry.key());
+		List<String> lore = new ArrayList<>(entry.details());
+		lore.add("&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+		lore.add(enabled ? "&a&lENABLED" : "&c&lDISABLED");
+		lore.add("&eClick &8» &f" + (enabled ? "disable" : "enable"));
+		lore.add("&bMiddle-click &8» &fget book");
+		lore.add("&bShift + right-click &8» &fget book");
+		Icon icon = enabled ? entry.book() : Icon.of("gray_dye");
+		return icon.name((enabled ? entry.color() : "&7") + entry.name()).lore(lore.toArray(String[]::new));
 	}
 }

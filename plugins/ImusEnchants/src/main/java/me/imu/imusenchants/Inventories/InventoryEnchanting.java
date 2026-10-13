@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Inventories;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Buttons.Button;
@@ -625,7 +626,9 @@ public class InventoryEnchanting extends CustomInventory
         // System.out.println("Open new inv");
         handdleDropTouches();
         clearTouches();
-        openPage(new InventoryBuyEnchants());
+        // The shop is a menu of the new kind; its back button opens a fresh table
+        Bukkit.getScheduler().runTask(ImusEnchants.Instance, () ->
+                PaperMenus.open(getPlayer(), new InventoryBuyEnchants(new PaperEnchantShopGame())));
     }
 
     private void updateEnchantedItem(boolean applyEnchants)

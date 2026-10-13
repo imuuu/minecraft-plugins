@@ -29,6 +29,7 @@ public class ImusWaystones extends JavaPlugin
     private Waystones _waystones;
     private Holograms _holograms;
     private Teleports _teleports;
+    private final WaystoneGame _menuGame = new PaperWaystoneGame(this);
     private WaystoneCommands _commands;
     private Structure _structure;
     private Rules _rules;
@@ -162,6 +163,14 @@ public class ImusWaystones extends JavaPlugin
     Teleports teleports()
     {
         return _teleports;
+    }
+
+    /**
+     * What the menus use of the server.
+     */
+    WaystoneGame menuGame()
+    {
+        return _menuGame;
     }
 
     WaystoneCommands commands()

@@ -1,509 +1,173 @@
 package me.imu.imusenchants.Inventories;
 
-import imu.iAPI.Utilities.TextUtils;
-import imu.iAPI.Buttons.Button;
 import imu.iAPI.Enums.ENCHANTMENT_TIER;
-import imu.iAPI.Enums.INVENTORY_AREA;
 import imu.iAPI.Enums.ITEM_CATEGORY;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Other.XpUtil;
-import imu.iAPI.Utilities.EnchantUtil;
-import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.ItemUtils;
-
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Viewer;
 import me.imu.imusenchants.CONSTANTS;
-import me.imu.imusenchants.CustomEnchants.CustomEnchant;
-import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
-import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
-import me.imu.imusenchants.CustomEnchants.EnchantSettings;
-import me.imu.imusenchants.Enchants.NodeBooster;
-import me.imu.imusenchants.ImusEnchants;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-public class InventoryBuyEnchants extends CustomInventory
+/**
+ * The enchanting table's shop: enchanted books ("more like tools" or "more like armor") and boosters in three
+ * tiers each, paid with levels.
+ */
+public class InventoryBuyEnchants extends Menu
 {
-	private final ItemStack EMPTY_BLACK_SLOT;
-	private static final Random _random = new Random();
-	private final Set<Enchantment> _excludedEnchants = new HashSet<>();
-	public InventoryBuyEnchants()
-	{
-		super(ImusEnchants.Instance, "&3Buy &eEnchants", 6*9);
-		EMPTY_BLACK_SLOT = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-		ItemUtils.SetDisplayNameEmpty(EMPTY_BLACK_SLOT);
-		initExcludedEnchants();
-	}
-	
-	@Override
-	public INVENTORY_AREA setInventoryLock()
-	{
-		return null;
-	}
+	static final int TOOLS = 2;
+	static final int ARMOR = 6;
+	static final int BOOSTERS = 4;
+	static final int BACK = 45;
 
+	private final EnchantShopGame _game;
 
-	@Override
-	public void onAwake()
+	public InventoryBuyEnchants(EnchantShopGame game)
 	{
-
+		super("&3Buy &eEnchants", 6);
+		_game = game;
 	}
 
 	@Override
-	public void onOpen()
+	protected void render(Canvas canvas)
 	{
-		super.onOpen();
-		initButtons();
-		
-	}
-	
-	private void clearTable()
-	{
-		for(int i = 0; i < getSize(); i++)
+		canvas.fill(Icon.filler("black_stained_glass_pane"));
+		canvas.set(BACK, Icon.of("red_stained_glass_pane", "&bGo Back"), this::Back);
+
+		ENCHANTMENT_TIER[] tiers = { ENCHANTMENT_TIER.TIER_1, ENCHANTMENT_TIER.TIER_2, ENCHANTMENT_TIER.TIER_3 };
+		for (int row = 0; row < 3; row++)
 		{
-			Button button = new Button(i, EMPTY_BLACK_SLOT);
-			addButton(button);
+			ENCHANTMENT_TIER tier = tiers[row];
+			canvas.set(TOOLS + row * 9, BookIcon("More like Tools", tier), click -> BuyMoreLikeTool(click.viewer(), tier));
+			canvas.set(ARMOR + row * 9, BookIcon("More like Armor", tier), click -> BuyMoreLikeArmor(click.viewer(), tier));
+			canvas.set(BOOSTERS + row * 9, BoosterIcon(tier), click -> BuyBooster(click.viewer(), tier));
 		}
 	}
 
-
-
-	private void initExcludedEnchants()
+	private void Back(Click click)
 	{
-		_excludedEnchants.clear();
-		if(CONSTANTS.ENABLE_MENDING_FOUND_ONLY_END)
+		if (click.session().canGoBack())
 		{
-			_excludedEnchants.add(Enchantment.MENDING);
+			click.back();
+			return;
 		}
-
-		_excludedEnchants.add(Enchantment.VANISHING_CURSE);
-		_excludedEnchants.add(Enchantment.BINDING_CURSE);
-		_excludedEnchants.addAll(EnchantSettings.GetDisabledVanilla());
+		click.close();
+		_game.openTable(click.viewer());
 	}
-	
-	private void initButtons()
+
+	private static Icon BookIcon(String kind, ENCHANTMENT_TIER tier)
 	{
-		ItemStack stack; 
-		
-		clearTable();
-		
-		addDefaultBackButton(getSize()-9);
-		final String color1 = "&e";
-		final String color2 = "&b";
-		
-		final String[] tier1_enchant_desc = new String[] 
+		String[] lore = switch (tier)
 		{
-			"&3Guaranteed &eTier &91 &3Enchant",
-			"&9Low &3chance to &eTier &d2",
-			"&3Buyable at &2"+ CONSTANTS.CAP_FIRST_1_ENCHANTS+"L",
-			"&3Small chance for a &dCustom Enchant"
+			case TIER_1 -> new String[] { "&3Guaranteed &eTier &91 &3Enchant", "&9Low &3chance to &eTier &d2",
+					"&3Buyable at &2" + CONSTANTS.CAP_FIRST_1_ENCHANTS + "L", "&3Small chance for a &dCustom Enchant" };
+			case TIER_2 -> new String[] { "&3Guaranteed &eTier &91 &3Enchant", "&6High &3chance to &eTier &d2",
+					"&3Buyable at &2" + CONSTANTS.CAP_FIRST_2_ENCHANTS + "L", "&3Small chance for a &dCustom Enchant" };
+			default -> new String[] { "&3Guaranteed &eTier &d2 &3Enchant", "&6High &3chance to &eTier &63",
+					"&3Buyable at &2" + CONSTANTS.CAP_FIRST_3_ENCHANTS + "L", "&3Small chance for a &dCustom Enchant" };
 		};
-		
-		final String[] tier2_enchant_desc = new String[] 
-		{
-			"&3Guaranteed &eTier &91 &3Enchant",
-			"&6High &3chance to &eTier &d2",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_2_ENCHANTS+"L",
-			"&3Small chance for a &dCustom Enchant"
-		};
-		
-		final String[] tier3_enchant_desc = new String[] 
-		{
-			"&3Guaranteed &eTier &d2 &3Enchant",
-			"&6High &3chance to &eTier &63",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_3_ENCHANTS+"L",
-			"&3Small chance for a &dCustom Enchant"
-		};
-		
-		final String[] tier1_booster_desc = new String[] 
-		{
-			"&3Guaranteed &6Booster",
-			"&3Booster has &5one &3power direcion",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_1_BOOSTER+"L",
-			"&cCost &2"+CONSTANTS.COST_FIRST_1_BOOSTER+"L"
-		};
-		
-		final String[] tier2_booster_desc = new String[] 
-		{
-			"&3Guaranteed &6Booster",
-			"&3Booster has &5two &3or &5more &3power direcion",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_2_BOOSTER+"L",
-			"&cCost &2"+CONSTANTS.COST_FIRST_2_BOOSTER+"L"
-		};
-		
-		final String[] tier3_booster_desc = new String[] 
-		{
-			"&3Guaranteed &6Booster",
-			"&3Booster has &5four &3power direcion",
-			"&3Buyable at &2"+CONSTANTS.CAP_FIRST_3_BOOSTER+"L",
-			"&cCost &2"+CONSTANTS.COST_FIRST_3_BOOSTER+"L"
-		};
-		
-		//===============================================================
-		Button button;
-		//>>> COLUMN 1
-		int _xOffset = 2;
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Tools"+color1+")");
-		ItemUtils.AddLore(stack, tier1_enchant_desc);
-		button = new Button(_xOffset + 0, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyTool(ENCHANTMENT_TIER.TIER_1);
-			buttonBuyMoreLikeTool(ENCHANTMENT_TIER.TIER_1);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Tools"+color1+")");
-		ItemUtils.AddLore(stack, tier2_enchant_desc);
-		button = new Button(_xOffset + 9, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyTool(ENCHANTMENT_TIER.TIER_2);
-			buttonBuyMoreLikeTool(ENCHANTMENT_TIER.TIER_2);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Tools"+color1+")");
-		ItemUtils.AddLore(stack, tier3_enchant_desc);
-		button = new Button(_xOffset + 9+9, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyTool(ENCHANTMENT_TIER.TIER_3);
-			buttonBuyMoreLikeTool(ENCHANTMENT_TIER.TIER_3);
-
-	    });
-		addButton(button);
-		//<<< COLUMN 1
-		
-		//===============================================================
-		
-		//>>> COLUMN 2
-		/*stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"Combat"+color1+")");
-		ItemUtils.AddLore(stack, tier1_enchant_desc);
-		button = new Button(_xOffset + 2, stack, inventoryClickEvent ->
-		{
-			ButtonBuyWeapon(ENCHANTMENT_TIER.TIER_1);
-	    });
-		AddButton(button);
-
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"Combat"+color1+")");
-		ItemUtils.AddLore(stack, tier2_enchant_desc);
-		button = new Button(_xOffset + 2+9, stack, inventoryClickEvent ->
-		{
-			ButtonBuyWeapon(ENCHANTMENT_TIER.TIER_2);
-	    });
-		AddButton(button);
-
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"Combat"+color1+")");
-		ItemUtils.AddLore(stack, tier3_enchant_desc);
-		button = new Button(_xOffset + 2+9+9, stack, inventoryClickEvent ->
-		{
-			ButtonBuyWeapon(ENCHANTMENT_TIER.TIER_3);
-	    });
-		AddButton(button);*/
-		//<<< COLUMN 2
-		
-		//===============================================================
-		
-		//>>> COLUMN 3
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Armor"+color1+")");
-		ItemUtils.AddLore(stack, tier1_enchant_desc);
-		button = new Button(_xOffset + 4, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyArmor(ENCHANTMENT_TIER.TIER_1);
-			buttonBuyMoreLikeArmor(ENCHANTMENT_TIER.TIER_1);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Armor"+color1+")");
-		ItemUtils.AddLore(stack, tier2_enchant_desc);
-		button = new Button(_xOffset + 4+9, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyArmor(ENCHANTMENT_TIER.TIER_2);
-			buttonBuyMoreLikeArmor(ENCHANTMENT_TIER.TIER_2);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"More like Armor"+color1+")");
-		ItemUtils.AddLore(stack, tier3_enchant_desc);
-		button = new Button(_xOffset + 4+9+9, stack, inventoryClickEvent ->
-		{
-			//ButtonBuyArmor(ENCHANTMENT_TIER.TIER_3);
-			buttonBuyMoreLikeArmor(ENCHANTMENT_TIER.TIER_3);
-	    });
-		addButton(button);
-		//<<< COLUMN 3
-		
-		//===============================================================
-		
-		//>>> COLUMN 4
-//		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-//		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"All"+color1+")");
-//		//ItemUtils.AddLore(stack, tier1_desc);
-//		button = new Button(6, stack, inventoryClickEvent -> 
-//		{
-//			ButtonBuyAll(ENCHANTMENT_TIER.TIER_1);
-//	    });
-//		AddButton(button);
-//		
-//		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-//		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"All"+color1+")");
-//		//ItemUtils.AddLore(stack, tier1_desc);
-//		button = new Button(6+9, stack, inventoryClickEvent -> 
-//		{
-//			ButtonBuyAll(ENCHANTMENT_TIER.TIER_2);
-//	    });
-//		AddButton(button);
-//		
-//		stack = new ItemStack(CONSTANTS.ENCHANT_MATERIAL);
-//		ItemUtils.SetDisplayName(stack, color1+"Buy Enchant ("+color2+"All"+color1+")");
-//		//ItemUtils.AddLore(stack, tier1_desc);
-//		button = new Button(6+9+9, stack, inventoryClickEvent -> 
-//		{
-//			ButtonBuyAll(ENCHANTMENT_TIER.TIER_3);
-//	    });
-//		AddButton(button);
-		//<<< COLUMN 4
-		
-		//===============================================================
-		
-		//>>> COLUMN 5
-
-		_xOffset = 4;
-		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-		ItemUtils.AddGlow(stack);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
-		ItemUtils.SetLores(stack, tier1_booster_desc, false);
-		button = new Button(_xOffset, stack, inventoryClickEvent ->
-		{
-			buttonBuyBooster(ENCHANTMENT_TIER.TIER_1);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-		ItemUtils.AddGlow(stack);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
-		ItemUtils.SetLores(stack, tier2_booster_desc, false);
-		button = new Button(_xOffset+9, stack, inventoryClickEvent ->
-		{
-			buttonBuyBooster(ENCHANTMENT_TIER.TIER_2);
-	    });
-		addButton(button);
-		
-		stack = new ItemStack(CONSTANTS.BOOSTER_MATERIAL);
-		ItemUtils.HideFlag(stack, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-		ItemUtils.AddGlow(stack);
-		ItemUtils.SetDisplayName(stack, color1+"Buy Booster");
-		ItemUtils.SetLores(stack, tier3_booster_desc, false);
-		button = new Button(_xOffset+9+9, stack, inventoryClickEvent ->
-		{
-			buttonBuyBooster(ENCHANTMENT_TIER.TIER_3);
-	    });
-		addButton(button);
-		//<<< COLUMN 5
-		
-		
-		updateButtons(true);
+		return Icon.of(CONSTANTS.ENCHANT_MATERIAL.name(), "&eBuy Enchant (&b" + kind + "&e)", lore);
 	}
-	
-	private void buttonBuyBooster(ENCHANTMENT_TIER bookTier)
+
+	private static Icon BoosterIcon(ENCHANTMENT_TIER tier)
 	{
-		if(!playerHasEnoughLevelsBooster(bookTier)) return;
-
-		reducePlayerLevel(CONSTANTS.GetCostBooster(bookTier));
-
-		NodeBooster booster = null;
-		
-		switch(bookTier)
+		String directions = switch (tier)
 		{
-		case TIER_1: booster = new NodeBooster(1,1);
-			break;
-		case TIER_2: booster = new NodeBooster(1,2 + _random.nextInt(3));
-			break;
-		case TIER_3: booster = new NodeBooster(1,4);
-			break;
-		default:
-			break;
-		
-		}
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), booster.GetItemStack());
+			case TIER_1 -> "&5one";
+			case TIER_2 -> "&5two &3or &5more";
+			default -> "&5four";
+		};
+		return Icon.of(CONSTANTS.BOOSTER_MATERIAL.name(), "&eBuy Booster", "&3Guaranteed &6Booster",
+				"&3Booster has " + directions + " &3power direcion",
+				"&3Buyable at &2" + BoosterCap(tier) + "L",
+				"&cCost &2" + CONSTANTS.GetCostBooster(tier) + "L").glow(true);
 	}
 
-	private void reducePlayerLevel(int reduce)
+	private static int BoosterCap(ENCHANTMENT_TIER tier)
+	{
+		return switch (tier)
+		{
+			case TIER_1 -> CONSTANTS.CAP_FIRST_1_BOOSTER;
+			case TIER_2 -> CONSTANTS.CAP_FIRST_2_BOOSTER;
+			default -> CONSTANTS.CAP_FIRST_3_BOOSTER;
+		};
+	}
+
+	private void BuyBooster(Viewer viewer, ENCHANTMENT_TIER tier)
+	{
+		if (!HasLevels(viewer, Math.max(BoosterCap(tier), CONSTANTS.GetCostBooster(tier))))
+			return;
+
+		TakeLevels(viewer, CONSTANTS.GetCostBooster(tier));
+		int directions = switch (tier)
+		{
+			case TIER_1 -> 1;
+			case TIER_2 -> 2 + (int) (_game.roll() * 3);
+			default -> 4;
+		};
+		_game.giveBooster(viewer, directions);
+	}
+
+	private boolean HasLevels(Viewer viewer, int required)
+	{
+		if (_game.isCreative(viewer))
+			return true;
+		if (_game.level(viewer) >= required)
+			return true;
+		viewer.message("&7Not Enough Levels");
+		return false;
+	}
+
+	private void TakeLevels(Viewer viewer, int levels)
 	{
 		// Creative players skip the level check, so this can be more than they have
-		XpUtil.SetPlayerLevel(getPlayer(), Math.max(0, getPlayer().getLevel() - reduce));
+		_game.setLevel(viewer, Math.max(0, _game.level(viewer) - levels));
 	}
-	
-	private boolean playerHasEnoughLevelsEnchant(ENCHANTMENT_TIER tier)
+
+	private ENCHANTMENT_TIER EnchantTier(ENCHANTMENT_TIER bookTier)
 	{
-		if(getPlayer().getGameMode() == GameMode.CREATIVE) return true;
-		
-	    // The cost can be set above the level requirement in config.yml; never charge more than the player has
-	    int requiredLevel = Math.max(CONSTANTS.GetCapEnchant(tier), CONSTANTS.GetCostEnchant(tier));
-	    
-	    boolean hasEnough = getPlayer().getLevel() >= requiredLevel;
-	    
-	    if(!hasEnough)
-	    {
-	    	getPlayer().sendMessage(TextUtils.Color("&7Not Enough Levels"));
-	    }
-	    return hasEnough;
-	}
-	
-	private boolean playerHasEnoughLevelsBooster(ENCHANTMENT_TIER tier)
-	{
-		if(getPlayer().getGameMode() == GameMode.CREATIVE) return true;
-		
-	    int requiredLevel = CONSTANTS.CAP_FIRST_1_BOOSTER;
-	    switch (tier)
+		return switch (bookTier)
 		{
-			case TIER_1: requiredLevel = CONSTANTS.CAP_FIRST_1_BOOSTER;
-				break;
-			case TIER_2: requiredLevel = CONSTANTS.CAP_FIRST_2_BOOSTER;
-				break;
-			case TIER_3: requiredLevel = CONSTANTS.CAP_FIRST_3_BOOSTER;
-				break;
-		}
-	    requiredLevel = Math.max(requiredLevel, CONSTANTS.GetCostBooster(tier));
-
-	    boolean hasEnough = getPlayer().getLevel() >= requiredLevel;
-	    
-	    if(!hasEnough)
-	    {
-	    	getPlayer().sendMessage(TextUtils.Color("&7Not Enough Levels"));
-	    }
-	    return hasEnough;
-	}
-	
-	
-	private ENCHANTMENT_TIER getEnchantTier(ENCHANTMENT_TIER bookTier)
-	{
-	    switch (bookTier) {
-	        case TIER_1:
-	            return (rollChance(CONSTANTS.NORMAL_CHANCE_1_TO_BE_TIER_2)) ? ENCHANTMENT_TIER.TIER_2 : ENCHANTMENT_TIER.TIER_1;
-	        
-	        case TIER_2:
-	            return (rollChance(CONSTANTS.HIGH_CHANCE_1_TO_BE_TIER_2)) ? ENCHANTMENT_TIER.TIER_2 : ENCHANTMENT_TIER.TIER_1;
-	        case TIER_3:
-	            return (rollChance(CONSTANTS.HIGH_CHANCE_2_TO_BE_TIER_3)) ? ENCHANTMENT_TIER.TIER_3 : ENCHANTMENT_TIER.TIER_2;
-
-	        default:
-	            return bookTier;
-	    }
+			case TIER_1 -> RollChance(CONSTANTS.NORMAL_CHANCE_1_TO_BE_TIER_2) ? ENCHANTMENT_TIER.TIER_2 : ENCHANTMENT_TIER.TIER_1;
+			case TIER_2 -> RollChance(CONSTANTS.HIGH_CHANCE_1_TO_BE_TIER_2) ? ENCHANTMENT_TIER.TIER_2 : ENCHANTMENT_TIER.TIER_1;
+			case TIER_3 -> RollChance(CONSTANTS.HIGH_CHANCE_2_TO_BE_TIER_3) ? ENCHANTMENT_TIER.TIER_3 : ENCHANTMENT_TIER.TIER_2;
+			default -> bookTier;
+		};
 	}
 
-	private boolean rollChance(double chance)
+	private boolean RollChance(double chance)
 	{
-		return _random.nextDouble() < chance;
+		return _game.roll() < chance;
 	}
 
-
-	private void buttonBuyMoreLikeTool(ENCHANTMENT_TIER bookTier)
+	private void BuyMoreLikeTool(Viewer viewer, ENCHANTMENT_TIER tier)
 	{
-		if(rollChance(CONSTANTS.BUY_MORE_LIKE_TOOL_CHANCE))
-		{
-			if(rollChance(CONSTANTS.BUY_MORE_LIKE_TOOL_TO_BE_TOOL_CHANCE))
-			{
-				buttonBuyTool(bookTier);
-				return;
-			}
-			buttonBuyWeapon(bookTier);
-			return;
-		}
-		buttonBuyArmor(bookTier);
-
+		if (RollChance(CONSTANTS.BUY_MORE_LIKE_TOOL_CHANCE))
+			BuyBook(viewer, tier, RollChance(CONSTANTS.BUY_MORE_LIKE_TOOL_TO_BE_TOOL_CHANCE) ? ITEM_CATEGORY.TOOL : ITEM_CATEGORY.WEAPON);
+		else
+			BuyBook(viewer, tier, ITEM_CATEGORY.ARMOR);
 	}
 
-	private void buttonBuyMoreLikeArmor(ENCHANTMENT_TIER bookTier)
+	private void BuyMoreLikeArmor(Viewer viewer, ENCHANTMENT_TIER tier)
 	{
-		if(rollChance(CONSTANTS.BUY_MORE_LIKE_ARMOR_CHANCE))
-		{
-			buttonBuyArmor(bookTier);
-			return;
-		}
-
-		//50% chance to be weapon
-		if(rollChance(0.5))
-		{
-			buttonBuyWeapon(bookTier);
-			return;
-		}
-		buttonBuyTool(bookTier);
-
-	}
-
-	private void buttonBuyTool(ENCHANTMENT_TIER bookTier)
-	{
-		buyBook(bookTier, ITEM_CATEGORY.TOOL);
-	}
-
-	private void buttonBuyWeapon(ENCHANTMENT_TIER bookTier)
-	{
-		buyBook(bookTier, ITEM_CATEGORY.WEAPON);
-	}
-
-	private void buttonBuyArmor(ENCHANTMENT_TIER bookTier)
-	{
-		buyBook(bookTier, ITEM_CATEGORY.ARMOR);
+		if (RollChance(CONSTANTS.BUY_MORE_LIKE_ARMOR_CHANCE))
+			BuyBook(viewer, tier, ITEM_CATEGORY.ARMOR);
+		else
+			BuyBook(viewer, tier, RollChance(0.5) ? ITEM_CATEGORY.WEAPON : ITEM_CATEGORY.TOOL);
 	}
 
 	// The book is picked before the levels are taken: when every enchant of the category is
 	// switched off in /ien admin there is nothing to give, and nothing is charged
-	private void buyBook(ENCHANTMENT_TIER bookTier, ITEM_CATEGORY category)
+	private void BuyBook(Viewer viewer, ENCHANTMENT_TIER bookTier, ITEM_CATEGORY category)
 	{
-		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
+		if (!HasLevels(viewer, Math.max(CONSTANTS.GetCapEnchant(bookTier), CONSTANTS.GetCostEnchant(bookTier))))
+			return;
 
-		ItemStack book = pickBook(bookTier, category);
-		if(book == null)
+		if (!_game.giveBook(viewer, EnchantTier(bookTier), category))
 		{
-			getPlayer().sendMessage(TextUtils.Color("&cNo enchants of this kind are available right now"));
+			viewer.message("&cNo enchants of this kind are available right now");
 			return;
 		}
-
-		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
-		InvUtil.AddItemToInventoryOrDrop(getPlayer(), book);
+		TakeLevels(viewer, CONSTANTS.GetCostEnchant(bookTier));
 	}
-
-	// Sometimes the bought book is a custom enchant of the category instead, always level I.
-	// If no vanilla enchant of the category is left, a custom one is given if there is any.
-	private ItemStack pickBook(ENCHANTMENT_TIER bookTier, ITEM_CATEGORY category)
-	{
-		CustomEnchant custom = rollChance(CONSTANTS.CUSTOM_BOOK_SHOP_CHANCE)
-				? CustomEnchantRegistry.GetRandomForShop(category) : null;
-		if(custom != null) return CustomEnchantBook.Create(custom, 1);
-
-		Enchantment enchant = EnchantUtil.GetRandomEnchantment(category, getEnchantTier(bookTier), _excludedEnchants);
-		if(enchant != null) return EnchantUtil.GetEnchantedBook(enchant);
-
-		custom = CustomEnchantRegistry.GetRandomForShop(category);
-		return custom == null ? null : CustomEnchantBook.Create(custom, 1);
-	}
-
-	private void buttonBuyAll(ENCHANTMENT_TIER bookTier)
-	{
-		if(!playerHasEnoughLevelsEnchant(bookTier)) return;
-		
-		reducePlayerLevel(CONSTANTS.GetCostEnchant(bookTier));
-		
-		
-	}
-
-	
-	
-	
-
 }

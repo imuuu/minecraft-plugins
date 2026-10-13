@@ -114,8 +114,24 @@ menu.click("Tyhjennä").assertShowing(ConfirmMenu.class);
 System.out.println(menu.dump());                         // menu tekstiruudukkona
 ```
 
-Vanhat `CustomInventory`-menut toimivat yhä, mutta uudet menut tehdään `Menu`lla, ja vanhat siirretään
-sille vähitellen. `FastInventory` on vanhentunut.
+**Pelin osat rajapinnan takana.** Menu, joka tarvitsee plugaria tai `Player`-oliota (itemin antaminen, tietokanta,
+config.yml:n tekstit), saa ne plugarin omasta rajapinnasta, esim. imusWaystonesin `WaystoneGame`. Rajapinnalla on
+kaksi toteutusta: `Paper...Game` serverillä ja testin oma feikki, joka kirjaa, mitä menu pyysi. Tietokannasta
+tuleva data annetaan callbackina (`Consumer`), ja menu kutsuu `refresh()`, kun se saapuu.
+
+```java
+interface WaystoneGame
+{
+    String text(String key, Object... placeholders);
+    List<Waystone> destinations(Waystone from, UUID player);
+    void travel(Viewer viewer, Waystone from, Waystone to);
+}
+```
+
+Uudella menulla on nyt imusTNT, imusWaystones, ImusMiniQuests, ImusChallenges, ImusUnstableFearSystem, ImusEnchantsin
+`/ien admin` ja enchant-kauppa sekä ImusAPI:n `/ia config`. Vanhalla `CustomInventory`llä ovat vielä imusGS:n menut ja
+ImusEnchantsin enchant-pöytä, koska ne ottavat itemeitä menuun; ne siirretään, kun ytimessä on slotit itemeille.
+`FastInventory` on vanhentunut.
 
 ---
 

@@ -1,307 +1,178 @@
 package me.imu.imuschallenges.Inventories;
 
-import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.TextUtils;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Buttons.GridButton;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.ItemUtils;
-import me.imu.imuschallenges.Database.Tables.TableCollected_materials;
-import me.imu.imuschallenges.ImusChallenges;
-import me.imu.imuschallenges.Managers.ManagerCCollectMaterial;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Pager;
+import imu.iAPI.Menus.Viewer;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Consumer;
 
-public class InventoryCCollectMaterial extends CustomInventory
+/**
+ * /ic view materials: who collected how many materials first, one player's materials, and the materials nobody
+ * has yet. Admins can take a material off a player, or leave it out of the challenge, with a right click.
+ */
+public class InventoryCCollectMaterial extends Menu
 {
-    private ManagerCCollectMaterial _managerCollectMaterial = ManagerCCollectMaterial.getInstance();
+    /**
+     * Admins can remove and exclude materials. Ops have it, as it isn't registered.
+     */
+    public static final String PERM_ADMIN = "ic.collection.admin";
+    static final int PREVIOUS = 45, OWN = 47, UNKNOWN = 49, PLAYERS = 51, NEXT = 53;
 
-    public InventoryCCollectMaterial()
+    private enum View { PLAYERS, COLLECTED, UNKNOWN }
+
+    private final CollectMenuGame _game;
+    private final Pager<Button> _pager = Pager.rows(0, 5);
+    private View _view = View.PLAYERS;
+    private List<Button> _buttons = List.of();
+    // Materials changed this time, shown marked
+    private final Set<String> _changed = new HashSet<>();
+    // Answers to an earlier view that come late are dropped
+    private int _request;
+
+    public InventoryCCollectMaterial(CollectMenuGame game)
     {
-        super(ImusChallenges.getInstance(), "&9Collect Material Challenge", 6 * 9);
+        super("&9Collect Material Challenge", 6);
+        _game = game;
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void onOpen(Viewer viewer)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;
+        if (_request == 0)
+            showPlayers(viewer);
     }
 
     @Override
-    public void onAwake()
+    protected void render(Canvas canvas)
     {
-
+        canvas.fillRow(5, Icon.filler("orange_stained_glass_pane"));
+        canvas.set(OWN, Icon.of("player_head", "&eCollected Materials"), click -> showCollected(click.viewer(), click.viewer().id(), click.viewer().name()));
+        canvas.set(UNKNOWN, Icon.of("diamond_block", "&5Unknown Materials"), click -> showUnknown(click.viewer()));
+        canvas.set(PLAYERS, Icon.of("player_head", "&ePlayers Materials"), click -> showPlayers(click.viewer()));
+        _pager.render(canvas, _buttons, button -> button, PREVIOUS, NEXT);
     }
 
-    @Override
-    public void onOpen()
+    private int next(View view)
     {
-        super.onOpen();
-        initButtons();
+        _view = view;
+        _buttons = List.of();
+        _changed.clear();
+        _pager.setPage(0);
+        refresh();
+        return ++_request;
     }
 
-    private void initButtons()
+    private void show(int request, List<Button> buttons)
     {
-        updateLowerBar();
-        onButtonPlayersMaterials();
-    }
-
-    private void updateLowerBar()
-    {
-        ItemStack empty = ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.ORANGE_STAINED_GLASS_PANE));
-        for (int i = 46; i < 53; i++)
-        {
-            IMenuButton button = new Button(i, empty);
-            button.setStatic(true);
-            addButton(button);
-            updateButton(button);
-        }
-
-        ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
-        ItemUtils.SetDisplayName(stack, "&eCollected Materials");
-        IMenuButton button = new Button(47, stack, inventoryClickEvent ->
-        {
-            switchInv();
-            onButtonPlayerCollectedMaterials(getPlayer());
-        });
-        button.setStatic(true);
-        addButton(button);
-        updateButton(button);
-
-        stack = new ItemStack(Material.DIAMOND_BLOCK);
-        ItemUtils.SetDisplayName(stack, "&5Unknown Materials");
-        button = new Button(49, stack, inventoryClickEvent ->
-        {
-            switchInv();
-            onButtonUnknownMaterials();
-        });
-        button.setStatic(true);
-        addButton(button);
-        updateButton(button);
-
-        stack = new ItemStack(Material.PLAYER_HEAD);
-        ItemUtils.SetDisplayName(stack, "&ePlayers Materials");
-        button = new Button(51, stack, inventoryClickEvent ->
-        {
-            switchInv();
-            onButtonPlayersMaterials();
-        });
-        button.setStatic(true);
-        addButton(button);
-        updateButton(button);
-
-
-    }
-
-    private boolean isPlayerOnline(Player player)
-    {
-        return Bukkit.getServer().getPlayer(player.getUniqueId()) != null;
-    }
-
-    private void switchInv()
-    {
-        clearButtons();
-        clearGrids();
-        //updateLowerBar();
-        updateButtons(false);
-    }
-
-    private void onButtonPlayerCollectedMaterials(Player player)
-    {
-        if (!isPlayerOnline(player))
-        {
-            getPlayer().sendMessage("&9Player is not online!");
-            getPlayer().closeInventory();
+        if (request != _request)
             return;
-        }
-
-        new BukkitRunnable()
-        {
-            @Override
-            public void run()
-            {
-                List<TableCollected_materials> playerCollectedMaterials = _managerCollectMaterial.getPlayerCollectedMaterials(player);
-                Collections.sort(playerCollectedMaterials, Comparator.comparing(TableCollected_materials::getCollection_time).reversed());
-
-                List<IMenuButton> buttonsCollected = new ArrayList<>();
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm dd/MM/yyyy");
-
-                int index = playerCollectedMaterials.size();
-                for (TableCollected_materials playerMaterial : playerCollectedMaterials)
-                {
-                    ItemStack stack = new ItemStack(playerMaterial.getMaterial());
-                    String formattedDate = dateFormat.format(playerMaterial.getCollection_time());
-                    ItemUtils.AddLore(stack, "&9===> &6" + index--, true);
-                    ItemUtils.AddLore(stack, "&e" + formattedDate, true);
-
-                    if (getPlayer().isOp())
-                    {
-                        ItemUtils.AddLore(stack, " ", true);
-                        ItemUtils.AddLore(stack, " ", true);
-                        ItemUtils.AddLore(stack, "&6=== OP ONLY ===", true);
-                        ItemUtils.AddLore(stack, "&4 REMOVE FROM DATABASE BY ==> &bM2", true);
-                    }
-
-                    Button button = new Button(0, stack);
-
-
-                    if (getPlayer().isOp())
-                    {
-                        UUID uuid = button.getUUID();
-                        button.setAction(inventoryClickEvent ->
-                        {
-                            if (!getPlayer().isOp()) return;
-
-                            if (!inventoryClickEvent.isRightClick()) return;
-
-                            IMenuButton exludedButton = getButton(uuid);
-                            exludedButton.setEnableAction(false);
-                            ItemStack exStack = exludedButton.getItemStack();
-                            ItemUtils.AddGlow(exStack);
-                            ItemUtils.SetDisplayName(exStack, "&cRemoved");
-                            exludedButton.setItemStack(exStack);
-
-                            updateButton(exludedButton);
-
-                            _managerCollectMaterial.removeCollectedMaterialPlayerSQL_async(player, playerMaterial.getMaterial());
-                        });
-                    }
-
-                    buttonsCollected.add(button);
-
-                    new BukkitRunnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            GridButton gridButton = new GridButton(buttonsCollected, 0, 9, 5);
-                            addGrid(gridButton);
-                            gridButton.update();
-                            gridButton.generateLeftRightButtons(45, 53);
-                        }
-                    }.runTask(ImusChallenges.getInstance());
-                }
-            }
-
-        }.runTaskAsynchronously(ImusChallenges.getInstance());
+        _buttons = buttons;
+        refresh();
     }
 
-    private void onButtonUnknownMaterials()
+    private void showPlayers(Viewer viewer)
     {
-        new BukkitRunnable()
+        int request = next(View.PLAYERS);
+        _game.playerCounts(counts ->
         {
-            @Override
-            public void run()
+            List<Button> buttons = new ArrayList<>();
+            for (CollectMenuGame.PlayerCount count : counts)
             {
-                Set<Material> unknownMaterials = _managerCollectMaterial.getUncollectedMaterials();
-
-                List<IMenuButton> unknownButtons = new ArrayList<>();
-                int index = unknownMaterials.size();
-                for (Material material : unknownMaterials)
-                {
-                    /* Bukkit.getLogger().info("material: " + material + " index: " + index + " isItem: "+ material.isItem());*/
-                    ItemStack stack = new ItemStack(material);
-                    ItemUtils.AddLore(stack, "&9=> &2" + index--, true);
-                    ItemUtils.AddLore(stack, " ", true);
-                    ItemUtils.AddLore(stack, "&9=> Called &6" + material.name(), true);
-
-                    if (getPlayer().isOp())
-                    {
-                        ItemUtils.AddLore(stack, " ", true);
-                        ItemUtils.AddLore(stack, " ", true);
-                        ItemUtils.AddLore(stack, "&6=== OP ONLY ===", true);
-                        ItemUtils.AddLore(stack, "&4 ADD TO EXCLUDED BY ==> &bM2", true);
-                    }
-                    Button button = new Button(0, stack);
-
-                    if (getPlayer().isOp())
-                    {
-                        final UUID uuid = button.getUUID();
-                        button.setAction(inventoryClickEvent ->
-                        {
-
-                            if (!getPlayer().isOp()) return;
-
-                            if (!inventoryClickEvent.isRightClick()) return;
-
-                            IMenuButton exludedButton = getButton(uuid);
-                            exludedButton.setEnableAction(false);
-                            ItemStack exStack = exludedButton.getItemStack();
-                            ItemUtils.AddGlow(exStack);
-                            ItemUtils.SetDisplayName(exStack, "&cExcluded");
-                            exludedButton.setItemStack(exStack);
-
-                            updateButton(exludedButton);
-
-                            _managerCollectMaterial.addExcludedMaterialSQL_async(material, () ->
-                            {
-                                getPlayer().sendMessage(TextUtils.Color("&9Added &6" + material.name() + " &9to excluded database!"));
-                            });
-                        });
-                    }
-
-
-                    unknownButtons.add(button);
-                }
-
-                new BukkitRunnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                GridButton gridButton = new GridButton(unknownButtons, 0, 9, 5);
-                                addGrid(gridButton);
-                                gridButton.update();
-                                gridButton.generateLeftRightButtons(45, 53);
-                            }
-                        }.
-
-                        runTask(ImusChallenges.getInstance());
+                Icon icon = Icon.of("player_head", "&e" + count.name(), "&7=========================", "&9Materials: &6" + count.count(),
+                        "    ", "    ", "&9(&eClick&9) To See More");
+                buttons.add(Button.of(icon, click -> showCollected(click.viewer(), count.id(), count.name())));
             }
-        }.runTaskAsynchronously(ImusChallenges.getInstance());
-
-    }
-
-    private void onButtonPlayersMaterials()
-    {
-        _managerCollectMaterial.updateCollectedMaterialsCountCache(() ->
-        {
-
-            HashMap<UUID, Integer> collectedMaterialsCount = _managerCollectMaterial.getPlayerCollectedCount();
-            ArrayList<IMenuButton> buttons = new ArrayList<>();
-
-            for (Player player : Bukkit.getServer().getOnlinePlayers())
-            {
-                int count = collectedMaterialsCount.getOrDefault(player.getUniqueId(), 0);
-                ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
-                ItemUtils.SetDisplayName(stack, "&e" + player.getName());
-                ItemUtils.AddLore(stack, "&7=========================", true);
-                ItemUtils.AddLore(stack, "&9Materials: &6" + count, true);
-                ItemUtils.AddLore(stack, "    ", true);
-                ItemUtils.AddLore(stack, "    ", true);
-                ItemUtils.AddLore(stack, "&9(&eClick&9) To See More", true);
-                IMenuButton button = new Button(0, stack, inventoryClickEvent ->
-                {
-                    onButtonPlayerCollectedMaterials(player);
-                });
-                buttons.add(button);
-            }
-
-            GridButton gridButton = new GridButton(buttons, 0, 9, 5);
-            addGrid(gridButton);
-            gridButton.update();
-
-            gridButton.generateLeftRightButtons(45, 53);
+            show(request, buttons);
         });
     }
 
+    private void showCollected(Viewer viewer, UUID player, String name)
+    {
+        int request = next(View.COLLECTED);
+        boolean admin = viewer.hasPermission(PERM_ADMIN);
+        _game.collected(player, collected ->
+        {
+            if (collected == null)
+            {
+                viewer.message("&9" + name + " is not online!");
+                return;
+            }
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm dd/MM/yyyy");
+            List<Button> buttons = new ArrayList<>();
+            int number = collected.size();
+            for (CollectMenuGame.Collected material : collected)
+            {
+                List<String> lore = new ArrayList<>(List.of("&9===> &6" + number--, "&e" + dateFormat.format(new Date(material.time()))));
+                if (admin)
+                    lore.addAll(List.of(" ", " ", "&6=== OP ONLY ===", "&4 REMOVE FROM DATABASE BY ==> &bM2"));
+                buttons.add(materialButton(material.material(), lore, admin, "&cRemoved", click ->
+                        _game.removeCollected(player, material.material())));
+            }
+            show(request, buttons);
+        });
+    }
 
+    private void showUnknown(Viewer viewer)
+    {
+        int request = next(View.UNKNOWN);
+        boolean admin = viewer.hasPermission(PERM_ADMIN);
+        _game.uncollected(materials ->
+        {
+            List<Button> buttons = new ArrayList<>();
+            int number = materials.size();
+            for (String material : materials)
+            {
+                List<String> lore = new ArrayList<>(List.of("&9=> &2" + number--, " ", "&9=> Called &6" + material));
+                if (admin)
+                    lore.addAll(List.of(" ", " ", "&6=== OP ONLY ===", "&4 ADD TO EXCLUDED BY ==> &bM2"));
+                buttons.add(materialButton(material, lore, admin, "&cExcluded", click ->
+                        _game.exclude(material, () -> click.message("&9Added &6" + material + " &9to excluded database!"))));
+            }
+            show(request, buttons);
+        });
+    }
+
+    /**
+     * A material, which admins change with a right click; it is then marked and can't be clicked again.
+     */
+    private Button materialButton(String material, List<String> lore, boolean admin, String changedName, Consumer<Click> change)
+    {
+        Icon icon = Icon.of(material).lore(lore.toArray(String[]::new));
+        if (!admin)
+            return Button.display(icon);
+        return new Button(icon, click ->
+        {
+            if (!click.isRight() || !click.viewer().hasPermission(PERM_ADMIN) || !_changed.add(material))
+                return;
+            change.accept(click);
+            int index = indexOf(click);
+            if (index >= 0)
+                _buttons.set(index, Button.display(icon.name(changedName).glow(true)));
+        });
+    }
+
+    private int indexOf(Click click)
+    {
+        int index = _pager.page() * _pager.pageSize() + click.slot();
+        return index < _buttons.size() ? index : -1;
+    }
+
+    /**
+     * Which list is shown, for tests.
+     */
+    String view()
+    {
+        return _view.name();
+    }
 }

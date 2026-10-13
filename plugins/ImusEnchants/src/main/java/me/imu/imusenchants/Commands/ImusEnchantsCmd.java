@@ -1,5 +1,6 @@
 package me.imu.imusenchants.Commands;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusenchants.CONSTANTS;
@@ -11,6 +12,7 @@ import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
 import me.imu.imusenchants.Inventories.InventoryEnchantAdmin;
+import me.imu.imusenchants.Inventories.PaperEnchantAdminGame;
 import me.imu.imusenchants.Items.SlotCore;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -224,7 +226,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			else if (!(sender instanceof Player))
 				sender.sendMessage(TextUtils.Color("&cOnly players can open the admin menu"));
 			else
-				new InventoryEnchantAdmin().open((Player) sender);
+				PaperMenus.open((Player) sender, new InventoryEnchantAdmin(new PaperEnchantAdminGame()));
 			return true;
 		}
 
