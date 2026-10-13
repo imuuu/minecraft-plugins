@@ -46,15 +46,17 @@ balances before and after each click, so they can be run again on the same serve
 | `spawners.test.js` | ImusSpawners: a lucky silk touch roll, a placed spawner always comes back, a miss raises the chance, `/spawners give` |
 | `waystones.test.js` | imusWaystones: building and confirming, room between own waystones, finding by touch, travelling, an upgrade, the cooldown, admin settings, breaking (empties the waystone tables) |
 | `old-plugins-upgrade.test.js` | The old imusWaystones and ImusSpawners data carries over (restarts the server, SHOPBOT_RESTART=1) |
-| `enchants-armor.test.js` | ImusEnchants armor enchants: Night Vision, Aquatic, Jump Boost, Saturation, Fall Guard, Magma Walker, Regrowth, Reflect, Stopping Force |
-| `enchants-combat.test.js` | Melee enchants on still mobs: Venom, Withering, Frost, Lifesteal, Execute, Cleave, Beheading, Scavenger, Telekinesis and Wisdom |
-| `enchants-bow.test.js` | Bow enchants: Poison Arrow, Hunter, Retrieval, Sniper, Ender Arrow |
-| `enchants-tools.test.js` | Tool enchants: Tunnel, Vein Miner, Timber, Smelting, Telekinesis, Glass Breaker, Haste, Harvest, Replanter |
-| `enchants-fishing.test.js` | A real catch with Auto Reel, Survivalist and Double Catch; Long Cast (Seasoned Angler's random XP isn't testable) |
+| `enchants-armor.test.js` | ImusEnchants armor enchants at every level: Night Vision, Aquatic, Jump Boost, Saturation, Fall Guard, Magma Walker, Regrowth, Reflect, Stopping Force |
+| `enchants-combat.test.js` | Melee enchants at every level on still mobs, with exact damage: Venom, Withering, Frost, Lifesteal, Execute, Cleave, Beheading, Scavenger, Telekinesis, Wisdom |
+| `enchants-bow.test.js` | Bow enchants at every level: Poison Arrow, Hunter, Retrieval (arrows summoned with a set speed), Sniper, Ender Arrow |
+| `enchants-tools.test.js` | Tool enchants at every level: Tunnel shapes, Vein Miner and Timber block counts, Harvest areas, Haste, Wisdom; Smelting, Telekinesis, Glass Breaker, Replanter |
+| `enchants-fishing.test.js` | Real catches at every level: Auto Reel, Survivalist, Double Catch, Seasoned Angler (each catch's XP must be one the level can give), Long Cast |
 | `enchants-misc.test.js` | A custom book clicked on a tool, a Slot Core and a book in the table grid, Curse of Fragility, Soulbound |
 
-The enchant tests put enchants straight on items with `/ien enchant` and turn `testing.always-trigger` on, so
-chance enchants always work; they turn it off again when done. The bots play in survival, where enchants work.
+The enchant tests put enchants straight on items with `/ien enchant` and set ImusEnchants' `testing.fixed-roll`,
+the roll chance enchants make instead of a random one. Each chance is checked at every level: a roll just below
+it triggers the enchant, the chance itself doesn't. The roll goes back to random (-1) when they are done. The bots
+play in survival, where enchants work.
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of
 `run/Kaynnista-palvelin.bat`, log in `run/logs/shopbot-server.log`), so it is skipped unless asked for.

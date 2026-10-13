@@ -148,7 +148,8 @@ public abstract class CustomEnchant
 
 	protected static boolean Roll(double chance)
 	{
-		return CONSTANTS.ALWAYS_TRIGGER || _random.nextDouble() < chance;
+		double roll = CONSTANTS.FIXED_ROLL >= 0 ? CONSTANTS.FIXED_ROLL : _random.nextDouble();
+		return roll < chance;
 	}
 
 	protected static String Percent(double value)

@@ -1,9 +1,11 @@
 'use strict'
 // Setup for the ImusEnchants tests: a survival bot on a floor of its own, items with custom enchants put
 // straight in its hands or on its body, and server-side checks of health, effects, items and blocks.
-// Custom enchants only work in survival, so the bots play in survival.
+// Custom enchants only work in survival, so the bots play in survival. Chance enchants roll the number set
+// with roll() instead of a random one (testing.fixed-roll); it starts at 0, so they always trigger.
 const { joinServer, sleep } = require('./shopbot')
 const { resetPlayer } = require('./fixture')
+const { offlineUuid } = require('./hometele-fixture')
 
 const Y = 100
 
@@ -15,13 +17,20 @@ async function setUp (rcon, name, x, z, radius = 8) {
   // Mineflayer can't read the enchantments of 26.x items to time digging
   bot.bot.digTime = () => 600
   await resetPlayer(rcon, name)
-  await rcon.command('ia config imusenchants set testing.always-trigger true')
+  await roll(rcon, 0)
   await rcon.command(`minecraft:tp ${name} ${x + 0.5} ${Y} ${z + 0.5}`)
   await sleep(1500)
   await floor(rcon, x, z, radius)
   await rcon.command(`minecraft:tp ${name} ${x + 0.5} ${Y} ${z + 0.5}`)
   await sleep(800)
   return bot
+}
+
+/**
+ * The roll chance enchants make from now on, 0 to 1: an enchant triggers when it is below its chance.
+ */
+async function roll (rcon, value) {
+  await rcon.command(`ia config imusenchants set testing.fixed-roll ${value}`)
 }
 
 async function floor (rcon, x, z, radius = 8) {
@@ -31,7 +40,7 @@ async function floor (rcon, x, z, radius = 8) {
 }
 
 async function tearDown (rcon, bot) {
-  await rcon?.command('ia config imusenchants set testing.always-trigger false')
+  await rcon?.command('ia config imusenchants set testing.fixed-roll -1')
   await rcon?.command('gamerule natural_health_regeneration true')
   if (bot) {
     await rcon?.command(`minecraft:effect clear ${bot.name}`)
@@ -97,6 +106,18 @@ async function effects (rcon, target) {
 }
 
 /**
+ * The target's effect as { amplifier, duration } (duration in ticks), or null.
+ */
+async function effect (rcon, target, id) {
+  // Asked one value at a time: RCON cuts long answers
+  const path = `active_effects[{id:"minecraft:${id}"}]`
+  const duration = /data: (-?\d+)/.exec(await data(rcon, target, `${path}.duration`))
+  if (!duration) return null
+  const amplifier = /data: (\d+)b?/.exec(await data(rcon, target, `${path}.amplifier`))
+  return { amplifier: amplifier ? Number(amplifier[1]) : 0, duration: Number(duration[1]) }
+}
+
+/**
  * Waits until the target has the effect.
  */
 async function waitForEffect (rcon, target, effect, timeoutMs = 3000) {
@@ -134,6 +155,25 @@ async function isBlock (rcon, x, y, z, block) {
 /**
  * All the XP points the player has got, over all levels.
  */
+/**
+ * Counts the blocks of the kind in the box and clears them away.
+ */
+async function takeBlocks (rcon, x1, y1, z1, x2, y2, z2, block) {
+  const answer = await rcon.command(`fill ${x1} ${y1} ${z1} ${x2} ${y2} ${z2} air replace ${block}`)
+  const match = /(\d+)/.exec(answer)
+  return /No blocks/i.test(answer) || !match ? 0 : Number(match[1])
+}
+
+/**
+ * The player's uuid as the int array NBT uses, e.g. for an arrow's Owner.
+ */
+function uuidInts (name) {
+  const hex = offlineUuid(name).replace(/-/g, '')
+  const ints = []
+  for (let i = 0; i < 4; i++) ints.push(Buffer.from(hex.slice(i * 8, i * 8 + 8), 'hex').readInt32BE(0))
+  return `[I;${ints.join(',')}]`
+}
+
 async function xpPoints (rcon, name) {
   return await number(rcon, name, 'XpTotal')
 }
@@ -171,6 +211,6 @@ async function mob (bot, type) {
 }
 
 module.exports = {
-  Y, setUp, floor, tearDown, enchantHeld, hold, wear, data, number, health, effects, waitForEffect, count, itemsOnGround,
+  Y, setUp, roll, effect, takeBlocks, uuidInts, floor, tearDown, enchantHeld, hold, wear, data, number, health, effects, waitForEffect, count, itemsOnGround,
   isBlock, xpPoints, refresh, summon, setMobHealth, mob
 }

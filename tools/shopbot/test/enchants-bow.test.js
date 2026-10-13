@@ -1,6 +1,8 @@
 'use strict'
-// ImusEnchants bow enchants on a survival bot shooting at still cows and down a lane: Poison Arrow, Hunter,
-// Retrieval, Sniper and Ender Arrow. Chance enchants always trigger (testing.always-trigger).
+// ImusEnchants bow enchants at every level, on a survival bot. Hunter, Poison Arrow and Retrieval are checked
+// with arrows summoned as the bot's, with a set speed and no critical hit, so the damage is exact; Sniper and
+// Ender Arrow with real shots. Chance enchants are checked at their chance: a roll just below it triggers, the
+// chance itself doesn't (testing.fixed-roll).
 const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const { Vec3 } = require('vec3')
@@ -13,6 +15,7 @@ const X = 440
 const Z = 300
 const Y = f.Y
 const COW = '@e[tag=ie,type=cow,limit=1,sort=nearest]'
+const ARROWS = `@e[type=arrow,x=${X},y=${Y},z=${Z},distance=..80]`
 
 let rcon
 let bot
@@ -22,11 +25,11 @@ before(async () => {
   bot = await f.setUp(rcon, BOT, X, Z)
   // A lane to shoot down
   await rcon.command(`fill ${X} ${Y - 1} ${Z - 2} ${X + 60} ${Y - 1} ${Z + 2} stone`)
-  await rcon.command(`fill ${X} ${Y} ${Z - 2} ${X + 60} ${Y + 6} ${Z + 2} air`)
+  await rcon.command(`fill ${X} ${Y} ${Z - 2} ${X + 60} ${Y + 12} ${Z + 2} air`)
 })
 
 after(async () => {
-  bot?.bot.setControlState('sneak', false)
+  bot?.bot.clearControlStates()
   await rcon?.command('minecraft:kill @e[tag=ie]')
   await f.tearDown(rcon, bot)
   rcon?.close()
@@ -37,7 +40,7 @@ after(async () => {
  */
 async function ready (enchants) {
   await rcon.command('minecraft:kill @e[tag=ie]')
-  await rcon.command(`minecraft:kill @e[type=arrow,x=${X},y=${Y},z=${Z},distance=..80]`)
+  await rcon.command(`minecraft:kill ${ARROWS}`)
   await rcon.command(`minecraft:clear ${BOT}`)
   await rcon.command(`minecraft:tp ${BOT} ${X + 0.5} ${Y} ${Z + 0.5} -90 0`)
   await f.refresh(rcon, BOT)
@@ -55,70 +58,114 @@ async function shoot (ms, at) {
   bot.bot.activateItem()
   await sleep(ms)
   bot.bot.deactivateItem()
-  await sleep(1500)
 }
 
 /**
- * A still cow with 100 health six blocks down the lane.
+ * An arrow of the bot's with the bow enchants on it, flying east from x at 2 blocks a tick. Its first hit
+ * does 4 damage without enchants.
  */
-async function cow () {
+async function arrow (x, y, enchants) {
+  const data = enchants.map(([key, level]) => `${key}:${level}`).join(',')
+  await rcon.command(`summon arrow ${x} ${y} ${Z + 0.5} {Motion:[2.0d,0.0d,0.0d],damage:2.0d,crit:0b,pickup:1b,` +
+    `Owner:${f.uuidInts(BOT)},BukkitValues:{"imusenchants:ie_projectile_enchants":"${data}"}}`)
+  await sleep(800)
+}
+
+/**
+ * A still cow with 100 health six blocks down the lane, hit by an arrow with the enchants.
+ */
+async function shootCow (enchants) {
+  await ready([])
   await f.summon(rcon, 'cow', X + 6.5, Y, Z + 0.5)
   await f.setMobHealth(rcon, COW, 100, 100)
   await sleep(300)
-}
-
-const cowCenter = () => new Vec3(X + 6.5, Y + 0.9, Z + 0.5)
-
-test('Poison Arrow poisons what it hits', async () => {
-  await ready([['poison_arrow', 3]])
-  await cow()
-  await shoot(1200, cowCenter())
-  assert.ok((await f.effects(rcon, COW)).includes('minecraft:poison'))
-})
-
-/**
- * The damage a half drawn arrow does to a cow; a half drawn arrow is never a critical hit.
- */
-async function arrowDamage (enchants) {
-  await ready(enchants)
-  await cow()
-  await shoot(600, cowCenter())
+  await arrow(X + 4.5, Y + 0.7, enchants)
   return 100 - await f.health(rcon, COW)
 }
 
-test('Hunter makes arrows hurt animals more', async () => {
-  const plain = await arrowDamage([])
-  const hunter = await arrowDamage([['hunter', 3]])
-  assert.ok(plain > 0, 'the plain arrow hit')
-  assert.ok(hunter >= plain * 1.25, `${hunter} with Hunter III, ${plain} without`)
+/**
+ * For each level: a roll just below its chance triggers the enchant, a roll at its chance doesn't.
+ */
+async function checkChances (chances, triggered) {
+  try {
+    for (let level = 1; level <= chances.length; level++) {
+      const chance = chances[level - 1]
+      await f.roll(rcon, chance - 0.001)
+      assert.equal(await triggered(level), true, `level ${level} with a roll under ${chance}`)
+      await f.roll(rcon, chance)
+      assert.equal(await triggered(level), false, `level ${level} with a roll of ${chance}`)
+    }
+  } finally {
+    await f.roll(rcon, 0)
+  }
+}
+
+test('a real shot with a Poison Arrow bow poisons what it hits', async () => {
+  await ready([['poison_arrow', 3]])
+  await f.summon(rcon, 'cow', X + 6.5, Y, Z + 0.5)
+  await f.setMobHealth(rcon, COW, 100, 100)
+  await shoot(1200, new Vec3(X + 6.5, Y + 0.9, Z + 0.5))
+  await sleep(1500)
+  assert.ok((await f.effects(rcon, COW)).includes('minecraft:poison'))
 })
 
-test('Retrieval gives the arrow back', async () => {
-  await ready([['retrieval', 3]])
-  await rcon.command(`fill ${X + 6} ${Y} ${Z - 1} ${X + 6} ${Y + 2} ${Z + 1} stone`)
-  const arrows = await f.count(rcon, BOT, 'arrow')
-  await shoot(800, new Vec3(X + 6, Y + 1.5, Z + 0.5))
-  assert.equal(await f.count(rcon, BOT, 'arrow'), arrows)
-  await rcon.command(`fill ${X + 6} ${Y} ${Z - 1} ${X + 6} ${Y + 2} ${Z + 1} air`)
+test('Hunter I-III: arrows do +15/30/45% to animals', async () => {
+  assert.equal(await shootCow([]), 4, 'a plain arrow does 4')
+  for (let level = 1; level <= 3; level++) {
+    const damage = await shootCow([['hunter', level]])
+    const expected = 4 * (1 + 0.15 * level)
+    assert.ok(Math.abs(damage - expected) < 0.01, `Hunter ${level}: ${damage}, not ${expected}`)
+  }
+})
+
+test('Poison Arrow I-III: 30/45/60% poison for 4/5/6 s, stronger at III', async () => {
+  await checkChances([0.30, 0.45, 0.60], async level => {
+    await shootCow([['poison_arrow', level]])
+    const got = await f.effect(rcon, COW, 'poison')
+    if (got) {
+      const ticks = 60 + 20 * level
+      assert.equal(got.amplifier, level >= 3 ? 1 : 0, `level ${level} strength`)
+      assert.ok(got.duration <= ticks && got.duration > ticks - 30, `level ${level}: ${got.duration} ticks, not ${ticks}`)
+    }
+    return got !== null
+  })
+})
+
+test('Retrieval I-III: 20/35/50% chance to get the arrow back', async () => {
+  await checkChances([0.20, 0.35, 0.50], async level => {
+    await ready([])
+    await rcon.command(`fill ${X + 6} ${Y} ${Z - 1} ${X + 6} ${Y + 2} ${Z + 1} stone`)
+    const arrows = await f.count(rcon, BOT, 'arrow')
+    await arrow(X + 4.5, Y + 1.5, [['retrieval', level]])
+    await rcon.command(`fill ${X + 6} ${Y} ${Z - 1} ${X + 6} ${Y + 2} ${Z + 1} air`)
+    const now = await f.count(rcon, BOT, 'arrow')
+    assert.ok(now === arrows || now === arrows + 1, `${now - arrows} arrows back`)
+    return now === arrows + 1
+  })
 })
 
 /**
- * How far down the lane a half drawn arrow shot straight ahead lands.
+ * Shoots a full arrow up the lane and returns its damage value and speed right after.
  */
-async function range (enchants) {
+async function fullShot (enchants) {
   await ready(enchants)
-  await shoot(500, new Vec3(X + 60, Y + 1.62, Z + 0.5))
-  await sleep(1500)
-  const answer = await rcon.command(`data get entity @e[type=arrow,x=${X},y=${Y},z=${Z},distance=..80,limit=1,sort=nearest] Pos`)
-  const match = /\[(-?[\d.]+)d/.exec(answer)
-  assert.ok(match, 'No arrow found: ' + answer)
-  return Number(match[1]) - X
+  await shoot(1300, new Vec3(X + 30, Y + 12, Z + 0.5))
+  await sleep(100)
+  const damage = /data: ([\d.]+)d/.exec(await f.data(rcon, `${ARROWS.slice(0, -1)},limit=1]`, 'damage'))
+  const motion = /\[(-?[\d.E-]+)d, (-?[\d.E-]+)d, (-?[\d.E-]+)d\]/.exec(await f.data(rcon, `${ARROWS.slice(0, -1)},limit=1]`, 'Motion'))
+  assert.ok(damage && motion, 'No arrow found')
+  return { damage: Number(damage[1]), speed: Math.hypot(Number(motion[1]), Number(motion[2]), Number(motion[3])) }
 }
 
-test('Sniper arrows fly further', async () => {
-  const plain = await range([])
-  const sniper = await range([['sniper', 3]])
-  assert.ok(sniper >= plain * 1.25, `${sniper} blocks with Sniper III, ${plain} without`)
+test('Sniper I-III: arrows fly 20/35/50% faster, with the damage value lowered as much', async () => {
+  const plain = await fullShot([])
+  assert.equal(plain.damage, 2)
+  for (let level = 1; level <= 3; level++) {
+    const shot = await fullShot([['sniper', level]])
+    const speed = [1.2, 1.35, 1.5][level - 1]
+    assert.ok(Math.abs(shot.damage - 2 / speed) < 0.001, `Sniper ${level} damage value ${shot.damage}, not ${2 / speed}`)
+    assert.ok(Math.abs(shot.speed / plain.speed - speed) < 0.06, `Sniper ${level} speed ${shot.speed}, ${plain.speed} without`)
+  }
 })
 
 test('Ender Arrow shot while sneaking takes the shooter where it lands', async () => {
@@ -126,6 +173,7 @@ test('Ender Arrow shot while sneaking takes the shooter where it lands', async (
   bot.bot.setControlState('sneak', true)
   try {
     await shoot(1200, new Vec3(X + 15, Y, Z + 0.5))
+    await sleep(1500)
   } finally {
     bot.bot.setControlState('sneak', false)
   }

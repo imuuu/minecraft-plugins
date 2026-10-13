@@ -63,5 +63,6 @@ villagers:
   gear-costs-boosters: true
 
 testing:
-  # Enchants that work on a chance (Venom, Lifesteal, Reflect...) always do. For testing, keep it off
-  always-trigger: false
+  # For testing: the roll of enchants that work on a chance (Venom, Lifesteal, Reflect...), 0 - 1, instead of a
+  # random one. An enchant triggers when the roll is below its chance: 0 = always. Keep it at -1 (random)
+  fixed-roll: -1

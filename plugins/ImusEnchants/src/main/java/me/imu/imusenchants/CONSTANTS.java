@@ -68,8 +68,8 @@ public class CONSTANTS
 	public static int DELAY_SWAPPER_ANIMATION = 12; //ticks
 	
 	public static double MENDING_INCREASE_BY_LEVEL = 0.2;
-	// For tests: enchants that work on a chance always do
-	public static boolean ALWAYS_TRIGGER = false;
+	// For tests: the roll chance enchants make, 0 to 1, instead of a random one. Negative = random
+	public static double FIXED_ROLL = -1;
 	
 	public static boolean DISABLE_ENCHANTED_BOOKS_VILLAGERS = true;
 	public static boolean ENABLE_BUY_BOOSTERS_VILLAGERS = true;
@@ -124,7 +124,7 @@ public class CONSTANTS
 		SWAPPER_ANIMATION = config.getBoolean("slots.swapper-animation", SWAPPER_ANIMATION);
 		DELAY_SWAPPER_ANIMATION = config.getInt("slots.swapper-animation-ticks", DELAY_SWAPPER_ANIMATION);
 		MENDING_INCREASE_BY_LEVEL = config.getDouble("items.mending-per-level", MENDING_INCREASE_BY_LEVEL);
-		ALWAYS_TRIGGER = config.getBoolean("testing.always-trigger", false);
+		FIXED_ROLL = config.getDouble("testing.fixed-roll", -1);
 		CROSSBOW_CONSUME_ARROW_WITH_INFINITY = config.getBoolean("items.crossbow-infinity-uses-arrows", CROSSBOW_CONSUME_ARROW_WITH_INFINITY);
 		DISABLE_ENCHANTED_BOOKS_VILLAGERS = config.getBoolean("villagers.no-enchanted-books", DISABLE_ENCHANTED_BOOKS_VILLAGERS);
 		ENABLE_BUY_BOOSTERS_VILLAGERS = config.getBoolean("villagers.sell-boosters", ENABLE_BUY_BOOSTERS_VILLAGERS);
