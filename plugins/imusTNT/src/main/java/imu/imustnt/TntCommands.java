@@ -1,5 +1,7 @@
 package imu.imustnt;
 
+import imu.iAPI.Menus.Paper.PaperIcons;
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Utilities.InvUtil;
 import imu.imustnt.engine.TntType;
 import org.bukkit.Bukkit;
@@ -35,7 +37,8 @@ class TntCommands implements TabExecutor
             case "menu", "inv" ->
             {
                 if (sender instanceof Player player)
-                    new TntMenu(_plugin).open(player);
+                    PaperMenus.open(player, new TntMenu(_plugin.text("menu-title"), type -> PaperIcons.of(_plugin.item(type, 1)),
+                            (viewer, type, amount) -> InvUtil.AddItemToInventoryOrDrop(player, _plugin.item(type, amount))));
                 else
                     _plugin.send(sender, "usage");
             }

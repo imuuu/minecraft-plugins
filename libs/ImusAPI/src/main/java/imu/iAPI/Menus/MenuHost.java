@@ -1,0 +1,35 @@
+package imu.iAPI.Menus;
+
+import java.util.Map;
+
+/**
+ * Shows a session's menus to its viewer: an inventory window in game, a record of slots in tests.
+ */
+public interface MenuHost
+{
+    /**
+     * Shows a menu in place of whatever was shown.
+     */
+    void show(Menu menu, Map<Integer, Icon> icons);
+
+    /**
+     * Changes one slot of the menu shown; a null icon empties it.
+     */
+    void set(int slot, Icon icon);
+
+    /**
+     * Shows the prompt in place of the menu. Answers go to {@link MenuSession#answer(String)}, and the end, saved
+     * or cancelled, to {@link MenuSession#promptClosed()}.
+     */
+    void prompt(Prompt prompt);
+
+    /**
+     * Closes the window; the session has ended.
+     */
+    void close();
+
+    /**
+     * A button or a prompt answer threw.
+     */
+    void error(String what, RuntimeException error);
+}

@@ -23,7 +23,7 @@
             <groupId>me.imu</groupId>
             <artifactId>ImusAPI</artifactId>
         </dependency>
-        <!-- Tests of the layer rules (imu.imustnt.engine), which don't touch Bukkit -->
+        <!-- Tests of the layer rules (imu.imustnt.engine) and the menu, which don't touch Bukkit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

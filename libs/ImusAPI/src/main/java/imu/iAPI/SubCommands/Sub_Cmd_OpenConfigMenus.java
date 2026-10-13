@@ -4,8 +4,9 @@ import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.CmdUtil.CmdData;
 import imu.iAPI.Config.ConfigEntry;
 import imu.iAPI.Config.ConfigMenu;
-import imu.iAPI.Config.ConfigMenuListInventory;
+import imu.iAPI.Config.ConfigListMenu;
 import imu.iAPI.Interfaces.CommandInterface;
+import imu.iAPI.Menus.Paper.PaperMenus;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -54,7 +55,7 @@ public class Sub_Cmd_OpenConfigMenus implements CommandInterface
 		if (menu != null)
 			menu.open(player);
 		else
-			new ConfigMenuListInventory().open(player);
+			PaperMenus.open(player, new ConfigListMenu());
 		return true;
 	}
 
@@ -63,7 +64,7 @@ public class Sub_Cmd_OpenConfigMenus implements CommandInterface
 		sender.sendMessage(TextUtils.Color("&9Settings of " + menu.getTitle() + ":"));
 		for (ConfigEntry entry : menu.getEntries())
 		{
-			sender.sendMessage(TextUtils.Color("&7  " + entry.getPath() + " &e" + entry.format(entry.get(menu.getPlugin().getConfig()))
+			sender.sendMessage(TextUtils.Color("&7  " + entry.getPath() + " &e" + entry.format(entry.get(menu.getConfig()))
 					+ (entry.hasRange() ? " &7(" + entry.rangeText() + ")" : "")));
 		}
 	}

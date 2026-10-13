@@ -1,0 +1,310 @@
+package imu.iAPI.Menus;
+
+import imu.iAPI.Menus.Testing.MenuTester;
+import imu.iAPI.Menus.Testing.TestViewer;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class MenusTest
+{
+    /**
+     * A counter and a list of 30 numbers in pages of 9.
+     */
+    static class CounterMenu extends Menu
+    {
+        int count;
+        int opened;
+        int closed;
+        final List<Integer> numbers = new ArrayList<>();
+        final Pager<Integer> pager = Pager.rows(1, 1);
+
+        CounterMenu()
+        {
+            super("&6Counter", 3);
+            for (int i = 1; i <= 30; i++)
+                numbers.add(i);
+        }
+
+        @Override
+        protected void render(Canvas canvas)
+        {
+            canvas.fillRow(2, Icon.filler("black_stained_glass_pane"));
+            canvas.set(0, Icon.of("emerald", "&aCount " + count), click -> count += click.isRight() ? -1 : 1);
+            canvas.set(1, Icon.of("ender_pearl", "Open another"), click -> click.open(new CounterMenu()));
+            canvas.set(2, Buttons.confirm(Icon.of("tnt", "&cReset"), "&cReset the count?", click -> count = 0));
+            canvas.set(3, Icon.of("name_tag", "Rename"), click -> click.prompt(Prompt.of("Count", List.of(), "" + count, 5, text ->
+            {
+                try
+                {
+                    count = Integer.parseInt(text);
+                    return null;
+                } catch (NumberFormatException e)
+                {
+                    return "Not a number";
+                }
+            })));
+            canvas.set(4, Icon.of("barrier", "Broken"), click -> { throw new IllegalStateException("boom"); });
+            pager.render(canvas, numbers, n -> Button.display(Icon.of("paper", "#" + n)), 18, 26);
+            Buttons.back(canvas, 22);
+        }
+
+        @Override
+        protected void onOpen(Viewer viewer)
+        {
+            opened++;
+        }
+
+        @Override
+        protected void onClose(Viewer viewer)
+        {
+            closed++;
+        }
+    }
+
+    @Test
+    void aClickChangesStateAndTheMenuIsDrawnAgain()
+    {
+        CounterMenu counter = new CounterMenu();
+        MenuTester menu = MenuTester.open(counter);
+        assertEquals("Counter", menu.title());
+        assertEquals("Count 0", menu.name(0));
+
+        menu.click(0).click(0).click(0, ClickKind.RIGHT);
+        assertEquals(1, counter.count);
+        assertEquals("Count 1", menu.name(0));
+    }
+
+    @Test
+    void onlyChangedSlotsAreSent()
+    {
+        List<Integer> sent = new ArrayList<>();
+        MenuSession session = new MenuSession(TestViewer.admin("A"), new MenuHost()
+        {
+            public void show(Menu menu, Map<Integer, Icon> icons) {}
+
+            public void set(int slot, Icon icon) { sent.add(slot); }
+
+            public void prompt(Prompt prompt) {}
+
+            public void close() {}
+
+            public void error(String what, RuntimeException error) { throw error; }
+        });
+        session.open(new CounterMenu());
+        session.click(0, ClickKind.LEFT, -1);
+        assertEquals(List.of(0), sent);
+        session.refresh();
+        assertEquals(List.of(0), sent, "nothing changed");
+    }
+
+    @Test
+    void pagesTurnWithTheArrows()
+    {
+        MenuTester menu = MenuTester.open(new CounterMenu());
+        assertEquals("#1", menu.name(9));
+        assertEquals(-1, menu.find("Previous page"), "no previous page on the first");
+        menu.click("Next page");
+        assertEquals("#10", menu.name(9));
+        assertTrue(menu.lore(26).contains("Page 2/4"));
+        menu.click("Next page").click("Next page");
+        assertEquals("#28", menu.name(9));
+        assertEquals("#30", menu.name(11));
+        assertNull(menu.icon(12), "the rest of the last page is empty");
+        assertEquals(-1, menu.find("Next page"));
+        menu.click("Previous page");
+        assertEquals("#19", menu.name(9));
+    }
+
+    @Test
+    void backReturnsToThePreviousMenuAndClosesTheFirst()
+    {
+        CounterMenu first = new CounterMenu();
+        MenuTester menu = MenuTester.open(first);
+        assertEquals(-1, menu.find("Go Back"), "nothing to go back to");
+
+        menu.click("Open another");
+        CounterMenu second = menu.assertShowing(CounterMenu.class);
+        assertNotSame(first, second);
+        menu.click(0);
+        assertEquals(1, second.count);
+
+        menu.click("Go Back");
+        assertSame(first, menu.menu());
+        assertEquals(2, first.opened, "shown again");
+        assertEquals(1, second.closed);
+        assertEquals(0, first.closed);
+
+        menu.session().back();
+        assertTrue(menu.isClosed());
+        assertEquals(1, first.closed);
+    }
+
+    @Test
+    void confirmingRunsTheActionAndGoesBack()
+    {
+        CounterMenu counter = new CounterMenu();
+        MenuTester menu = MenuTester.open(counter);
+        menu.click(0).click(0);
+
+        menu.click("Reset");
+        menu.assertShowing(ConfirmMenu.class);
+        assertEquals("Reset the count?", menu.title());
+        menu.click(ConfirmMenu.NO);
+        assertSame(counter, menu.menu());
+        assertEquals(2, counter.count);
+
+        menu.click("Reset").click(ConfirmMenu.YES);
+        assertSame(counter, menu.menu());
+        assertEquals(0, counter.count);
+        assertEquals("Count 0", menu.name(0));
+    }
+
+    @Test
+    void aPromptAsksAgainUntilTheAnswerIsGood()
+    {
+        CounterMenu counter = new CounterMenu();
+        MenuTester menu = MenuTester.open(counter);
+        menu.click("Rename");
+        assertEquals("0", menu.prompt().initial());
+        assertThrows(AssertionError.class, () -> menu.click(0), "the menu isn't shown during a prompt");
+
+        assertEquals("Not a number", menu.answer("ten"));
+        assertNotNull(menu.prompt());
+        assertNull(menu.answer("10"));
+        assertSame(counter, menu.assertShowing(CounterMenu.class));
+        assertEquals("Count 10", menu.name(0));
+
+        menu.click("Rename").cancelPrompt();
+        assertEquals(10, counter.count);
+    }
+
+    @Test
+    void aFailingButtonFailsTheTest()
+    {
+        MenuTester menu = MenuTester.open(new CounterMenu());
+        AssertionError error = assertThrows(AssertionError.class, () -> menu.click("Broken"));
+        assertEquals("boom", error.getCause().getMessage());
+    }
+
+    @Test
+    void closingTheWindowClosesEveryMenu()
+    {
+        CounterMenu first = new CounterMenu();
+        MenuTester menu = MenuTester.open(first);
+        menu.click("Open another");
+        CounterMenu second = menu.assertShowing(CounterMenu.class);
+        menu.closeWindow();
+        assertEquals(1, first.closed);
+        assertEquals(1, second.closed);
+        assertTrue(menu.session().hasEnded());
+    }
+
+    @Test
+    void togglesCyclesAndCounters()
+    {
+        class Settings extends Menu
+        {
+            boolean on;
+            String mode = "fast";
+            int amount = 5;
+
+            Settings()
+            {
+                super("Settings", 1);
+            }
+
+            @Override
+            protected void render(Canvas canvas)
+            {
+                canvas.set(0, Buttons.toggle(Icon.of("lever", "Power"), on, value -> on = value));
+                canvas.set(1, Buttons.cycle(Icon.of("clock", "Mode"), List.of("slow", "fast", "faster"), mode, m -> m, value -> mode = value));
+                canvas.set(2, Buttons.counter(Icon.of("gold_nugget", "Amount"), amount, 1, 20, value -> amount = value));
+            }
+        }
+        Settings settings = new Settings();
+        MenuTester menu = MenuTester.open(settings);
+
+        assertTrue(menu.lore(0).contains("Off"));
+        menu.click(0);
+        assertTrue(settings.on);
+        assertTrue(menu.icon(0).glow());
+
+        menu.click(1);
+        assertEquals("faster", settings.mode);
+        menu.click(1);
+        assertEquals("slow", settings.mode, "wraps around");
+        menu.click(1, ClickKind.RIGHT);
+        assertEquals("faster", settings.mode);
+        assertTrue(menu.lore(1).contains("> faster"));
+
+        menu.click(2, ClickKind.SHIFT_LEFT);
+        assertEquals(15, settings.amount);
+        menu.click(2, ClickKind.SHIFT_LEFT);
+        assertEquals(20, settings.amount, "stops at the max");
+        menu.click(2, ClickKind.RIGHT);
+        assertEquals(19, settings.amount);
+        assertEquals(19, menu.icon(2).amount());
+    }
+
+    @Test
+    void theDumpShowsTheGrid()
+    {
+        String dump = MenuTester.open(new CounterMenu()).dump();
+        assertTrue(dump.startsWith("Counter\n"));
+        assertTrue(dump.contains("Count 0"));
+        assertEquals(4, dump.split("\n").length, "title and three rows");
+    }
+
+    @Test
+    void timersDrawTheMenuAgain()
+    {
+        class Clock extends Menu
+        {
+            int seconds;
+
+            Clock()
+            {
+                super("Clock", 1);
+            }
+
+            @Override
+            public int refreshTicks()
+            {
+                return 20;
+            }
+
+            @Override
+            protected void onTick()
+            {
+                seconds++;
+            }
+
+            @Override
+            protected void render(Canvas canvas)
+            {
+                canvas.set(4, Icon.of("clock", seconds + " s"));
+            }
+        }
+        MenuTester menu = MenuTester.open(new Clock());
+        menu.tick().tick();
+        assertEquals("2 s", menu.name(4));
+    }
+
+    @Test
+    void iconsAreValues()
+    {
+        Icon icon = Icon.of("DIAMOND", "&bShiny", "&7line");
+        assertEquals("minecraft:diamond", icon.material());
+        assertEquals("Shiny", icon.plainName());
+        assertEquals(List.of("line"), icon.plainLore());
+        assertEquals(icon, Icon.of("minecraft:diamond", "&bShiny", "&7line"));
+        assertNotEquals(icon, icon.amount(2));
+        assertEquals(List.of("line", "more"), icon.addLore("more").plainLore());
+        assertEquals(List.of("line"), icon.plainLore(), "the original stays");
+    }
+}

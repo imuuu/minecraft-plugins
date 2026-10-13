@@ -14,6 +14,7 @@ import imu.iAPI.LootTables.Manager_ImusLootTable;
 import imu.iAPI.Managers.Manager_CommandSender;
 import imu.iAPI.Managers.Manager_Database;
 import imu.iAPI.Managers.Manager_Vault;
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Other.*;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Npc.NpcManager;
@@ -94,6 +95,7 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         getServer().getPluginManager().registerEvents(_npcManager, this);
         _npcManager.loadSettings();
 
+        PaperMenus.enable(this);
         RegisterCommands();
         _configMenu = createConfigMenu();
         _configMenu.register();
@@ -114,6 +116,7 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     {
         if (_configMenu != null)
             _configMenu.unregister();
+        PaperMenus.disable();
 
         for (CustomInvLayout inv : _openedInvs.values())
         {

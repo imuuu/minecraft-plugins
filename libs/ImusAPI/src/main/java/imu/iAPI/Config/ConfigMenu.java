@@ -1,14 +1,19 @@
 package imu.iAPI.Config;
 
-import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Main.ImusAPI;
+import imu.iAPI.Menus.Paper.PaperMenus;
+import imu.iAPI.Menus.Paper.PaperViewer;
+import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Other.ImusTabCompleter;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An in-game editor for a plugin's config.yml. The plugin lists the values that may be edited; ImusAPI shows
@@ -23,8 +28,37 @@ import java.util.*;
 public class ConfigMenu
 {
     private static final Map<String, ConfigMenu> _registered = new LinkedHashMap<>();
+    private static final String NO_PERMISSION = "&cYou don't have permission to change these settings!";
 
-    private final Plugin _plugin;
+    /**
+     * Where the values live: a plugin's config.yml, or a plain configuration in tests.
+     */
+    public interface Store
+    {
+        String pluginName();
+
+        FileConfiguration config();
+
+        void save();
+
+        Logger logger();
+
+        static Store of(Plugin plugin)
+        {
+            return new Store()
+            {
+                public String pluginName() { return plugin.getName(); }
+
+                public FileConfiguration config() { return plugin.getConfig(); }
+
+                public void save() { plugin.saveConfig(); }
+
+                public Logger logger() { return plugin.getLogger(); }
+            };
+        }
+    }
+
+    private final Store _store;
     private final String _title;
     private final String _permission;
     private final Runnable _onChange;
@@ -36,7 +70,12 @@ public class ConfigMenu
      */
     public ConfigMenu(Plugin plugin, String title, String permission, Runnable onChange)
     {
-        _plugin = plugin;
+        this(Store.of(plugin), title, permission, onChange);
+    }
+
+    public ConfigMenu(Store store, String title, String permission, Runnable onChange)
+    {
+        _store = store;
         _title = title;
         _permission = permission;
         _onChange = onChange;
@@ -114,24 +153,34 @@ public class ConfigMenu
 
     public String getId()
     {
-        return _plugin.getName().toLowerCase(Locale.ROOT);
+        return _store.pluginName().toLowerCase(Locale.ROOT);
     }
 
     // Opening and changing ===========================================================================================
 
     public boolean canEdit(CommandSender sender)
     {
-        return _permission == null || sender.hasPermission(_permission);
+        return canEdit(PaperViewer.of(sender));
+    }
+
+    public boolean canEdit(Viewer viewer)
+    {
+        return _permission == null || viewer.hasPermission(_permission);
     }
 
     public void open(Player player)
     {
         if (!canEdit(player))
         {
-            player.sendMessage(TextUtils.Color("&cYou don't have permission to change these settings!"));
+            PaperViewer.of(player).message(NO_PERMISSION);
             return;
         }
-        new ConfigMenuInventory(this).open(player);
+        PaperMenus.open(player, new ConfigEntriesMenu(this));
+    }
+
+    public boolean setValue(CommandSender sender, ConfigEntry entry, Object value)
+    {
+        return setValue(PaperViewer.of(sender), entry, value);
     }
 
     /**
@@ -139,24 +188,25 @@ public class ConfigMenu
      *
      * @return true when the value was saved
      */
-    public boolean setValue(CommandSender player, ConfigEntry entry, Object value)
+    public boolean setValue(Viewer viewer, ConfigEntry entry, Object value)
     {
-        if (!canEdit(player))
+        if (!canEdit(viewer))
         {
-            player.sendMessage(TextUtils.Color("&cYou don't have permission to change these settings!"));
+            viewer.message(NO_PERMISSION);
             return false;
         }
 
-        Object oldValue = entry.get(_plugin.getConfig());
+        FileConfiguration config = _store.config();
+        Object oldValue = entry.get(config);
         if (Objects.equals(oldValue, value))
             return false;
 
-        _plugin.getConfig().set(entry.getPath(), value);
-        _plugin.saveConfig();
-        _plugin.getLogger().info(player.getName() + " changed " + entry.getPath() + ": "
+        config.set(entry.getPath(), value);
+        _store.save();
+        _store.logger().info(viewer.name() + " changed " + entry.getPath() + ": "
                 + entry.format(oldValue) + " -> " + entry.format(value));
-        player.sendMessage(TextUtils.Color("&9" + entry.getName() + " &7changed &c" + entry.format(oldValue)
-                + " &7-> &a" + entry.format(value)));
+        viewer.message("&9" + entry.getName() + " &7changed &c" + entry.format(oldValue)
+                + " &7-> &a" + entry.format(value));
 
         try
         {
@@ -164,9 +214,8 @@ public class ConfigMenu
                 _onChange.run();
         } catch (Exception e)
         {
-            player.sendMessage(TextUtils.Color("&cThe value was saved, but applying it failed. See the console."));
-            _plugin.getLogger().severe("Applying config change of " + entry.getPath() + " failed");
-            e.printStackTrace();
+            viewer.message("&cThe value was saved, but applying it failed. See the console.");
+            _store.logger().log(Level.SEVERE, "Applying config change of " + entry.getPath() + " failed", e);
         }
         return true;
     }
@@ -184,9 +233,14 @@ public class ConfigMenu
         return null;
     }
 
-    public Plugin getPlugin()
+    public String getPluginName()
     {
-        return _plugin;
+        return _store.pluginName();
+    }
+
+    public FileConfiguration getConfig()
+    {
+        return _store.config();
     }
 
     public String getTitle()

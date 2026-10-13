@@ -42,6 +42,7 @@ balances before and after each click, so they can be run again on the same serve
 | `hometele.test.js` | HomeTele: /sethome and /home after the warmup, moving cancels, the cooldown, named homes up to the limit, /homelist |
 | `hometele-upgrade.test.js` | An old HomeTele's homes.yml and settings.yml carry over (restarts the server, SHOPBOT_RESTART=1) |
 | `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
+| `menus.test.js` | ImusAPI's menus in the game: `/ia config` and a plugin's settings, a toggle and a reset saved to config.yml, going back, no items out of or into a menu |
 | `tnt.test.js` | imusTNT: Chunk TNT clears its chunk layer but leaves chests, Chunk Stone TNT fills it with stone, special TNT drops itself, the admin menu |
 | `spawners.test.js` | ImusSpawners: a lucky silk touch roll, a placed spawner always comes back, a miss raises the chance, `/spawners give` |
 | `waystones.test.js` | imusWaystones: building and confirming, room between own waystones, finding by touch, travelling, an upgrade, the cooldown, admin settings, breaking (empties the waystone tables) |

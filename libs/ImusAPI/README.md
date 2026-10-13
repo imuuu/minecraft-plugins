@@ -18,7 +18,7 @@ käytetään** ja mitä vältetään.
 | Itemin nimi, lore, enchantit, kunto | `ItemUtils` | – |
 | Data itemiin, blokkiin tai entityyn | `DataUtils.Get/Set/RemovePersistentData` | omia `NamespacedKey`-kikkoja |
 | Item pelaajalle tai maahan | `InvUtil.AddItemToInventoryOrDrop` | – |
-| Menu / GUI | `CustomInventory` + `Button` | `FastInventory` (vanhentunut) |
+| Menu / GUI | `Menu` + `PaperMenus` (`imu.iAPI.Menus`) | `CustomInventory` (siirretään pois), `FastInventory` (vanhentunut) |
 | Komennot | `CommandHandler` + `CommandInterface` | omaa `CommandExecutor`-sekamelskaa |
 | Asetukset pelissä ja konsolista | `ConfigMenu` | omia asetusmenuja |
 | Tekstin kysyminen pelaajalta | `TextInputDialog.show(...)` | chat-keskustelut |
@@ -61,44 +61,61 @@ InvUtil.AddItemToInventoryOrDrop(player, sword);
 
 ---
 
-## Menut: `CustomInventory`
+## Menut: `Menu` (`imu.iAPI.Menus`)
+
+Menu ei koske serverin inventoryihin. Se on tila ja `render(Canvas)`, joka piirtää napit tilan mukaan.
+Menu piirretään uudelleen jokaisen klikkauksen jälkeen ja `refresh()`-kutsulla, ja pelaajalle lähtevät vain
+muuttuneet slotit. Siksi menua voi klikkailla JUnit-testissä ilman serveriä (`MenuTester`), ja pelissä sen
+näyttää `PaperMenus`.
 
 ```java
-public class ShopMenu extends CustomInventory
+public class ShopMenu extends Menu
 {
-    public ShopMenu(Plugin plugin)
+    private final Pager<Item> _pager = Pager.rows(0, 5);   // sivu säilyy uudelleenpiirrossa
+    private int _amount = 1;
+
+    public ShopMenu()
     {
-        super(plugin, "&6Kauppa", 54);          // otsikko (&-värit), koko
+        super("&6Kauppa", 6);                               // otsikko (&-värit), rivit
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void render(Canvas canvas)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;  // pelaaja ei voi siirrellä tavaroita
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        refresh();
-    }
-
-    private void refresh()
-    {
-        clearButtons();
-        addButton(new Button(13, new ItemStack(Material.EMERALD), e -> getPlayer().sendMessage("Klik!")));
-        updateButtons(true);
+        canvas.fillRow(5, Icon.filler("black_stained_glass_pane"));
+        _pager.render(canvas, items(), item -> Button.of(icon(item), click -> buy(click.viewer(), item, _amount)), 45, 53);
+        canvas.set(49, Buttons.counter(Icon.of("gold_nugget", "&eMäärä"), _amount, 1, 64, value -> _amount = value));
+        canvas.set(50, Buttons.confirm(Icon.of("tnt", "&cTyhjennä"), "&cTyhjennetäänkö?", click -> clear()));
+        Buttons.back(canvas, 48);                           // vain jos tultiin toisesta menusta
     }
 }
 
-new ShopMenu(plugin).open(player);
+PaperMenus.open(player, new ShopMenu());
 ```
 
-- `onAwake()` ajetaan ennen ensimmäistä avausta, `onOpen()` jokaisella avauksella ja `onClose()` sulkiessa.
-- `addButton` + `updateButtons(true)` piirtää; yhden napin vaihtamiseen riittää `addButton` + `updateButton(slot)`.
-- Toisen menun avaaminen napista: `Bukkit.getScheduler().runTask(plugin, () -> new Toinen(...).open(player))`.
-- `FastInventory` on vanhentunut, eikä uusia menuja tehdä sillä.
+- Klikkaus saa `Click`-olion: `viewer()`, `kind()` (`isRight()`, `isShift()`), `open(menu)`, `back()`,
+  `replace(menu)`, `close()` ja `prompt(Prompt)` (tekstin kysyminen dialogilla, menu palaa vastauksen jälkeen).
+- `Icon` on itemin kuvaus ilman `ItemStack`ia (`Icon.of("diamond", "&bNimi", "&7lore")`). Valmiin itemin,
+  esim. plugarin oman custom-itemin, saa näkymään `PaperIcons.of(itemStack)`.
+- Valmiit napit (`Buttons`): `back`, `close`, `toggle`, `cycle`, `counter`, `confirm` (avaa `ConfirmMenu`n).
+- `Viewer` on pelaaja ilman Bukkitia: `id()`, `name()`, `hasPermission()`, `message()`. Kun menu tarvitsee
+  `Player`-olion (esim. itemin antamiseen), välitä se menulle rajapinnan takana, kuten imusTNT:n `TntMenu.Giver`.
+- `onOpen`/`onClose` jokaisella näyttämisellä ja lopullisella sulkemisella; `refreshTicks()` + `onTick()` ajastettuun
+  päivitykseen; `locksOwnInventory()` estää myös pelaajan oman inventoryn klikkaukset.
+- Toisen menun avaamista ei tarvitse viivästää itse; `PaperMenus` avaa sen seuraavalla tickillä.
+
+Testissä:
+
+```java
+MenuTester menu = MenuTester.open(new ShopMenu(), TestViewer.with("Guest", "shop.use"));
+menu.click("Määrä", ClickKind.SHIFT_LEFT);
+assertTrue(menu.lore(49).contains("11"));
+menu.click("Tyhjennä").assertShowing(ConfirmMenu.class);
+System.out.println(menu.dump());                         // menu tekstiruudukkona
+```
+
+Vanhat `CustomInventory`-menut toimivat yhä, mutta uudet menut tehdään `Menu`lla, ja vanhat siirretään
+sille vähitellen. `FastInventory` on vanhentunut.
 
 ---
 
@@ -141,6 +158,9 @@ menu.register();
 
 Arvot tallennetaan plugarin `config.yml`:ään, ja muutoksen jälkeen ajetaan annettu `onChange` (esim. asetusten
 uudelleenlataus). Väärä arvo (alueen ulkopuolella, ei numero) hylätään viestillä.
+
+Testeissä `ConfigMenu` saa plugarin tilalle `ConfigMenu.Store`n (esim. `YamlConfiguration`), ja sen menut
+(`ConfigEntriesMenu`, `ConfigListMenu`) toimivat `MenuTester`illa, katso `ConfigMenusTest`.
 
 ---
 

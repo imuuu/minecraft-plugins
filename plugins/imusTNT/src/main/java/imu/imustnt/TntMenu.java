@@ -1,53 +1,46 @@
 package imu.imustnt;
 
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.ItemUtils;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Viewer;
 import imu.imustnt.engine.TntType;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+
+import java.util.function.Function;
 
 /**
  * The special TNTs for admins to take: click for one, right or shift click for a stack.
  */
-class TntMenu extends CustomInventory
+class TntMenu extends Menu
 {
-    private final ImusTNT _plugin;
-
-    TntMenu(ImusTNT plugin)
+    interface Giver
     {
-        super(plugin, plugin.text("menu-title"), 9);
-        _plugin = plugin;
+        void give(Viewer viewer, TntType type, int amount);
+    }
+
+    private final Function<TntType, Icon> _icons;
+    private final Giver _giver;
+
+    /**
+     * @param icons how each TNT looks
+     */
+    TntMenu(String title, Function<TntType, Icon> icons, Giver giver)
+    {
+        super(title, 1);
+        _icons = icons;
+        _giver = giver;
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void render(Canvas canvas)
     {
-        return INVENTORY_AREA.UPPER_INV;
-    }
-
-    @Override
-    public void onAwake()
-    {
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        clearButtons();
-        ItemStack background = ItemUtils.SetDisplayNameEmpty(new ItemStack(Material.PURPLE_STAINED_GLASS_PANE));
-        for (int i = 0; i < getSize(); i++)
-            addButton(new Button(i, background.clone()));
+        canvas.fill(Icon.filler("purple_stained_glass_pane"));
         TntType[] types = TntType.values();
         for (int i = 0; i < types.length; i++)
         {
             TntType type = types[i];
-            addButton(new Button(i, _plugin.item(type, 1), e ->
-                    InvUtil.AddItemToInventoryOrDrop(getPlayer(), _plugin.item(type, e.isRightClick() || e.isShiftClick() ? 64 : 1))));
+            canvas.set(i, _icons.apply(type), click ->
+                    _giver.give(click.viewer(), type, click.isRight() || click.isShift() ? 64 : 1));
         }
-        updateButtons(true);
     }
 }
