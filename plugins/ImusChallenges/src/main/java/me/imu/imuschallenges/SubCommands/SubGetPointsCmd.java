@@ -1,5 +1,7 @@
 package me.imu.imuschallenges.SubCommands;
 
+import imu.iAPI.Utilities.TextUtils;
+
 import imu.iAPI.Interfaces.CommandInterface;
 import imu.iAPI.Utilities.ImusUtilities;
 import me.imu.imuschallenges.Database.Tables.TablePlayerPoints;
@@ -29,6 +31,10 @@ public class SubGetPointsCmd implements CommandInterface
         }
 
         if (targetPlayer == null) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "Usage from the console: /" + s + " view points <player>");
+                return true;
+            }
             targetPlayer = (Player) sender;
         }
         Player finalTargetPlayer = targetPlayer;
@@ -37,7 +43,7 @@ public class SubGetPointsCmd implements CommandInterface
             public void run() {
                 try {
                     List<TablePlayerPoints> pointsList = ManagerPlayerPoints.getInstance().getPoints(finalTargetPlayer);
-                    sendPointsMessage((Player)sender, pointsList);
+                    sendPointsMessage(sender, pointsList);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -46,24 +52,33 @@ public class SubGetPointsCmd implements CommandInterface
         return true;
     }
 
-    private void sendPointsMessage(Player player, List<TablePlayerPoints> pointsList)
+    private void sendPointsMessage(CommandSender player, List<TablePlayerPoints> pointsList)
     {
         if(pointsList == null || pointsList.isEmpty())
         {
-            ImusUtilities.SendCenteredMessage(player, "&cNo points found");
+            SendLine(player, "&cNo points found");
 
             return;
         }
-        ImusUtilities.SendCenteredMessage(player, "&b========= &5Points &6Summary &b==========");
+        SendLine(player, "&b========= &5Points &6Summary &b==========");
         player.sendMessage(" ");
         for (TablePlayerPoints points : pointsList) {
             String pointType = points.getPoint_type().getPointTypeName();
             String message = ChatColor.GOLD + pointType + ": " + ChatColor.AQUA + points.getPoints() +
                     " (Lifetime: " + points.getLifetimePoints() + ")";
-            ImusUtilities.SendCenteredMessage(player, message);
+            SendLine(player, message);
         }
         player.sendMessage(" ");
-        ImusUtilities.SendCenteredMessage(player, "&b========= &5Points &6Summary &b==========");
+        SendLine(player, "&b========= &5Points &6Summary &b==========");
+    }
+
+    // Centred for players; the console gets the text as it is
+    private static void SendLine(CommandSender to, String message)
+    {
+        if (to instanceof Player player)
+            ImusUtilities.SendCenteredMessage(player, message);
+        else
+            to.sendMessage(TextUtils.Color(message));
     }
 
     @Override

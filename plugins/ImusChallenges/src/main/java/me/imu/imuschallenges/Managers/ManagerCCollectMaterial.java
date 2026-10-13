@@ -11,6 +11,7 @@ import me.imu.imuschallenges.Enums.POINT_TYPE;
 import me.imu.imuschallenges.ImusChallenges;
 import me.imu.imuschallenges.Interfaces.CacheUpdateCallback;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -331,7 +332,8 @@ public class ManagerCCollectMaterial implements Listener
 
         Player player = (Player) event.getEntity();
 
-        if (!player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE))
+        // Creative and spectator players don't take part
+        if (!player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE) || !isPlaying(player))
         {
             return;
         }
@@ -346,6 +348,11 @@ public class ManagerCCollectMaterial implements Listener
         informPlayer(player, material);
         markMaterialAsCollected(material, player);
 
+    }
+
+    static boolean isPlaying(Player player)
+    {
+        return player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE;
     }
 
     public void markMaterialAsCollected(Material material, Player player)

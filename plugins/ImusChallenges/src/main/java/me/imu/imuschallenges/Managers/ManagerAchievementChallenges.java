@@ -188,9 +188,10 @@ public class ManagerAchievementChallenges implements Listener
 
         String advancementKey = PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
         int points = ManagerAdvancement.getInstance().getPoints(advancement);
-        // Only players in the server-wide competition can claim being first and its bonus
+        // Only players in the server-wide competition, and playing survival, can claim being first and its bonus
         if (!_globalCompletedAdvancements.contains(advancementKey)
-                && player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE))
+                && player.hasPermission(CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE)
+                && ManagerCCollectMaterial.isPlaying(player))
         {
             points += _main.getConfig().getInt("points.first-advancement-bonus");
             buffer.offer(new PlayerAdvancementPair(player, advancementKey));

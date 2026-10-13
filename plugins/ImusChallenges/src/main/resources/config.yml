@@ -2,7 +2,7 @@
 
 # Challenge points players earn
 points:
-  # Being the first on the server to pick up a material
+  # Being the first on the server to pick up a material. Ops and players in creative or spectator don't take part
   first-material: 1
   # Completing an advancement, by its frame
   advancement-task: 3
@@ -11,6 +11,9 @@ points:
   # Extra for being the first on the server to complete an advancement
   # (needs the imuschallenges.server.achievement.achievement permission)
   first-advancement-bonus: 10
+  # true: everyone but ops can be first to an advancement (and hears about it), like the material collection.
+  # false: only players given the imuschallenges.server.achievement.* permissions
+  first-advancement-everyone: false
 
 # Where each player's lifetime challenge points are shown:
 # PLAYER_LIST (after the name in tab), BELOW_NAME (under the name tag), SIDEBAR or NONE

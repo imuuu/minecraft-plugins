@@ -14,6 +14,7 @@ import me.imu.imuschallenges.Commands.ExampleCmd;
 import me.imu.imuschallenges.Managers.*;
 import me.imu.imuschallenges.SubCommands.*;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.permissions.Permission;
@@ -56,6 +57,7 @@ public class ImusChallenges extends JavaPlugin
         registerCommands();
         System.out.println("ImusChallenges has been enabled!");
         registerPermissions();
+        applyFirstAdvancementDefault();
 
 
         _managerPlayers = new ManagerPlayers();
@@ -98,6 +100,26 @@ public class ImusChallenges extends JavaPlugin
         reloadConfig();
         _managerChallengeShop.reload();
         ManagerPointsScoreboard.getInstance().applyConfig();
+        applyFirstAdvancementDefault();
+    }
+
+    /**
+     * points.first-advancement-everyone gives the first advancement bonus and its broadcast to everyone but ops,
+     * like the material collection; off, only players given the permission take part.
+     */
+    private void applyFirstAdvancementDefault()
+    {
+        PermissionDefault value = getConfig().getBoolean("points.first-advancement-everyone", false) ? PermissionDefault.NOT_OP : PermissionDefault.FALSE;
+        for (String node : new String[] { CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE, CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST })
+        {
+            Permission permission = Bukkit.getPluginManager().getPermission(node);
+            if (permission == null || permission.getDefault() == value)
+                continue;
+            permission.setDefault(value);
+            Bukkit.getPluginManager().recalculatePermissionDefaults(permission);
+            for (Player player : Bukkit.getOnlinePlayers())
+                player.recalculatePermissions();
+        }
     }
 
     /**
@@ -118,6 +140,10 @@ public class ImusChallenges extends JavaPlugin
                 .note("now");
         menu.addInt("points.first-advancement-bonus", "Points: first advancement bonus", Material.NETHER_STAR, 0, 1000)
                 .description("Extra for being the first on the server to complete an advancement")
+                .note("now");
+        menu.addBoolean("points.first-advancement-everyone", "First advancement bonus for everyone", Material.BEACON)
+                .description("Everyone but ops can be first to an advancement")
+                .description("Off: only who has the permission")
                 .note("now");
         menu.addChoice("scoreboard.display", "Points on scoreboard", Material.OAK_SIGN, ManagerPointsScoreboard.DISPLAY_OPTIONS)
                 .description("Where lifetime challenge points are shown")
@@ -272,6 +298,10 @@ public class ImusChallenges extends JavaPlugin
         String cmd1_sub6 = "view points";
         handler.registerSubCmd(cmd1, cmd1_sub6, new SubGetPointsCmd());
         handler.setPermissionOnLastCmd("ic.view.points");
+
+        // The console and RCON can run the ones that don't need a player of their own
+        for (String sub : new String[] { cmd1_sub4, cmd1_sub10, cmd1_sub11, cmd1_sub9, cmd1_sub7, cmd1_sub6 })
+            handler.allowConsole(cmd1, sub);
 
         cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config", "create" });
         cmd1AndArguments.put("create", new String[] { "npc" });
