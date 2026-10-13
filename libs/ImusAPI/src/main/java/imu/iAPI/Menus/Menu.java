@@ -56,7 +56,13 @@ public abstract class Menu
         return 0;
     }
 
-    protected void onTick() {}
+    /**
+     * @return false when nothing changed and the menu needn't be drawn again
+     */
+    protected boolean onTick()
+    {
+        return true;
+    }
 
     /**
      * Whether clicks in the player's own inventory below are blocked too. Moving items into the menu always is.

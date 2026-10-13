@@ -1,7 +1,8 @@
 'use strict'
 // ImusEnchants: a custom book clicked on a tool in the inventory gives the enchant, a Slot Core gives a tool
 // slots and a book in the enchanting table's grid enchants it, Curse of Fragility wears a tool out twice as
-// fast, and Soulbound keeps an item on death once.
+// fast, and Soulbound keeps an item on death once. The table takes pieces in and out, gives back what wasn't
+// saved, and a saved piece can be removed.
 const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const { Vec3 } = require('vec3')
@@ -134,4 +135,91 @@ test('Soulbound keeps the item on death, once', async () => {
   assert.equal(await f.count(rcon, BOT, 'iron_ingot'), 0, 'the ingot without Soulbound was dropped')
   const answer = await f.data(rcon, BOT, 'Inventory[{id:"minecraft:iron_sword"}].components."minecraft:custom_data"')
   assert.ok(!/soulbound/.test(answer), 'Soulbound is used up: ' + answer)
+})
+
+/**
+ * A diamond pickaxe with slots in the first hotbar slot, made with a Slot Core like a player does.
+ */
+async function slottedPickaxe () {
+  await reset()
+  await rcon.command(`minecraft:item replace entity ${BOT} hotbar.0 with diamond_pickaxe`)
+  bot.bot.setQuickBarSlot(0)
+  await rcon.command(`ien core ${BOT}`)
+  await bot.until(() => bot.bot.inventory.items().length >= 2, 3000, 'No core given')
+  const core = bot.bot.inventory.items().find(item => item.name !== 'diamond_pickaxe')
+  bot.clearMessages()
+  await bot.bot.clickWindow(core.slot, 0, 0)
+  await sleep(300)
+  await bot.bot.clickWindow(HOTBAR, 0, 0)
+  await bot.waitForMessage(/given slots/)
+}
+
+async function openTable () {
+  await rcon.command(`setblock ${X + 2} ${Y} ${Z} enchanting_table`)
+  await bot.until(() => bot.bot.blockAt(new Vec3(X + 2, Y, Z))?.name === 'enchanting_table', 3000, 'The bot does not see the table')
+  const grid = bot.nextWindow(5000, 'The table opened no grid')
+  await bot.bot.activateBlock(bot.bot.blockAt(new Vec3(X + 2, Y, Z)))
+  return await grid
+}
+
+function cursor () {
+  return bot.bot.currentWindow?.selectedItem?.name ?? null
+}
+
+test('the table takes pieces in and out, gives back what isn\'t saved, and a saved piece can be removed', async () => {
+  await slottedPickaxe()
+  await rcon.command(`ien book tunnel 1 ${BOT}`)
+  await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'enchanted_book'), 3000, 'No book given')
+
+  let window = await openTable()
+  assert.equal(window.slots[49]?.name, 'diamond_pickaxe', 'the pickaxe is in the table')
+  const open = [...Array(45).keys()].find(slot => !window.slots[slot])
+  assert.ok(open !== undefined, 'the pickaxe has an open slot')
+
+  // A book in, out to the cursor, and in again
+  await bot.click(await bot.waitForOwnSlot('enchanted_book'))
+  await bot.click(open)
+  await bot.until(() => bot.slot(open)?.name === 'enchanted_book' && cursor() === null, 3000, 'The book did not go in')
+  await bot.click(open)
+  await bot.until(() => !bot.slot(open) && cursor() === 'enchanted_book', 3000, 'The book did not come out')
+  await bot.click(open)
+  await bot.until(() => bot.slot(open)?.name === 'enchanted_book', 3000, 'The book did not go in again')
+
+  // The pickaxe out to the cursor and back: the grid closes and opens with it
+  await bot.click(49)
+  await bot.until(() => cursor() === 'diamond_pickaxe' && bot.slot(open)?.name === 'black_stained_glass_pane', 3000, 'The pickaxe did not come out')
+  assert.ok(bot.bot.inventory.items().some(item => item.name === 'enchanted_book'), 'the unsaved book came back')
+  await bot.click(49)
+  await bot.until(() => bot.slot(49)?.name === 'diamond_pickaxe' && !bot.slot(open), 3000, 'The pickaxe did not go back')
+
+  // Closing without Enchant gives the book back and the pickaxe has no enchant
+  await bot.click(await bot.waitForOwnSlot('enchanted_book'))
+  await bot.click(open)
+  await bot.until(() => bot.slot(open)?.name === 'enchanted_book', 3000, 'The book did not go in')
+  bot.closeWindow()
+  await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'enchanted_book') &&
+    bot.bot.inventory.items().some(item => item.name === 'diamond_pickaxe'), 3000, 'The book and the pickaxe did not come back')
+  const pickaxeSlot = () => bot.bot.inventory.items().find(item => item.name === 'diamond_pickaxe').slot - HOTBAR
+  assert.equal(await customEnchants(pickaxeSlot()), '')
+
+  // Saved with Enchant, then removed with a right click
+  await bot.bot.equip(bot.bot.inventory.items().find(item => item.name === 'diamond_pickaxe'), 'hand')
+  window = await openTable()
+  await bot.click(await bot.waitForOwnSlot('enchanted_book'))
+  await bot.click(open)
+  await bot.until(() => bot.slot(open)?.name === 'enchanted_book', 3000, 'The book did not go in')
+  await bot.click(50)
+  bot.closeWindow()
+  await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'diamond_pickaxe'), 3000, 'No pickaxe back')
+  assert.match(await customEnchants(pickaxeSlot()), /tunnel:1/)
+  assert.ok(!bot.bot.inventory.items().some(item => item.name === 'enchanted_book'), 'the saved book is in the pickaxe')
+
+  await bot.bot.equip(bot.bot.inventory.items().find(item => item.name === 'diamond_pickaxe'), 'hand')
+  window = await openTable()
+  assert.match(JSON.stringify(window.slots[open]?.customName ?? ''), /LOCKED/, 'the saved book is locked')
+  await bot.click(open, 'right')
+  await bot.until(() => !bot.slot(open), 3000, 'The saved book was not removed')
+  bot.closeWindow()
+  await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'diamond_pickaxe'), 3000, 'No pickaxe back')
+  assert.equal(await customEnchants(pickaxeSlot()), '')
 })

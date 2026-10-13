@@ -1,5 +1,6 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Menus.Click;
 import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
@@ -7,11 +8,9 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Restrictions;
 import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
-import imu.iAPI.Buttons.Button;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -43,14 +42,13 @@ public class StockableEditorMenu extends AdminMenu
     }
 
     @Override
-    protected void refresh()
+    protected void draw()
     {
-        clearButtons();
         for (int slot = 0; slot < 27; slot++)
-            addButton(new Button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE)));
+            button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE));
 
-        addButton(new Button(0, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<< BACK"), e -> returnToEditor()));
-        addButton(new Button(18, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&a<< CONFIRM"), e ->
+        button(0, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<< BACK"), e -> returnToEditor());
+        button(18, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&a<< CONFIRM"), e ->
         {
             if (_shop.positionOf(_listing) != null)
             {
@@ -58,22 +56,22 @@ public class StockableEditorMenu extends AdminMenu
                 _service.warnAboutBuyBackProfit(getPlayer(), _shop);
             }
             returnToEditor();
-        }));
-        addButton(new Button(9, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of())));
-        addButton(new Button(8, Icons.icon(Material.LAVA_BUCKET, "&c&lRemove this item from shop", "", "&bShift click &7to remove"), e ->
+        });
+        button(9, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of()));
+        button(8, Icons.icon(Material.LAVA_BUCKET, "&c&lRemove this item from shop", "", "&bShift click &7to remove"), e ->
         {
-            if (!e.isShiftClick())
+            if (!e.isShift())
                 return;
             _shop.removeListing(_listing);
             _shop.compact(true);
             returnToEditor();
-        }));
-        addButton(new Button(26, Icons.icon(Material.SLIME_BALL, "&b&lClone to your inv"),
-                e -> getPlayer().getInventory().addItem(ItemKeys.stack(_listing.getItem(), 1))));
-        addButton(new Button(17, Icons.glow(Icons.icon(Material.PAPER, "&b&lOverride all items in shop with this data!",
+        });
+        button(26, Icons.icon(Material.SLIME_BALL, "&b&lClone to your inv"),
+                e -> getPlayer().getInventory().addItem(ItemKeys.stack(_listing.getItem(), 1)));
+        button(17, Icons.glow(Icons.icon(Material.PAPER, "&b&lOverride all items in shop with this data!",
                 "&7Every stockable item of the shop gets", "&7these settings", "", "&bShift click &7to do it")), e ->
         {
-            if (!e.isShiftClick())
+            if (!e.isShift())
                 return;
             int count = 0;
             for (Listing listing : _shop.getListings())
@@ -85,11 +83,11 @@ public class StockableEditorMenu extends AdminMenu
             }
             getPlayer().sendMessage(TextUtils.Color("&3Data has been changed total of &2" + count + " &3items"));
             _service.warnAboutBuyBackProfit(getPlayer(), _shop);
-        }));
+        });
 
         addButton(valueButton(2, "Max stock amount", _draft.maxAmount < 0 ? null : String.valueOf(_draft.maxAmount), List.of(), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.maxAmount = -1;
                 refresh();
@@ -102,7 +100,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(6, "Set Stock FillDelay(min)", _draft.fillDelayMinutes < 0 ? null : _draft.fillDelayMinutes + " min",
                 List.of("&7How often the stock is filled"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.fillDelayMinutes = -1;
                 refresh();
@@ -115,7 +113,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(12, "Set Stock FillAmount", _draft.fillAmount < 0 ? null : String.valueOf(_draft.fillAmount),
                 List.of("&7How many it fills, up to the max.", "&7None: the stock never runs out"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.fillAmount = -1;
                 refresh();
@@ -128,7 +126,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(14, "Set Price", ShopEditorMenu.priceText(_draft.price),
                 List.of("&7Own price, custom price or the material's price.", "&7Be careful, it can't be too cheap!"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.price = imu.GS.engine.pricing.PriceRule.MATERIAL;
                 refresh();
@@ -140,7 +138,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(4, "Set permission", _draft.permissions.isEmpty() ? null : String.join("; ", _draft.permissions),
                 List.of("&7Only players with one of these see it"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.permissions.clear();
                 refresh();
@@ -161,7 +159,7 @@ public class StockableEditorMenu extends AdminMenu
         areaLines.add("&7Item is shown inside the given radius");
         addButton(valueButton(22, "Set Distance radius", _draft.areas.isEmpty() ? null : _draft.areas.size() + " place(s)", areaLines, e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.areas.clear();
                 refresh();
@@ -173,7 +171,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(24, "Set sell time", _draft.sellTime == null ? null : _draft.sellTime.start() + " - " + _draft.sellTime.end(),
                 List.of("&7World time when the item is sold"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.sellTime = null;
                 refresh();
@@ -200,7 +198,7 @@ public class StockableEditorMenu extends AdminMenu
         addButton(valueButton(10, "Add Tags", _draft.tags.isEmpty() ? null : String.join(", ", _draft.tags),
                 List.of("&7For /gs tag shopitems"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.tags.clear();
                 refresh();
@@ -215,7 +213,6 @@ public class StockableEditorMenu extends AdminMenu
             });
         }));
 
-        updateButtons(true);
     }
 
     private String addArea(String text)
@@ -242,7 +239,7 @@ public class StockableEditorMenu extends AdminMenu
         }
     }
 
-    private Button valueButton(int slot, String name, String value, List<String> help, java.util.function.Consumer<InventoryClickEvent> click)
+    private Button valueButton(int slot, String name, String value, List<String> help, java.util.function.Consumer<Click> click)
     {
         List<String> lore = new ArrayList<>(help);
         lore.add(value == null ? "&aSet To &cNONE" : "&aSet To &1" + value);

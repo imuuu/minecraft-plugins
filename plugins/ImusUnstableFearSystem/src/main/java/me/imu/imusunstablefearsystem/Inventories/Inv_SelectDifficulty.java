@@ -6,6 +6,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Viewer;
 import me.imu.imusunstablefearsystem.Enums.DIFFICULT;
+import org.bukkit.Material;
 
 /**
  * Shown at the portal: the player picks fear or no fear for the next days. Closing it gives the portal back.
@@ -43,10 +44,10 @@ public class Inv_SelectDifficulty extends Menu
 	@Override
 	protected void render(Canvas canvas)
 	{
-		canvas.fill(Icon.filler("black_stained_glass_pane"));
-		canvas.set(NO_FEAR, Icon.of("iron_horse_armor", "&cNO FEAR SYSTEM", DIFFICULT.getLore(DIFFICULT.NO_FEAR)),
+		canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
+		canvas.set(NO_FEAR, Icon.of(Material.IRON_HORSE_ARMOR, "&cNO FEAR SYSTEM", DIFFICULT.getLore(DIFFICULT.NO_FEAR)),
 				click -> Choose(click, DIFFICULT.NO_FEAR));
-		canvas.set(FEAR, Icon.of("diamond_horse_armor", "&4FEAR SYSTEM ENABLED", DIFFICULT.getLore(DIFFICULT.FEAR)),
+		canvas.set(FEAR, Icon.of(Material.DIAMOND_HORSE_ARMOR, "&4FEAR SYSTEM ENABLED", DIFFICULT.getLore(DIFFICULT.FEAR)),
 				click -> Choose(click, DIFFICULT.FEAR));
 	}
 

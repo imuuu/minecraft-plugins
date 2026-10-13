@@ -1,12 +1,15 @@
 package me.imu.imusenchants.Inventories;
 
-import imu.iAPI.Menus.Paper.PaperMenus;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.ClickKind;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.MenuSession;
+import imu.iAPI.Menus.Paper.PaperIcons;
+import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.InvUtil;
-import imu.iAPI.Utilities.TextUtils;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
-import imu.iAPI.InvUtil.CustomInventory;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
 import me.imu.imusenchants.CONSTANTS;
@@ -18,445 +21,345 @@ import me.imu.imusenchants.Enums.TOUCH_TYPE;
 import me.imu.imusenchants.ImusEnchants;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-public class InventoryEnchanting extends CustomInventory
+/**
+ * The enchanting table: an item with slots goes in the bottom slot, its grid opens above, and books, boosters and
+ * other pieces go in the open grid slots. Enchant saves the pieces into the item. Right-click removes a saved
+ * piece or activates a swapper. The item and the pieces not yet saved come back when the table closes.
+ */
+public class InventoryEnchanting extends Menu
 {
-
-    private final int _enchantSlot = getSize() - 5;
-    private EnchantedItem _enchantedItem;
-
-    private final ItemStack EMPTY_BLACK_SLOT;
-
-    //private BukkitRunnable monitoringTask;
-
-    private final String PD_LOCKED = "locked";
     public static final String PD_SWAPPER = "swapper";
+    private static final String PD_LOCKED = "locked";
 
-    private long _timeID = 0;
-
-    private ItemStack _preloadedItem;
-
-    public InventoryEnchanting()
-    {
-        super(ImusEnchants.Instance, "&0===== &5Enchanting Table &0=====", 6 * 9);
-
-        EMPTY_BLACK_SLOT = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemUtils.SetDisplayNameEmpty(EMPTY_BLACK_SLOT);
-    }
-
-    // Opens with the item already in the enchant slot. The item must be removed from the player
-    // before opening, it is given back on close like any item dropped into the enchant slot.
-    public InventoryEnchanting(ItemStack preloadedItem)
-    {
-        this();
-        _preloadedItem = preloadedItem;
-    }
-
-    @Override
-    public INVENTORY_AREA setInventoryLock()
-    {
-        return INVENTORY_AREA.NONE;
-    }
-
-    @Override
-    public void onAwake()
-    {
-
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        OPEN.add(this);
-        // startMonitoring();
-        initButtons();
-
-        if (_preloadedItem != null)
-        {
-            ItemStack stack = _preloadedItem;
-            _preloadedItem = null;
-            onDropItemSet(stack, _enchantSlot);
-            updateButton(_enchantSlot);
-        }
-    }
-
-    @Override
-    public void onClose()
-    {
-        // stopMonitoring();
-        OPEN.remove(this);
-        super.onClose();
-    }
+    static final int SLOT_ITEM = 54 - 5;
+    static final int SLOT_BUY = 54 - 6;
+    static final int SLOT_ENCHANT = 54 - 4;
+    static final int SLOT_REROLL = 54 - 14;
+    private static final int[] PURPLE = { 54 - 3, 54 - 7, 54 - 13, 54 - 15 };
 
     // Tables open right now. The item being enchanted lives only in the table while it is open.
     private static final Set<InventoryEnchanting> OPEN = new HashSet<>();
 
-    // On shutdown or reload the close listeners are gone before the inventories get closed,
-    // so close them here, while closing still hands the items back
+    private ItemStack _item;
+    private EnchantedItem _enchantedItem;
+    // What the grid shows: pieces, and open slots that take one
+    private final Map<Integer, ItemStack> _grid = new HashMap<>();
+    private final Set<Integer> _open = new HashSet<>();
+    // Pieces put in since the last Enchant; they come back on close
+    private final Set<Integer> _pending = new HashSet<>();
+    private int _redMark = -1;
+    private long _timeID;
+
+    public InventoryEnchanting()
+    {
+        super("&0===== &5Enchanting Table &0=====", 6);
+    }
+
+    /**
+     * Opens with the item already in the item slot. The item must be taken from the player before opening; it
+     * comes back on close like any item put in the table.
+     */
+    public InventoryEnchanting(ItemStack preloadedItem)
+    {
+        this();
+        _item = preloadedItem;
+    }
+
+    // On shutdown or reload the plugin's listeners are gone before the inventories close, so close the tables
+    // here, while closing still hands the items back
     public static void CloseAll()
     {
-        for (InventoryEnchanting inv : new ArrayList<>(OPEN))
+        for (InventoryEnchanting table : new ArrayList<>(OPEN))
         {
-            if (inv.getPlayer() != null)
-                inv.getPlayer().closeInventory();
+            MenuSession session = table.session();
+            if (session != null)
+                session.close();
         }
         OPEN.clear();
     }
 
-    private ItemStack getEnchantItem()
+    /**
+     * Drops the item without giving it back, when the table never opened and the player still has it.
+     */
+    public void Forget()
     {
-        return getInventory().getItem(_enchantSlot);
+        _item = null;
+        _enchantedItem = null;
+        _pending.clear();
     }
 
-    private void clearTable()
+    private static Player PlayerOf(Viewer viewer)
     {
-        for (int i = 0; i < getSize(); i++)
-        {
-            if (ManagerEnchants.REDSTRICTED_SLOTS.contains(i))
-                continue;
-
-            Button button = new Button(i, EMPTY_BLACK_SLOT);
-            addButton(button);
-        }
+        return Bukkit.getPlayer(viewer.id());
     }
 
-    private void initButtons()
+    @Override
+    protected void onOpen(Viewer viewer)
     {
-        ItemStack stack;
-        ItemStack emptyPurple = new ItemStack(Material.PURPLE_STAINED_GLASS_PANE);
+        boolean first = OPEN.add(this);
+        if (first && _item != null && _enchantedItem == null)
+            LoadItem(viewer, false);
+    }
 
-        ItemUtils.SetDisplayNameEmpty(emptyPurple);
+    @Override
+    protected void onClose(Viewer viewer)
+    {
+        OPEN.remove(this);
+        Player player = PlayerOf(viewer);
+        if (player == null)
+            return;
+        for (ItemStack piece : TakePending())
+            InvUtil.AddItemToInventoryOrDrop(player, piece);
+        if (_item != null)
+            InvUtil.AddItemToInventoryOrDrop(player, _item);
+        _item = null;
+        _enchantedItem = null;
+    }
 
-        clearTable();
+    // Drawing ========================================================================================================
 
-        Button button;
-        // Empties
-        button = new Button(getSize() - 3, emptyPurple);
-        addButton(button);
+    @Override
+    protected void render(Canvas canvas)
+    {
+        canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
+        for (int slot : PURPLE)
+            canvas.set(slot, Icon.filler(Material.PURPLE_STAINED_GLASS_PANE));
 
-        button = new Button(getSize() - 7, emptyPurple);
-        addButton(button);
-
-        button = new Button(getSize() - 13, emptyPurple);
-        addButton(button);
-
-        if (getPlayer().isOp())
-        {
-            stack = new ItemStack(Material.NETHER_STAR);
-            ItemUtils.SetDisplayName(stack, "&eREROLL Slots");
-            ItemUtils.AddLore(stack, "&6Visible OPs only", true);
-            button = new Button(getSize() - 14, stack, inventoryClickEvent ->
-            {
-                buttonOPreroll((Button) getButton(getSize() - 14), inventoryClickEvent);
-            });
-            addButton(button);
-        }
+        Player player = PlayerOf(canvas.viewer());
+        if (player != null && player.isOp())
+            canvas.set(SLOT_REROLL, Icon.of(Material.NETHER_STAR, "&eREROLL Slots", "&6Visible OPs only"), this::Reroll);
         else
+            canvas.set(SLOT_REROLL, Icon.filler(Material.PURPLE_STAINED_GLASS_PANE));
+        canvas.set(SLOT_BUY, Icon.of(Material.BOOKSHELF, "&eBuy Enchants"), click -> click.open(new InventoryBuyEnchants(new PaperEnchantShopGame())));
+        canvas.set(SLOT_ENCHANT, Icon.of(Material.ENCHANTING_TABLE, "&eEnchant"), this::Enchant);
+
+        if (_item != null)
+            canvas.set(SLOT_ITEM, PaperIcons.of(_item), this::ItemClick);
+        else
+            canvas.set(SLOT_ITEM, Button.empty(this::ItemDrop));
+
+        for (int slot : _open)
+            canvas.set(slot, Button.empty(click -> GridDrop(click, slot)));
+        for (Map.Entry<Integer, ItemStack> piece : _grid.entrySet())
         {
-            button = new Button(getSize() - 14, emptyPurple);
-            addButton(button);
+            int slot = piece.getKey();
+            canvas.set(slot, PaperIcons.of(piece.getValue()), click -> GridClick(click, slot));
         }
-
-        button = new Button(getSize() - 15, emptyPurple);
-        addButton(button);
-
-        stack = new ItemStack(Material.BOOKSHELF);
-        ItemUtils.SetDisplayName(stack, "&eBuy Enchants");
-        button = new Button(getSize() - 6, stack, inventoryClickEvent ->
-        {
-            buttonOpenEnchantbuy((Button) getButton(getSize() - 6), inventoryClickEvent);
-        });
-        addButton(button);
-
-        stack = new ItemStack(Material.ENCHANTING_TABLE);
-        ItemUtils.SetDisplayName(stack, "&eEnchant");
-        button = new Button(getSize() - 4, stack, inventoryClickEvent ->
-        {
-            buttonEnchantItem((Button) getButton(getSize() - 4), inventoryClickEvent);
-        });
-        addButton(button);
-
-        // slot for enchant item
-        removeButton(_enchantSlot);
-
-        updateButtons(true);
+        if (_redMark >= 0)
+            canvas.set(_redMark, Icon.filler(Material.RED_STAINED_GLASS_PANE));
     }
 
-    @Override
-    public boolean onDragItem(ItemStack item, int slot)
+    private void ClearGrid()
     {
-        return onDropItem(item, slot);
+        _grid.clear();
+        _open.clear();
     }
 
-    @Override
-    public IMenuButton onDragItemSet(ItemStack stack, int slot)
+    // The item ========================================================================================================
+
+    private void LoadItem(Viewer viewer, boolean forceReveal)
     {
-        return onDropItemSet(stack, slot);
-    }
-
-    @SuppressWarnings("unused")
-    @Override
-    public boolean onDropItem(ItemStack stack, int slot)
-    {
-        if (slot == _enchantSlot)
-        {
-            if (CONSTANTS.SLOT_CORE_MODE && !EnchantedItem.HasSlots(stack))
-            {
-                getPlayer().sendMessage(TextUtils.Color("&cUse a &dSlot Core &con the item first!"));
-                return false;
-            }
-
-            if (!ManagerEnchants.IsValidToEnchant(stack))
-            {
-                getPlayer().sendMessage(TextUtils.Color("&cNot valid item to enchant!"));
-                return false;
-            }
-
-            return true;
-        }
-
-        if (getButton(slot) == null)
-        {
-            boolean dROP = ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.DROP, _enchantedItem, stack);
-
-            return dROP;
-        }
-
-        return false;
-    }
-
-    @Override
-    public IMenuButton onDropItemSet(ItemStack stack, int slot)
-    {
-        //System.out.println("DropItemSet: " + stack.getType());
-        if (slot == _enchantSlot)
-        {
-            Button button = new Button(slot, stack);
-            button.setLockPosition(false);
-            addButton(button);
-            addTouch(slot);
-            loadItem(button, false);
-            return button;
-        }
-
-        if (getButton(slot) == null)
-        {
-
-            addTouch(slot);
-            IMenuButton button = loadNode(stack, slot, true);
-
-            return button;
-        }
-
-        return null;
-    }
-
-    private void loadItem(IMenuButton button, boolean forceReveal)
-    {
-        ItemStack stack = button.getItemStack();
-
-        _enchantedItem = new EnchantedItem(stack, getPlayer());
-
+        _enchantedItem = new EnchantedItem(_item, PlayerOf(viewer));
         _enchantedItem.Reveal(forceReveal);
-        loadNodes(_enchantedItem);
-
+        LoadNodes();
     }
 
-    private IMenuButton loadNode(INode node, boolean insertNode)
+    private void LoadNodes()
     {
-        return loadNode(node.GetGUIitemLoad(_enchantedItem), node.GetFlatIndex(), insertNode);
-    }
-
-    private IMenuButton loadNode(ItemStack stack, int slot, boolean insertNode)
-    {
-        IMenuButton button = null;
-
-        if (button == null)
-        {
-            INode nodee = ManagerEnchants.Instance.GetNode(stack, _enchantedItem);
-
-            if (nodee != null)
-                button = loadGUIButton(nodee, stack, slot, insertNode);
-        }
-
-        return button;
-    }
-
-    private void loadNodes(EnchantedItem enchantedItem)
-    {
+        ClearGrid();
         for (int i = 0; i < CONSTANTS.ENCHANT_ROWS; i++)
         {
             for (int j = 0; j < CONSTANTS.ENCHANT_COLUMNS; j++)
             {
-                INode node = enchantedItem.Get_nodes()[i][j];
-                int flatIndex = i * CONSTANTS.ENCHANT_COLUMNS + j;
+                INode node = _enchantedItem.Get_nodes()[i][j];
+                int slot = i * CONSTANTS.ENCHANT_COLUMNS + j;
 
-                // black glass
+                // Black glass
                 if (node.IsLocked())
                     continue;
 
-                if (loadNode(node, false) == null)
+                ItemStack shown = Shown(node.GetGUIitemLoad(_enchantedItem));
+                if (shown == null)
                 {
-                    //Bukkit.getLogger().info("Couldn't load Node: " + node);
-                    removeButton(flatIndex);
+                    _open.add(slot);
                     continue;
                 }
-
-
                 if (node.IsFrozen())
-                {
-                    lockingButto(getButton(flatIndex));
-                }
-
+                    Lock(shown);
+                _grid.put(slot, shown);
             }
         }
-
-        updateButtons(true);
-
-//		for (int i = 0; i < CONSTANTS.ENCHANT_ROWS; i++) 
-//		{
-//		    for (int j = 0; j < CONSTANTS.ENCHANT_COLUMNS; j++) 
-//		    {
-//		    	int flatIndex = i * CONSTANTS.ENCHANT_COLUMNS + j;
-//		    	
-//		    	
-//		    	
-//		    	ItemStack stack = GetInventory().getItem(flatIndex);
-//		    	if(stack == null) continue;
-//		    	
-//		    	ItemUtils.SetDisplayName(stack, "x: "+i + " y: "+j);
-//		    	GetInventory().setItem(flatIndex, stack);
-//		    	
-//		    }
-//		}
-//		
-
     }
 
-    private void handdleDropTouches()
+    /**
+     * The grid item of a piece, or null when the item is no piece.
+     */
+    private ItemStack Shown(ItemStack stack)
     {
-        if (_enchantedItem == null) return;
+        INode node = ManagerEnchants.Instance.GetNode(stack, _enchantedItem);
+        if (node == null)
+            return null;
+        ItemStack loaded = node.GetGUIitemLoad(_enchantedItem);
+        return loaded.getType().isAir() ? stack : loaded;
+    }
 
-        for (INode node : _enchantedItem.getUnlockedNodes())
+    private static void Lock(ItemStack stack)
+    {
+        ItemUtils.SetTag(stack, PD_LOCKED);
+        ItemUtils.AddTextToDisplayName(stack, " &e(&cLOCKED&e)", DisplayNamePosition.BACK);
+        ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
+        ItemUtils.AddLore(stack, "&cRemove by &eM2", true);
+    }
+
+    private void ItemDrop(Click click)
+    {
+        ItemStack cursor = (ItemStack) click.cursor();
+        if (cursor == null)
+            return;
+        if (CONSTANTS.SLOT_CORE_MODE && !EnchantedItem.HasSlots(cursor))
         {
-            if (node.IsFrozen()) continue;
-
-            if (!isTouched(node.GetFlatIndex())) continue;
-
-//			Bukkit.getLogger().info("=====> DROP NODE"+node + " is it touched: "+IsTouched(node.GetFlatIndex()));	
-            IMenuButton button = getButton(node.GetFlatIndex());
-
-            if (button == null) continue;
-
-            ItemStack stack = node.GetGUIitemUnLoad(_enchantedItem, button.getItemStack());
-
-            button.setItemStack(stack);
-            updateButton(button);
-
+            click.message("&cUse a &dSlot Core &con the item first!");
+            return;
         }
-        dropTouches();
+        if (!ManagerEnchants.IsValidToEnchant(cursor))
+        {
+            click.message("&cNot valid item to enchant!");
+            return;
+        }
+        _item = TakeOne(click, cursor);
+        LoadItem(click.viewer(), false);
     }
 
-    @SuppressWarnings("unused")
-    @Override
-    public boolean onPickupAll(IMenuButton button, int slot)
+    private void ItemClick(Click click)
     {
+        if (click.cursor() != null || !IsPlainClick(click))
+            return;
 
-        if (slot == _enchantSlot)
+        // Pieces not saved with Enchant go back with the item
+        Player player = PlayerOf(click.viewer());
+        for (ItemStack piece : TakePending())
+            InvUtil.AddItemToInventoryOrDrop(player, piece);
+        ItemStack item = _item;
+        _item = null;
+        _enchantedItem = null;
+        ClearGrid();
+        RefreshTimeID();
+        Give(click, item);
+    }
+
+    private void Enchant(Click click)
+    {
+        if (_item == null)
+            return;
+        UpdateEnchantedItem(true);
+        ClearGrid();
+        _pending.clear();
+    }
+
+    private void Reroll(Click click)
+    {
+        Player player = PlayerOf(click.viewer());
+        if (_enchantedItem == null || player == null || !player.isOp())
+            return;
+        _pending.clear();
+        LoadItem(click.viewer(), true);
+    }
+
+    private void UpdateEnchantedItem(boolean applyEnchants)
+    {
+        if (_item == null)
+            return;
+
+        if (applyEnchants)
         {
-            EnchantedItem item = _enchantedItem;
-
-            removeTouch(_enchantSlot);
-            handdleDropTouches();
-            _enchantedItem = null;
-
-            for (INode node : item.getUnlockedNodes())
-            {
-                int nodeSlot = node.GetFlatIndex();
-
-                Button b = new Button(nodeSlot, EMPTY_BLACK_SLOT);
-                addButton(b);
-                updateButton(nodeSlot);
-            }
-
-            button.setItemStack(new ItemStack(Material.AIR));
-
+            _enchantedItem.SaveUnlockedNodes();
+            _enchantedItem.ApplyEnchantsToItem();
             RefreshTimeID();
-            return true;
         }
+        _enchantedItem.SaveUnlockedNodes();
+        _enchantedItem.SetTooltip();
+        _item = _enchantedItem.GetItemStack();
+    }
 
-        removeTouch(button);
+    // The grid =======================================================================================================
 
-        if (button != null)
+    private void GridDrop(Click click, int slot)
+    {
+        ItemStack cursor = (ItemStack) click.cursor();
+        if (cursor == null || _enchantedItem == null)
+            return;
+        if (!ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.DROP, _enchantedItem, cursor))
+            return;
+        INode node = ManagerEnchants.Instance.GetNode(cursor, _enchantedItem);
+        if (node == null)
+            return;
+
+        ItemStack piece = TakeOne(click, cursor);
+        _enchantedItem.SetNode(node, slot);
+        ItemStack loaded = node.GetGUIitemLoad(_enchantedItem);
+        _open.remove(slot);
+        _grid.put(slot, loaded.getType().isAir() ? piece : loaded);
+        _pending.add(slot);
+    }
+
+    private void GridClick(Click click, int slot)
+    {
+        ItemStack shown = _grid.get(slot);
+        if (shown == null || _enchantedItem == null || click.cursor() != null || !IsPlainClick(click))
+            return;
+        boolean pickable = ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.PICK_UP, _enchantedItem, shown);
+
+        if (click.isRight() && !click.isShift() && pickable)
         {
-            if (_enchantedItem == null)
-                return false;
-
-            if (button.getLastClickType() == ClickType.RIGHT
-                    && ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.PICK_UP, _enchantedItem, button))
+            if (ItemUtils.HasTag(shown, PD_LOCKED))
             {
-                if (ItemUtils.HasTag(button.getItemStack(), PD_LOCKED))
+                // Removing saves the item with every piece in the grid, but the pieces placed since the last
+                // Enchant would still be handed back on close
+                if (HasPendingPieces())
                 {
-                    // Removing saves the item with every piece in the grid, but the pieces placed
-                    // since the last Enchant would still be handed back on close
-                    if (hasPendingPieces())
-                    {
-                        getPlayer().sendMessage(TextUtils.Color("&cPress &eEnchant &cor take your pieces out first!"));
-                        return false;
-                    }
-
-                    removeNode(button);
-                    return false;
+                    click.message("&cPress &eEnchant &cor take your pieces out first!");
+                    return;
                 }
-
-                if (ItemUtils.HasTag(button.getItemStack(), PD_SWAPPER))
-                {
-                    activateSwapper(slot);
-                    return false;
-                }
-
+                _enchantedItem.removeNode(slot);
+                UpdateEnchantedItem(true);
+                _grid.remove(slot);
+                _open.add(slot);
+                return;
             }
-
-            if (!ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.PICK_UP, _enchantedItem,
-                    getInventory().getItem(slot)))
+            if (ItemUtils.HasTag(shown, PD_SWAPPER))
             {
-                System.out.println("not valid material: " + getInventory().getItem(slot).getType());
-                return false;
+                ActivateSwapper(slot);
+                return;
             }
-
-            if (ItemUtils.HasTag(button.getItemStack(), PD_LOCKED))
-            {
-                return false;
-            }
-
-            INode currentNode = _enchantedItem.GetNodeBySlot(slot);
-            ItemStack stack = currentNode.GetGUIitemUnLoad(_enchantedItem, getInventory().getItem(slot));
-            getInventory().setItem(slot, stack);
-
-
-            INode node = new Node();
-            node.SetLock(false);
-            _enchantedItem.SetNode(node, slot);
-
-            button.setItemStack(new ItemStack(Material.AIR)); // removes button
-            return true;
         }
 
-        return false;
+        if (!pickable || ItemUtils.HasTag(shown, PD_LOCKED))
+            return;
+
+        // A piece put in since the last Enchant comes back out
+        ItemStack piece = _enchantedItem.GetNodeBySlot(slot).GetGUIitemUnLoad(_enchantedItem, shown);
+        INode empty = new Node();
+        empty.SetLock(false);
+        _enchantedItem.SetNode(empty, slot);
+        _grid.remove(slot);
+        _open.add(slot);
+        _pending.remove(slot);
+        Give(click, piece);
     }
 
     // Books, boosters and other pieces placed since the last Enchant
-    private boolean hasPendingPieces()
+    private boolean HasPendingPieces()
     {
         for (INode node : _enchantedItem.getUnlockedNodes())
         {
@@ -466,84 +369,26 @@ public class InventoryEnchanting extends CustomInventory
         return false;
     }
 
-    private void removeNode(IMenuButton button)
+    /**
+     * Takes the pieces put in since the last Enchant out of the grid, as items.
+     */
+    private List<ItemStack> TakePending()
     {
-
-        _enchantedItem.removeNode(button.getPosition());
-
-        updateEnchantedItem(true);
-
-        removeButton(button);
-        updateButton(button.getPosition());
-    }
-
-    private void lockingButto(IMenuButton button)
-    {
-        if (button == null)
-            return;
-
-        ItemStack stack = button.getItemStack();
-        ItemUtils.SetTag(stack, PD_LOCKED);
-        // ItemUtils.AddLore(stack, "&c==== LOCKED ==== ", false);
-
-        ItemUtils.AddTextToDisplayName(stack, " &e(&cLOCKED&e)", DisplayNamePosition.BACK);
-        ItemUtils.AddLore(stack, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
-        ItemUtils.AddLore(stack, "&cRemove by &eM2", true);
-
-        button.setLockPosition(true);
-    }
-
-    private IMenuButton loadGUIButton(INode node, ItemStack stack, int slot, boolean insertNode)
-    {
-        ItemStack loadedStack = node.GetGUIitemLoad(_enchantedItem);
-
-        if (!loadedStack.getType().isAir())
+        List<ItemStack> pieces = new ArrayList<>();
+        if (_enchantedItem == null)
+            return pieces;
+        for (INode node : _enchantedItem.getUnlockedNodes())
         {
-            stack = loadedStack;
+            int slot = node.GetFlatIndex();
+            if (node.IsFrozen() || !_pending.contains(slot) || !_grid.containsKey(slot))
+                continue;
+            pieces.add(node.GetGUIitemUnLoad(_enchantedItem, _grid.get(slot)));
         }
-
-        if (insertNode) _enchantedItem.SetNode(node, slot);
-
-        Button button = new Button(slot, stack);
-        button.setLockPosition(false);
-        addButton(button);
-        return button;
+        _pending.clear();
+        return pieces;
     }
 
-//	private IMenuButton LoadSwapper(ItemStack stack, int slot)
-//	{
-//		NodeEnchant nodeEnchant = new NodeEnchant(stack);	
-//		_enchantedItem.SetNode(nodeEnchant, slot);
-//
-//		Button button = new Button(slot, stack);
-//		button.SetLockPosition(false);
-//		AddButton(button);		
-//		return button;
-//	}
-//	
-//	private IMenuButton LoadEnchant(ItemStack stack, int slot)
-//	{
-//		NodeEnchant nodeEnchant = new NodeEnchant(stack);
-//		_enchantedItem.SetNode(nodeEnchant, slot);
-//
-//		Button button = new Button(slot, stack);
-//		button.SetLockPosition(false);
-//		AddButton(button);
-//		return button;
-//	}
-
-//	private IMenuButton LoadBooster(ItemStack stack, int slot)
-//	{
-//		NodeBooster nodeBooster = new NodeBooster();
-//		_enchantedItem.SetNode(nodeBooster, slot);
-//
-//		Button button = new Button(slot, stack);
-//		button.SetLockPosition(false);
-//		AddButton(button);
-//		return button;
-//	}
-
-    private void activateSwapper(int slot)
+    private void ActivateSwapper(int slot)
     {
         final long id = _timeID;
         NodeSwapper node = (NodeSwapper) _enchantedItem.GetNodeBySlot(slot);
@@ -553,127 +398,57 @@ public class InventoryEnchanting extends CustomInventory
         List<INode> detachedNodes = _enchantedItem.DetachNodes(
                 nodee -> (!nodee.IsFrozen() && nodee.getClass() != Node.class), null);
 
-        updateEnchantedItem(false);
-        clearTable();
-
-        updateButtons(false);
+        UpdateEnchantedItem(false);
         _enchantedItem.ReattachNodes(detachedNodes);
-        loadNodes(_enchantedItem);
+        LoadNodes();
 
         if (swapped != null && CONSTANTS.SWAPPER_ANIMATION)
         {
-            ItemStack redMark = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-            ItemUtils.SetDisplayNameEmpty(redMark);
-            final int swappedSlot = Node.GetFlatIndex(swapped.GetX(), swapped.GetY());
-
-            IMenuButton swappedButton = getButton(swappedSlot);
-            ItemStack originalItem = null;
-            if (swappedButton == null)
-            {
-                IMenuButton b = new Button(swappedSlot, redMark);
-                originalItem = new ItemStack(Material.AIR);
-                addButton(b);
-                updateButton(b);
-            }
-            else
-            {
-                originalItem = swappedButton.getItemStack();
-                swappedButton.setItemStack(redMark);
-                updateButton(swappedButton);
-            }
-
-            final ItemStack org = originalItem;
+            _redMark = Node.GetFlatIndex(swapped.GetX(), swapped.GetY());
             Bukkit.getScheduler().scheduleSyncDelayedTask(ImusEnchants.Instance, () ->
             {
                 if (id != _timeID)
-                {
-                    Bukkit.getLogger().info("NOT SAME INV");
                     return;
-                }
-
-                IMenuButton swapButton = getButton(swappedSlot);
-                swapButton.setItemStack(org);
-
-                updateButton(swapButton);
-                if (org.getType().isAir())
-                {
-                    removeButton(swapButton);
-                }
+                _redMark = -1;
+                refresh();
             }, CONSTANTS.DELAY_SWAPPER_ANIMATION);
         }
     }
 
-    private void buttonOPreroll(Button button, InventoryClickEvent event)
+    // Left or right, with or without shift; number keys, drops and the rest do nothing here
+    private static boolean IsPlainClick(Click click)
     {
-        if (_enchantedItem == null)
-            return;
-
-        IMenuButton enchantItemButton = getButton(_enchantSlot);
-        removeButton(_enchantSlot);
-        Button newButton = new Button(_enchantSlot, enchantItemButton.getItemStack());
-        newButton.setLockPosition(false);
-        addButton(newButton);
-
-        clearTable();
-        clearTouches();
-        addTouch(_enchantSlot);
-        loadItem(newButton, true);
-
+        return click.isLeft() && click.kind() != ClickKind.DOUBLE_CLICK || click.isRight();
     }
 
-    private void buttonOpenEnchantbuy(Button button, InventoryClickEvent event)
+    // Items ==========================================================================================================
+
+    /**
+     * One item off the cursor.
+     */
+    private static ItemStack TakeOne(Click click, ItemStack cursor)
     {
-        // System.out.println("Open new inv");
-        handdleDropTouches();
-        clearTouches();
-        // The shop is a menu of the new kind; its back button opens a fresh table
-        Bukkit.getScheduler().runTask(ImusEnchants.Instance, () ->
-                PaperMenus.open(getPlayer(), new InventoryBuyEnchants(new PaperEnchantShopGame())));
+        ItemStack one = cursor.clone();
+        one.setAmount(1);
+        ItemStack rest = cursor.clone();
+        rest.setAmount(cursor.getAmount() - 1);
+        click.setCursor(rest.getAmount() > 0 ? rest : null);
+        return one;
     }
 
-    private void updateEnchantedItem(boolean applyEnchants)
+    /**
+     * To the cursor, or with a shift click straight to the inventory.
+     */
+    private static void Give(Click click, ItemStack item)
     {
-        if (getEnchantItem() == null || getEnchantItem().getType().isAir())
-            return;
-
-        IMenuButton b = getButton(_enchantSlot);
-
-        if (applyEnchants)
-        {
-            _enchantedItem.SaveUnlockedNodes();
-            _enchantedItem.ApplyEnchantsToItem();
-            RefreshTimeID();
-        }
-
-        _enchantedItem.SaveUnlockedNodes();
-        _enchantedItem.SetTooltip();
-
-        b.setItemStack(_enchantedItem.GetItemStack());
-        updateButton(b);
-    }
-
-    private void buttonEnchantItem(Button button, InventoryClickEvent event)
-    {
-        if (getEnchantItem() == null || getEnchantItem().getType().isAir())
-            return;
-
-        updateEnchantedItem(true);
-
-        System.out.println("     ");
-
-
-        clearTable();
-        clearTouches();
-
-        addTouch(_enchantSlot);
-        updateButtons(false);
-
-        RefreshTimeID();
+        if (click.isShift())
+            InvUtil.AddItemToInventoryOrDrop(PlayerOf(click.viewer()), item);
+        else
+            click.setCursor(item);
     }
 
     private void RefreshTimeID()
     {
         _timeID = System.currentTimeMillis();
     }
-
 }

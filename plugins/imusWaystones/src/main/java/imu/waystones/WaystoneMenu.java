@@ -8,6 +8,7 @@ import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
 import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.TextUtils;
+import org.bukkit.Material;
 
 import java.util.List;
 
@@ -28,22 +29,22 @@ final class WaystoneMenu extends Menu
         super(ws.name, 4);
         _game = game;
         _ws = ws;
-        _pager = Pager.<Waystone>rows(0, 3).arrows(Icon.of("arrow", game.text("menu-previous")), Icon.of("arrow", game.text("menu-next")));
+        _pager = Pager.<Waystone>rows(0, 3).arrows(Icon.of(Material.ARROW, game.text("menu-previous")), Icon.of(Material.ARROW, game.text("menu-next")));
     }
 
     @Override
     protected void render(Canvas canvas)
     {
         Viewer viewer = canvas.viewer();
-        canvas.fillRow(3, Icon.filler("cyan_stained_glass_pane"));
+        canvas.fillRow(3, Icon.filler(Material.CYAN_STAINED_GLASS_PANE));
 
         String closed = closedReason(viewer);
         if (closed != null)
-            canvas.set(13, Icon.of("barrier", closed));
+            canvas.set(13, Icon.of(Material.BARRIER, closed));
         else
             renderDestinations(canvas, viewer);
 
-        canvas.set(UPGRADES, Icon.of("beacon", _game.text("menu-upgrades"), _game.text("menu-upgrades-lore")),
+        canvas.set(UPGRADES, Icon.of(Material.BEACON, _game.text("menu-upgrades"), _game.text("menu-upgrades-lore")),
                 click -> click.open(new UpgradeMenu(_game, _ws)));
         if (viewer.hasPermission(ImusWaystones.ADMIN))
             renderAdmin(canvas);
@@ -69,7 +70,7 @@ final class WaystoneMenu extends Menu
         List<Waystone> list = _game.destinations(_ws, viewer.id());
         if (list.isEmpty())
         {
-            canvas.set(13, Icon.of("map", _game.text("no-destinations"), _game.text("no-destinations-lore")));
+            canvas.set(13, Icon.of(Material.MAP, _game.text("no-destinations"), _game.text("no-destinations-lore")));
             return;
         }
         _pager.render(canvas, list, to -> Button.of(_game.icon(to).name(to.name).lore(
@@ -85,27 +86,27 @@ final class WaystoneMenu extends Menu
 
     private void renderAdmin(Canvas canvas)
     {
-        canvas.set(VISIBILITY, toggle("spyglass", "admin-visibility", _game.text("visibility." + _ws.visibility.name())), click ->
+        canvas.set(VISIBILITY, toggle(Material.SPYGLASS, "admin-visibility", _game.text("visibility." + _ws.visibility.name())), click ->
         {
             _ws.visibility = _ws.visibility.next();
             _game.save(_ws);
         });
-        canvas.set(UNBREAKABLE, toggle("bedrock", "admin-unbreakable", onOff(_ws.unbreakable)), click ->
+        canvas.set(UNBREAKABLE, toggle(Material.BEDROCK, "admin-unbreakable", onOff(_ws.unbreakable)), click ->
         {
             _ws.unbreakable = !_ws.unbreakable;
             _game.save(_ws);
         });
-        canvas.set(MAX_OUT, toggle("nether_star", "admin-max-out", onOff(_ws.maxedOut)), click ->
+        canvas.set(MAX_OUT, toggle(Material.NETHER_STAR, "admin-max-out", onOff(_ws.maxedOut)), click ->
         {
             _ws.maxedOut = !_ws.maxedOut;
             _game.save(_ws);
         });
-        canvas.set(ENABLED, toggle("lever", "admin-enabled", onOff(_ws.enabled)), click ->
+        canvas.set(ENABLED, toggle(Material.LEVER, "admin-enabled", onOff(_ws.enabled)), click ->
         {
             _ws.enabled = !_ws.enabled;
             _game.save(_ws);
         });
-        canvas.set(REMOVE, Icon.of("lava_bucket", _game.text("admin-remove"), _game.text("admin-remove-lore")), this::remove);
+        canvas.set(REMOVE, Icon.of(Material.LAVA_BUCKET, _game.text("admin-remove"), _game.text("admin-remove-lore")), this::remove);
     }
 
     private void remove(Click click)
@@ -118,7 +119,7 @@ final class WaystoneMenu extends Menu
         _game.send(click.viewer(), "removed", "name", _ws.name);
     }
 
-    private Icon toggle(String material, String key, String value)
+    private Icon toggle(Material material, String key, String value)
     {
         return Icon.of(material, _game.text(key), _game.text("admin-current", "value", value), _game.text("admin-click"));
     }

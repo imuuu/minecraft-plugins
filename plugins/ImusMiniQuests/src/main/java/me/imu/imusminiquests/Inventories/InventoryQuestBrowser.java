@@ -7,6 +7,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
 import me.imu.imusminiquests.Quests.Quest;
+import org.bukkit.Material;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class InventoryQuestBrowser extends Menu
 
     private final QuestMenuGame _game;
     private final Pager<Quest> _pager = Pager.<Quest>rows(0, 5)
-            .arrows(Icon.of("arrow", "&ePrevious page"), Icon.of("arrow", "&eNext page"));
+            .arrows(Icon.of(Material.ARROW, "&ePrevious page"), Icon.of(Material.ARROW, "&eNext page"));
 
     public InventoryQuestBrowser(QuestMenuGame game)
     {
@@ -38,16 +39,16 @@ public class InventoryQuestBrowser extends Menu
         // Read on every draw, so a reload shows up at once
         List<Quest> quests = _game.quests();
         int totalWeight = _game.totalDropWeight();
-        canvas.fillRow(5, Icon.filler("black_stained_glass_pane"));
+        canvas.fillRow(5, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
         _pager.render(canvas, quests, quest -> Button.of(icon(quest, totalWeight), click -> onQuestClick(click, quest)),
                 SLOT_PREVIOUS, SLOT_NEXT);
 
-        canvas.set(SLOT_INFO, Icon.of("book", "&6" + quests.size() + " quests &7(page " + (_pager.page() + 1) + "/" + _pager.pageCount(quests.size()) + ")",
+        canvas.set(SLOT_INFO, Icon.of(Material.BOOK, "&6" + quests.size() + " quests &7(page " + (_pager.page() + 1) + "/" + _pager.pageCount(quests.size()) + ")",
                 "&eLeft-click &7a panel to take it",
                 "&eShift-click &7to take it finished",
                 "&eRight-click &7to preview rolled rewards",
                 "&8Edit quests.yml and /imq reload to change them"));
-        canvas.set(SLOT_RANDOM, Icon.of("chest", "&6Roll a random panel",
+        canvas.set(SLOT_RANDOM, Icon.of(Material.CHEST, "&6Roll a random panel",
                 "&7Picks a quest by drop-weight,",
                 "&7like a loot chest or a mob drop does"), this::onRandomClick);
     }

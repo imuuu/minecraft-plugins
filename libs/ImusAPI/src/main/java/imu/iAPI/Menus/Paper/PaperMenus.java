@@ -15,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -22,11 +23,15 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -96,6 +101,15 @@ public final class PaperMenus implements Listener
         return host == null ? null : host._session;
     }
 
+    /**
+     * Whether the player's window shows the menu now; false when another plugin stopped it from opening.
+     */
+    public static boolean isShowing(Player player, Menu menu)
+    {
+        return player.getOpenInventory().getTopInventory().getHolder(false) instanceof Window window
+                && window._host._session.current() == menu;
+    }
+
     // Events =========================================================================================================
 
     @EventHandler(priority = EventPriority.LOW)
@@ -112,14 +126,7 @@ public final class PaperMenus implements Listener
             event.setCancelled(true);
             if (window != host._window || host._opening || !host.clickAllowed())
                 return;
-            host._clicking = true;
-            try
-            {
-                host._session.click(raw, kind(event.getClick()), event.getHotbarButton());
-            } finally
-            {
-                host._clicking = false;
-            }
+            host.click(raw, kind(event.getClick()), event.getHotbarButton());
             return;
         }
 
@@ -134,16 +141,31 @@ public final class PaperMenus implements Listener
     @EventHandler(priority = EventPriority.LOW)
     public void onDrag(InventoryDragEvent event)
     {
-        if (!(event.getView().getTopInventory().getHolder(false) instanceof Window))
+        if (!(event.getView().getTopInventory().getHolder(false) instanceof Window window))
             return;
         int size = event.getView().getTopInventory().getSize();
+        Set<Integer> top = new HashSet<>();
         for (int raw : event.getRawSlots())
         {
             if (raw < size)
+                top.add(raw);
+        }
+        if (top.isEmpty())
+            return;
+        event.setCancelled(true);
+
+        // A drag over one slot of the menu is a slow click with the cursor's item; it runs once the cancelled
+        // drag has put the item back on the cursor
+        Host host = window._host;
+        if (top.size() == 1 && event.getRawSlots().size() == 1 && window == host._window)
+        {
+            int slot = top.iterator().next();
+            ClickKind kind = event.getType() == DragType.SINGLE ? ClickKind.RIGHT : ClickKind.LEFT;
+            Bukkit.getScheduler().runTask(_plugin, () ->
             {
-                event.setCancelled(true);
-                return;
-            }
+                if (window == host._window && !host._opening)
+                    host.click(slot, kind, -1);
+            });
         }
     }
 
@@ -230,6 +252,18 @@ public final class PaperMenus implements Listener
             _session = new MenuSession(PaperViewer.of(player), this);
         }
 
+        private void click(int slot, ClickKind kind, int hotbarKey)
+        {
+            _clicking = true;
+            try
+            {
+                _session.click(slot, kind, hotbarKey);
+            } finally
+            {
+                _clicking = false;
+            }
+        }
+
         private boolean clickAllowed()
         {
             long now = System.currentTimeMillis();
@@ -292,14 +326,32 @@ public final class PaperMenus implements Listener
                 _expectingClose = true;
                 try
                 {
-                    TextInputDialog.show(_player, Text.legacy(prompt.title()),
-                            prompt.lines().stream().map(Text::legacy).toList(), prompt.initial(), prompt.maxLength(),
-                            _session::answer, _session::promptClosed);
+                    String title = Text.legacy(prompt.title());
+                    List<String> lines = prompt.lines().stream().map(Text::legacy).toList();
+                    if (prompt.rows() > 0)
+                        TextInputDialog.showMultiline(_player, title, lines, prompt.initial(), prompt.maxLength(), prompt.rows(),
+                                _session::answer, _session::promptClosed);
+                    else
+                        TextInputDialog.show(_player, title, lines, prompt.initial(), prompt.maxLength(),
+                                _session::answer, _session::promptClosed);
                 } finally
                 {
                     _expectingClose = false;
                 }
             });
+        }
+
+        @Override
+        public Object cursor()
+        {
+            ItemStack cursor = _player.getOpenInventory().getCursor();
+            return cursor == null || cursor.getType().isAir() ? null : cursor;
+        }
+
+        @Override
+        public void setCursor(Object item)
+        {
+            _player.getOpenInventory().setCursor(item == null ? null : (ItemStack) item);
         }
 
         @Override

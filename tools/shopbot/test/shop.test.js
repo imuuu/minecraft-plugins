@@ -108,11 +108,14 @@ test('shift + left click buys 64', async () => {
 test('buying with too little money is refused and changes nothing', async () => {
   await rcon.command(`eco set ${BOT} 10`)
   await open()
+  // The test before may have bought every diamond; sell one so the shop has some (10 + 10 is still too little)
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'left')
+  assert.equal(bot.count('diamond'), 63)
   bot.clearMessages()
 
   await bot.click(await bot.waitForShopSlot('diamond'), 'left')
 
   await bot.waitForMessage(/Balance isn't enough/)
-  assert.equal(bot.count('diamond'), 64)
-  assert.equal(await money(), 10)
+  assert.equal(bot.count('diamond'), 63)
+  assert.equal(await money(), 20)
 })

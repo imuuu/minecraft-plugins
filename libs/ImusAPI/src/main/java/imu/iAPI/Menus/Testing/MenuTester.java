@@ -34,6 +34,7 @@ public final class MenuTester implements MenuHost
     private Menu _menu;
     private Prompt _prompt;
     private boolean _closed;
+    private Object _cursor;
 
     private MenuTester(TestViewer viewer)
     {
@@ -259,6 +260,21 @@ public final class MenuTester implements MenuHost
         return text.toString();
     }
 
+    /**
+     * What the viewer holds on the cursor; any object stands for an item.
+     */
+    @Override
+    public Object cursor()
+    {
+        return _cursor;
+    }
+
+    public MenuTester holding(Object item)
+    {
+        _cursor = item;
+        return this;
+    }
+
     // MenuHost =======================================================================================================
 
     @Override
@@ -284,6 +300,12 @@ public final class MenuTester implements MenuHost
     public void prompt(Prompt prompt)
     {
         _prompt = prompt;
+    }
+
+    @Override
+    public void setCursor(Object item)
+    {
+        _cursor = item;
     }
 
     @Override

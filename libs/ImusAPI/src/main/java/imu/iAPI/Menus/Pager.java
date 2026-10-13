@@ -1,5 +1,7 @@
 package imu.iAPI.Menus;
 
+import org.bukkit.Material;
+
 import java.util.List;
 import java.util.function.Function;
 
@@ -20,8 +22,8 @@ public final class Pager<T>
 {
     private final int[] _slots;
     private int _page;
-    private Icon _previous = Icon.of("arrow", "&e<- Previous page");
-    private Icon _next = Icon.of("arrow", "&eNext page ->");
+    private Icon _previous = Icon.of(Material.ARROW, "&e<- Previous page");
+    private Icon _next = Icon.of(Material.ARROW, "&eNext page ->");
 
     public Pager(int... slots)
     {

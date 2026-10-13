@@ -1,8 +1,7 @@
 package imu.GS.menu.admin;
 
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Utilities.TextInputDialog;
-import org.bukkit.entity.Player;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Prompt;
 
 import java.util.List;
 import java.util.Locale;
@@ -10,8 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Asking admins for text and numbers in a dialog window. The menu that asked closes while the dialog is open and
- * opens again when it is done.
+ * Asking admins for text and numbers in a dialog window. The menu that asked comes back when it is done.
  */
 final class Dialogs
 {
@@ -20,13 +18,12 @@ final class Dialogs
     /**
      * @param apply runs with the typed text; return null to accept it or a message to ask again
      */
-    static void text(CustomInventory menu, String title, List<String> lines, String initial, Function<String, String> apply)
+    static void text(Menu menu, String title, List<String> lines, String initial, Function<String, String> apply)
     {
-        Player player = menu.getPlayer();
-        TextInputDialog.show(player, title, lines, initial, 256, apply, () -> menu.open(player));
+        menu.session().prompt(Prompt.of(title, lines, initial, 256, apply));
     }
 
-    static void number(CustomInventory menu, String title, List<String> lines, double initial, double min, double max, Consumer<Double> apply)
+    static void number(Menu menu, String title, List<String> lines, double initial, double min, double max, Consumer<Double> apply)
     {
         text(menu, title, lines, format(initial), text ->
         {
@@ -45,7 +42,7 @@ final class Dialogs
         });
     }
 
-    static void wholeNumber(CustomInventory menu, String title, List<String> lines, int initial, int min, int max, Consumer<Integer> apply)
+    static void wholeNumber(Menu menu, String title, List<String> lines, int initial, int min, int max, Consumer<Integer> apply)
     {
         text(menu, title, lines, String.valueOf(initial), text ->
         {

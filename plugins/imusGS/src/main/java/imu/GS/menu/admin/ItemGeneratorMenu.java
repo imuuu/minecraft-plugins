@@ -9,13 +9,12 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.StockRules;
 import imu.GS.menu.Icons;
-import imu.iAPI.Buttons.Button;
 import imu.iAPI.Main.ImusAPI;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.event.inventory.ClickType;
+import imu.iAPI.Menus.ClickKind;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -85,15 +84,14 @@ public class ItemGeneratorMenu extends AdminMenu
     }
 
     @Override
-    protected void refresh()
+    protected void draw()
     {
-        clearButtons();
         for (int slot = 0; slot < 27; slot++)
         {
             Generated generated = _generated[slot];
             if (generated == null)
             {
-                addButton(new Button(slot, Icons.filler(Material.BLUE_STAINED_GLASS_PANE)));
+                button(slot, Icons.filler(Material.BLUE_STAINED_GLASS_PANE));
                 continue;
             }
             List<String> lore = List.of("&bM3 &9=> Copy to Inv", "&9PICKED : " + (generated.picked ? "&aTRUE" : "&cFALSE"),
@@ -104,20 +102,20 @@ public class ItemGeneratorMenu extends AdminMenu
             ItemStack stack = Icons.withLore(generated.item, lore);
             if (generated.picked)
                 Icons.glow(stack);
-            addButton(new Button(slot, stack, e ->
+            button(slot, stack, e ->
             {
-                if (e.getClick() == ClickType.MIDDLE)
+                if (e.kind() == ClickKind.MIDDLE)
                 {
                     getPlayer().getInventory().addItem(generated.item.clone());
                     return;
                 }
                 generated.picked = !generated.picked;
                 refresh();
-            }));
+            });
         }
 
         for (int slot = 27; slot < 54; slot++)
-            addButton(new Button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE)));
+            button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE));
 
         addButton(range(36, Material.GOLD_INGOT, "&6Set Price Range", _priceMin < 0 ? "NONE => Use material price"
                 : Dialogs.format(_priceMin) + " - " + Dialogs.format(_priceMax), "price", true));
@@ -126,11 +124,11 @@ public class ItemGeneratorMenu extends AdminMenu
         addButton(range(44, Material.CLOCK, "&6Set fill time range", _fillTimeMin < 0 ? "NONE" : _fillTimeMin + " - " + _fillTimeMax + " min", "time", false));
         addButton(enchantButton());
 
-        addButton(new Button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<== BACK"), e -> openNext(new ShopEditorMenu(_service, _shop))));
-        addButton(new Button(49, Icons.icon(Material.BEACON, "&bM3 &6=> &5Generate Items",
+        button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<== BACK"), e -> openNext(new ShopEditorMenu(_service, _shop)));
+        button(49, Icons.icon(Material.BEACON, "&bM3 &6=> &5Generate Items",
                 "&bM1 &a+1 &bSM1 &a+5", "&bM2 &c-1 &bSM2 &c-5", "&9Generation Amount: &e" + _generateAmount), e ->
         {
-            switch (e.getClick())
+            switch (e.kind())
             {
                 case MIDDLE -> generate();
                 case LEFT -> _generateAmount += 1;
@@ -141,25 +139,24 @@ public class ItemGeneratorMenu extends AdminMenu
             }
             _generateAmount = Math.max(0, Math.min(27, _generateAmount));
             refresh();
-        }));
-        addButton(new Button(51, Icons.icon(Material.PAPER, "&9Select &bM1: &aALL  &bM2: &cNONE"), e ->
+        });
+        button(51, Icons.icon(Material.PAPER, "&9Select &bM1: &aALL  &bM2: &cNONE"), e ->
         {
             for (Generated generated : _generated)
             {
                 if (generated != null)
-                    generated.picked = !e.isRightClick();
+                    generated.picked = !e.isRight();
             }
             refresh();
-        }));
-        addButton(new Button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&9CONFIRM and add to shop"), e -> confirm()));
-        updateButtons(true);
+        });
+        button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&9CONFIRM and add to shop"), e -> confirm());
     }
 
     private Button range(int slot, Material material, String name, String value, String which, boolean decimals)
     {
         return new Button(slot, Icons.icon(material, name, "&bM1: &aSet &bM2: &cReset", "&9Set to: &a" + value), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 setRange(which, -1, -1);
                 refresh();
@@ -228,8 +225,8 @@ public class ItemGeneratorMenu extends AdminMenu
         lore.add(line(EnchantField.RESTRICTION, "Restriction", _restriction.name()));
         return new Button(39, Icons.icon(Material.ENCHANTING_TABLE, "&6Enchants", lore), e ->
         {
-            ClickType click = e.getClick();
-            if (click == ClickType.MIDDLE)
+            ClickKind click = e.kind();
+            if (click == ClickKind.MIDDLE)
             {
                 _enchantField = EnchantField.values()[(_enchantField.ordinal() + 1) % EnchantField.values().length];
                 refresh();

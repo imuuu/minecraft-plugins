@@ -11,13 +11,14 @@ import me.imu.imusenchants.Enchants.*;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
 import me.imu.imusenchants.Enums.TOUCH_TYPE;
 import me.imu.imusenchants.Inventories.InventoryEnchanting;
+import imu.iAPI.Menus.MenuSession;
+import imu.iAPI.Menus.Paper.PaperMenus;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import imu.iAPI.Interfaces.IMenuButton;
 import imu.iAPI.Utilities.ItemUtilToolsArmors;
 import imu.iAPI.Utilities.ItemUtilToolsArmors.ArmorMaterial;
 import imu.iAPI.Utilities.ItemUtilToolsArmors.ToolMaterial;
@@ -71,15 +72,20 @@ public class ManagerEnchants
 
 	public void OpenEnchantingInventory(Player player)
 	{
-		new InventoryEnchanting().open(player);
+		PaperMenus.open(player, new InventoryEnchanting());
 	}
 
 	// Returns false when the inventory didn't open (another plugin cancelled it)
 	public boolean OpenEnchantingInventory(Player player, ItemStack preloadedItem)
 	{
-		InventoryEnchanting inv = new InventoryEnchanting(preloadedItem);
-		inv.open(player);
-		return player.getOpenInventory().getTopInventory().equals(inv.getInventory());
+		InventoryEnchanting table = new InventoryEnchanting(preloadedItem);
+		MenuSession session = PaperMenus.open(player, table);
+		if (PaperMenus.isShowing(player, table))
+			return true;
+		// Nothing opened: the item stays with the player, not in a table nobody sees
+		table.Forget();
+		session.closedByViewer();
+		return false;
 	}
 
 	public static int GetEnchantMaxLevelCap(Enchantment enchantment) 
@@ -118,10 +124,6 @@ public class ManagerEnchants
 		if(nodeClass.isInstance(NodeEnchant.class)) return new NodeEnchant();
 		if(nodeClass.isInstance(NodeSwapper.class)) return new NodeSwapper();
 		return null;
-	}
-	public boolean IsValidGUIitem(TOUCH_TYPE touchType, EnchantedItem enchantedItem, IMenuButton button)
-	{
-		return IsValidGUIitem(touchType, enchantedItem, button.getItemStack());
 	}
 	public boolean IsValidGUIitem(TOUCH_TYPE touchType, EnchantedItem enchantedItem, ItemStack stack)
 	{

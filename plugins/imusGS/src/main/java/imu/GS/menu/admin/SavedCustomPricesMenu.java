@@ -5,7 +5,6 @@ import imu.GS.engine.pricing.PriceRule;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
-import imu.iAPI.Buttons.Button;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
@@ -33,11 +32,10 @@ public class SavedCustomPricesMenu extends AdminMenu
     }
 
     @Override
-    protected void refresh()
+    protected void draw()
     {
-        clearButtons();
         for (int slot = 27; slot < 36; slot++)
-            addButton(new Button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE)));
+            button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE));
 
         List<Map.Entry<String, CustomPriceDraft>> saved = new ArrayList<>(CustomPriceDraft.saved(getPlayer().getUniqueId()).entrySet());
         int pages = Math.max(1, (saved.size() + 26) / 27);
@@ -52,22 +50,21 @@ public class SavedCustomPricesMenu extends AdminMenu
             lore.add("&9==== Contains items below ====");
             for (PriceRule.ItemCost cost : draft.items)
                 lore.add("&e" + cost.amount() + " &7" + imu.GS.bukkit.ItemKeys.template(cost.item()).getType());
-            addButton(new Button(i - first, Icons.icon(Material.CHEST, "&b" + name + " &8(Click to load!)", lore),
-                    e -> openNext(new CustomPriceEditorMenu(_service, _shop, _listing, _listingDraft, _returnPage, draft.copy()))));
+            button(i - first, Icons.icon(Material.CHEST, "&b" + name + " &8(Click to load!)", lore),
+                    e -> openNext(new CustomPriceEditorMenu(_service, _shop, _listing, _listingDraft, _returnPage, draft.copy())));
         }
 
-        addButton(new Button(27, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<== BACK"),
-                e -> openNext(new CustomPriceEditorMenu(_service, _shop, _listing, _listingDraft, _returnPage, _current))));
-        addButton(new Button(30, Icons.icon(Material.BIRCH_SIGN, "&9<<"), e ->
+        button(27, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&c<== BACK"),
+                e -> openNext(new CustomPriceEditorMenu(_service, _shop, _listing, _listingDraft, _returnPage, _current)));
+        button(30, Icons.icon(Material.BIRCH_SIGN, "&9<<"), e ->
         {
             _page--;
             refresh();
-        }));
-        addButton(new Button(32, Icons.icon(Material.BIRCH_SIGN, "&9>>"), e ->
+        });
+        button(32, Icons.icon(Material.BIRCH_SIGN, "&9>>"), e ->
         {
             _page++;
             refresh();
-        }));
-        updateButtons(true);
+        });
     }
 }

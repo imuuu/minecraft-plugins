@@ -7,6 +7,7 @@ import imu.iAPI.Menus.ClickKind;
 import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 
@@ -24,13 +25,13 @@ final class ListMenu extends Menu
     {
         super(game.text("list-title", "count", game.all().size()), 6);
         _game = game;
-        _pager = Pager.<Waystone>rows(0, 5).arrows(Icon.of("arrow", game.text("menu-previous")), Icon.of("arrow", game.text("menu-next")));
+        _pager = Pager.<Waystone>rows(0, 5).arrows(Icon.of(Material.ARROW, game.text("menu-previous")), Icon.of(Material.ARROW, game.text("menu-next")));
     }
 
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fillRow(5, Icon.filler("cyan_stained_glass_pane"));
+        canvas.fillRow(5, Icon.filler(Material.CYAN_STAINED_GLASS_PANE));
         _pager.render(canvas, new ArrayList<>(_game.all()), ws -> Button.of(_game.icon(ws).name(ws.name).lore(
                 _game.text("destination-owner", "owner", ws.ownerName),
                 _game.text("list-location", "world", ws.world, "x", ws.x, "y", ws.y, "z", ws.z),

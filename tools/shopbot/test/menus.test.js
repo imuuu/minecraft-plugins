@@ -160,9 +160,10 @@ test('the enchanting table\'s shop sells a booster for levels and goes back to t
   // A tier 1 booster costs 10 levels
   await bot.click(4)
   await bot.until(() => bot.bot.experience.level === 40, 3000, () => `Level ${bot.bot.experience.level}`)
-  // Back opens the table again, empty: the pickaxe came back when the shop opened
+  // Back goes to the same table, the pickaxe still in it; closing gives it back
   await bot.clickForNewWindow(45)
   assert.match(bot.windowTitle(), /Enchanting Table/)
+  assert.equal(bot.slot(49)?.name, 'diamond_pickaxe')
   bot.closeWindow()
   await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'diamond_pickaxe'), 3000, 'The pickaxe is gone')
   await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'netherite_upgrade_smithing_template'), 3000, 'No booster')

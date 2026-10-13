@@ -1,5 +1,7 @@
 package imu.GS.menu;
 
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
@@ -19,16 +21,11 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopListener;
 import imu.GS.engine.trade.TradeResult;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import imu.iAPI.Menus.ClickKind;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,14 +43,13 @@ import java.util.Map;
  *
  * Left click buys or sells 1, right click 8, shift + left 64, shift + right all of it.
  */
-public class ShopMenu extends CustomInventory implements ShopListener
+public class ShopMenu extends GsMenu implements ShopListener
 {
     private static final int SHOP_SLOTS = Shop.PAGE_SIZE;
     private static final int CUSTOMER_START = 36;
     private static final int CUSTOMER_SLOTS = 18;
     private static final ItemCategory[] TABS = { ItemCategory.BLOCKS, ItemCategory.GEAR, ItemCategory.SHULKER_BOX };
 
-    private final GsService _service;
     private final Shop _shop;
     private PlayerInventoryAdapter _inventory;
     private Customer _customer;
@@ -61,14 +57,13 @@ public class ShopMenu extends CustomInventory implements ShopListener
     private int _customerPage = 0;
     private int _tab = 0;
     private long _lastClick;
-    private BukkitTask _animation;
+    private boolean _shown;
     private int _frame;
     private boolean _flashShown;
 
     public ShopMenu(GsService service, Shop shop)
     {
-        super(service.getPlugin(), shop.getDisplayName(), 54);
-        _service = service;
+        super(service, shop.getDisplayName(), 54);
         _shop = shop;
     }
 
@@ -78,38 +73,41 @@ public class ShopMenu extends CustomInventory implements ShopListener
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void onOpen(Viewer viewer)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;
-    }
-
-    @Override
-    public void onAwake()
-    {
+        if (_shown)
+            return;
+        _shown = true;
         _inventory = new PlayerInventoryAdapter(getPlayer());
         _customer = _service.customer(getPlayer(), _inventory);
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
         _shop.addViewer();
         _shop.addListener(this);
         _service.menuOpened(this);
-        refresh();
-        _animation = Bukkit.getScheduler().runTaskTimer(_service.getPlugin(), this::animateFlashButton, 10, 10);
     }
 
     @Override
-    public void onClose()
+    protected void onClose(Viewer viewer)
     {
-        super.onClose();
-        if (_animation != null)
-            _animation.cancel();
         _shop.removeListener(this);
         _service.menuClosed(this);
         _shop.removeViewer();
+    }
+
+    // The flash deal button blinks
+    @Override
+    public int refreshTicks()
+    {
+        return 10;
+    }
+
+    @Override
+    protected boolean onTick()
+    {
+        boolean active = _service.getLive().getDeals().active(_shop.getId(), System.currentTimeMillis()) != null;
+        if (!active && !_flashShown)
+            return false;
+        _frame++;
+        return true;
     }
 
     // Shop changes, from any customer or the timer ===================================================================
@@ -134,15 +132,13 @@ public class ShopMenu extends CustomInventory implements ShopListener
 
     // Drawing ========================================================================================================
 
-    public void refresh()
+    protected void draw()
     {
         if (getPlayer() == null)
             return;
-        clearButtons();
         drawShop();
         drawControls();
         drawCustomer();
-        updateButtons(true);
     }
 
     private void drawShop()
@@ -183,8 +179,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         if (listing.getPrice() instanceof PriceRule.Custom)
         {
             return new Button(slot, Icons.withLore(item, List.of(amountLine(listing.getAmount()), Messages.get("shop.custom-price"), "")),
-                    e -> Bukkit.getScheduler().runTask(_service.getPlugin(),
-                            () -> new CustomPriceBuyMenu(_service, _shop, listing).open(getPlayer())));
+                    e -> openNext(new CustomPriceBuyMenu(_service, _shop, listing)));
         }
 
         List<String> lore = priceLines(Messages.get("shop.buy-action"), listing.getAmount(), amount -> prices.buyPrice(_shop, listing, amount));
@@ -199,10 +194,10 @@ public class ShopMenu extends CustomInventory implements ShopListener
         addButton(wantedButton());
         addButton(flashButton());
 
-        addButton(new Button(27, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-back")), e -> changeShopPage(-1)));
-        addButton(new Button(35, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-next")), e -> changeShopPage(1)));
-        addButton(new Button(30, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-back")), e -> changeCustomerPage(-1)));
-        addButton(new Button(32, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-next")), e -> changeCustomerPage(1)));
+        button(27, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-back")), e -> changeShopPage(-1));
+        button(35, Icons.icon(Material.DARK_OAK_SIGN, Messages.get("shop.page-next")), e -> changeShopPage(1));
+        button(30, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-back")), e -> changeCustomerPage(-1));
+        button(32, Icons.icon(Material.BIRCH_SIGN, Messages.get("shop.inventory-next")), e -> changeCustomerPage(1));
 
         ItemStack tab = switch (TABS[_tab])
         {
@@ -210,21 +205,21 @@ public class ShopMenu extends CustomInventory implements ShopListener
             case GEAR -> Icons.icon(Material.NETHERITE_CHESTPLATE, Messages.get("shop.tab-gear"));
             case SHULKER_BOX -> Icons.icon(Material.CYAN_SHULKER_BOX, Messages.get("shop.tab-shulkers"));
         };
-        addButton(new Button(31, tab, e ->
+        button(31, tab, e ->
         {
             _tab = (_tab + 1) % TABS.length;
             _customerPage = 0;
             refresh();
-        }));
+        });
 
         ItemStack hotbar = _inventory.isIncludeHotbarAndArmor()
                 ? Icons.icon(Material.SHIELD, Messages.get("shop.hotbar-included"))
                 : Icons.icon(Material.CHEST, Messages.get("shop.hotbar-excluded"));
-        addButton(new Button(33, hotbar, e ->
+        button(33, hotbar, e ->
         {
             _inventory.setIncludeHotbarAndArmor(!_inventory.isIncludeHotbarAndArmor());
             refresh();
-        }));
+        });
     }
 
     // Market =========================================================================================================
@@ -301,23 +296,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         List<String> names = Messages.lines("flash.button");
         ItemStack icon = Icons.glow(Icons.icon(FLASH_FRAMES[_frame % FLASH_FRAMES.length], names.get(_frame % names.size()),
                 Messages.lines("flash.button-lore", "time", FlashDealMenu.timeLeft(deal.millisLeft(System.currentTimeMillis())))));
-        return new Button(34, icon, e ->
-        {
-            Player player = getPlayer();
-            Bukkit.getScheduler().runTask(_service.getPlugin(), () -> new FlashDealMenu(_service, _shop, false).open(player));
-        });
-    }
-
-    private void animateFlashButton()
-    {
-        if (getPlayer() == null)
-            return;
-        boolean active = _service.getLive().getDeals().active(_shop.getId(), System.currentTimeMillis()) != null;
-        if (!active && !_flashShown)
-            return;
-        _frame++;
-        addButton(flashButton());
-        updateButton(34);
+        return new Button(34, icon, e -> openNext(new FlashDealMenu(_service, _shop, false)));
     }
 
     private void drawCustomer()
@@ -326,7 +305,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
         {
             ItemStack blue = Icons.filler(Material.BLUE_STAINED_GLASS_PANE);
             for (int i = 0; i < CUSTOMER_SLOTS; i++)
-                addButton(new Button(CUSTOMER_START + i, blue));
+                button(CUSTOMER_START + i, blue);
             return;
         }
 
@@ -430,7 +409,7 @@ public class ShopMenu extends CustomInventory implements ShopListener
     /**
      * 1, 8, 64 or everything there is, by click type; 0 for other clicks.
      */
-    private static int clickAmount(ClickType click, int available)
+    private static int clickAmount(ClickKind click, int available)
     {
         int amount = switch (click)
         {
@@ -455,11 +434,11 @@ public class ShopMenu extends CustomInventory implements ShopListener
         refresh();
     }
 
-    private void buy(Listing listing, InventoryClickEvent e)
+    private void buy(Listing listing, Click e)
     {
         if (cooldown())
             return;
-        int amount = clickAmount(e.getClick(), listing.getAmount());
+        int amount = clickAmount(e.kind(), listing.getAmount());
         if (amount <= 0)
             return;
 
@@ -479,11 +458,11 @@ public class ShopMenu extends CustomInventory implements ShopListener
         refresh();
     }
 
-    private void sell(Customer.SellEntry entry, InventoryClickEvent e)
+    private void sell(Customer.SellEntry entry, Click e)
     {
         if (cooldown())
             return;
-        int amount = clickAmount(e.getClick(), entry.getAmount());
+        int amount = clickAmount(e.kind(), entry.getAmount());
         if (amount <= 0)
             return;
 

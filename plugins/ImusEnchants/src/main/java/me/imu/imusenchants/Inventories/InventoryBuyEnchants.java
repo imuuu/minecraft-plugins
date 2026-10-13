@@ -8,6 +8,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Viewer;
 import me.imu.imusenchants.CONSTANTS;
+import org.bukkit.Material;
 
 /**
  * The enchanting table's shop: enchanted books ("more like tools" or "more like armor") and boosters in three
@@ -31,8 +32,8 @@ public class InventoryBuyEnchants extends Menu
 	@Override
 	protected void render(Canvas canvas)
 	{
-		canvas.fill(Icon.filler("black_stained_glass_pane"));
-		canvas.set(BACK, Icon.of("red_stained_glass_pane", "&bGo Back"), this::Back);
+		canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
+		canvas.set(BACK, Icon.of(Material.RED_STAINED_GLASS_PANE, "&bGo Back"), this::Back);
 
 		ENCHANTMENT_TIER[] tiers = { ENCHANTMENT_TIER.TIER_1, ENCHANTMENT_TIER.TIER_2, ENCHANTMENT_TIER.TIER_3 };
 		for (int row = 0; row < 3; row++)
@@ -66,7 +67,7 @@ public class InventoryBuyEnchants extends Menu
 			default -> new String[] { "&3Guaranteed &eTier &d2 &3Enchant", "&6High &3chance to &eTier &63",
 					"&3Buyable at &2" + CONSTANTS.CAP_FIRST_3_ENCHANTS + "L", "&3Small chance for a &dCustom Enchant" };
 		};
-		return Icon.of(CONSTANTS.ENCHANT_MATERIAL.name(), "&eBuy Enchant (&b" + kind + "&e)", lore);
+		return Icon.of(CONSTANTS.ENCHANT_MATERIAL, "&eBuy Enchant (&b" + kind + "&e)", lore);
 	}
 
 	private static Icon BoosterIcon(ENCHANTMENT_TIER tier)
@@ -77,7 +78,7 @@ public class InventoryBuyEnchants extends Menu
 			case TIER_2 -> "&5two &3or &5more";
 			default -> "&5four";
 		};
-		return Icon.of(CONSTANTS.BOOSTER_MATERIAL.name(), "&eBuy Booster", "&3Guaranteed &6Booster",
+		return Icon.of(CONSTANTS.BOOSTER_MATERIAL, "&eBuy Booster", "&3Guaranteed &6Booster",
 				"&3Booster has " + directions + " &3power direcion",
 				"&3Buyable at &2" + BoosterCap(tier) + "L",
 				"&cCost &2" + CONSTANTS.GetCostBooster(tier) + "L").glow(true);

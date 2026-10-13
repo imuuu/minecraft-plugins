@@ -9,6 +9,7 @@ import imu.iAPI.Menus.Testing.MenuTester;
 import imu.iAPI.Menus.Viewer;
 import me.imu.imusenchants.CONSTANTS;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ class EnchantMenusTest
         Admin()
         {
             for (int i = 0; i < 40; i++)
-                vanilla.add(new Entry("vanilla:e" + i, Icon.of("enchanted_book"), "Enchant " + i, "&e", List.of("&7Max level: &fV")));
+                vanilla.add(new Entry("vanilla:e" + i, Icon.of(Material.ENCHANTED_BOOK), "Enchant " + i, "&e", List.of("&7Max level: &fV")));
         }
 
         @Override
@@ -45,7 +46,7 @@ class EnchantMenusTest
         @Override
         public List<Entry> custom()
         {
-            return List.of(new Entry("custom:lifesteal", Icon.of("enchanted_book"), "Lifesteal", "&d", List.of("&7Heals")));
+            return List.of(new Entry("custom:lifesteal", Icon.of(Material.ENCHANTED_BOOK), "Lifesteal", "&d", List.of("&7Heals")));
         }
 
         @Override
@@ -72,7 +73,7 @@ class EnchantMenusTest
         @Override
         public Icon coreIcon()
         {
-            return Icon.of("amethyst_shard", "Slot Core");
+            return Icon.of(Material.AMETHYST_SHARD, "Slot Core");
         }
 
         @Override

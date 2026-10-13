@@ -24,6 +24,13 @@ public interface MenuHost
     void prompt(Prompt prompt);
 
     /**
+     * The item on the viewer's cursor, or null.
+     */
+    Object cursor();
+
+    void setCursor(Object item);
+
+    /**
      * Closes the window; the session has ended.
      */
     void close();

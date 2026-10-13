@@ -1,6 +1,7 @@
 package imu.iAPI.Menus;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +10,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * What a slot shows, without the server's item classes: a material key, name, lore, amount and glint.
+ * What a slot shows: a material, name, lore, amount and glint. It holds no ItemStack, so menus can be drawn and
+ * clicked in unit tests; {@link Material} is a plain enum that works there too.
  * An icon can also carry a ready item of the server as its {@link #base()} (e.g. a plugin's custom item); a
  * name and lore given here then replace the base item's own.
  * <p>
@@ -36,8 +38,29 @@ public final class Icon
         _base = base;
     }
 
+    public static Icon of(Material material)
+    {
+        return of(key(material));
+    }
+
     /**
-     * @param material "diamond" or "minecraft:diamond"
+     * An icon with a name and lore lines, &amp; colour codes.
+     */
+    public static Icon of(Material material, String name, String... lore)
+    {
+        return of(key(material), name, lore);
+    }
+
+    /**
+     * A pane or other item with no tooltip, to fill empty slots.
+     */
+    public static Icon filler(Material material)
+    {
+        return filler(key(material));
+    }
+
+    /**
+     * By the item's id, "diamond" or "minecraft:diamond", e.g. one read from a config file.
      */
     public static Icon of(String material)
     {
@@ -60,10 +83,20 @@ public final class Icon
         return of(material).hideTooltip(true);
     }
 
+    private static String key(Material material)
+    {
+        return "minecraft:" + material.name().toLowerCase(Locale.ROOT);
+    }
+
     private static String key(String material)
     {
         String key = material.toLowerCase(Locale.ROOT);
         return key.contains(":") ? key : "minecraft:" + key;
+    }
+
+    public Icon material(Material material)
+    {
+        return material(key(material));
     }
 
     public Icon material(String material)

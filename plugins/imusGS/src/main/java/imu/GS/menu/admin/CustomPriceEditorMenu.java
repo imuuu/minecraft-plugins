@@ -1,5 +1,6 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Menus.Click;
 import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
 import imu.GS.bukkit.ItemKeys;
@@ -8,9 +9,6 @@ import imu.GS.engine.pricing.PriceRule;
 import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.menu.Icons;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -44,24 +42,16 @@ public class CustomPriceEditorMenu extends AdminMenu
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void draw()
     {
-        // The admin's own inventory stays usable, to pick up items for the price
-        return INVENTORY_AREA.UPPER_INV;
-    }
-
-    @Override
-    protected void refresh()
-    {
-        clearButtons();
         for (int i = 0; i < _draft.items.size() && i < ITEM_SLOTS; i++)
         {
             PriceRule.ItemCost cost = _draft.items.get(i);
             int index = i;
-            addButton(new Button(i, Icons.withLore(ItemKeys.template(cost.item()), List.of(
+            button(i, Icons.withLore(ItemKeys.template(cost.item()), List.of(
                     "&bM1: &2Set new Amount  &bM2: &cRemove", "&9Amount: &1" + cost.amount())), e ->
             {
-                if (e.isRightClick())
+                if (e.isRight())
                 {
                     _draft.items.remove(index);
                     refresh();
@@ -69,21 +59,23 @@ public class CustomPriceEditorMenu extends AdminMenu
                 }
                 Dialogs.wholeNumber(this, "Amount", List.of("How many are needed per bundle"), cost.amount(), 1, 100_000,
                         value -> _draft.items.set(index, new PriceRule.ItemCost(cost.item(), value)));
-            }));
+            });
         }
 
+        for (int slot = Math.min(_draft.items.size(), ITEM_SLOTS); slot < ITEM_SLOTS; slot++)
+            emptySlot(slot, this::addItem);
         for (int slot = ITEM_SLOTS; slot < 54; slot++)
-            addButton(new Button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE)));
+            button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE));
 
-        addButton(new Button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&cBACK"), e -> returnToEditor()));
-        addButton(new Button(46, Icons.icon(Material.SLIME_BALL, "&bClone Items to your inv"), e ->
+        button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&cBACK"), e -> returnToEditor());
+        button(46, Icons.icon(Material.SLIME_BALL, "&bClone Items to your inv"), e ->
         {
             for (PriceRule.ItemCost cost : _draft.items)
                 getPlayer().getInventory().addItem(ItemKeys.stack(cost.item(), 1));
-        }));
-        addButton(new Button(47, Icons.icon(Material.ANCIENT_DEBRIS, "&bLoad saved custom prices"),
-                e -> openNext(new SavedCustomPricesMenu(_service, _shop, _listing, _listingDraft, _returnPage, _draft))));
-        addButton(new Button(48, Icons.icon(Material.NETHERITE_SCRAP, "&bSave this custom price",
+        });
+        button(47, Icons.icon(Material.ANCIENT_DEBRIS, "&bLoad saved custom prices"),
+                e -> openNext(new SavedCustomPricesMenu(_service, _shop, _listing, _listingDraft, _returnPage, _draft)));
+        button(48, Icons.icon(Material.NETHERITE_SCRAP, "&bSave this custom price",
                 "&7Kept until the server restarts"), e ->
                 Dialogs.text(this, "Save as", List.of("A name for this custom price"), "", text ->
                 {
@@ -92,24 +84,24 @@ public class CustomPriceEditorMenu extends AdminMenu
                     CustomPriceDraft.saved(getPlayer().getUniqueId()).put(text.trim(), _draft.copy());
                     getPlayer().sendMessage(TextUtils.Color("&6Custom Price saved with name: &9" + text.trim()));
                     return null;
-                })));
-        addButton(new Button(49, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of(
+                }));
+        button(49, Icons.withLore(ItemKeys.template(_listing.getItem()), List.of(
                 "&6Minimum buy amount (bundle): &e" + _draft.bundleSize,
                 "&7The price is paid for every this many", "&bClick &7to change")), e ->
                 Dialogs.wholeNumber(this, "Bundle size", List.of("Items and money are paid for every this many bought"),
-                        _draft.bundleSize, 1, 100_000, value -> _draft.bundleSize = value)));
-        addButton(new Button(51, Icons.icon(Material.PAPER, "&9Add Money", "&9Money: &e" + Icons.money(_draft.money),
+                        _draft.bundleSize, 1, 100_000, value -> _draft.bundleSize = value));
+        button(51, Icons.icon(Material.PAPER, "&9Add Money", "&9Money: &e" + Icons.money(_draft.money),
                 "&bM1: &2Set  &bM2: &cRemove"), e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _draft.money = 0;
                 refresh();
                 return;
             }
             Dialogs.number(this, "Money", List.of("Money paid per bundle"), _draft.money, 0, 1e12, value -> _draft.money = value);
-        }));
-        addButton(new Button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&1CONFIRM"), e ->
+        });
+        button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&1CONFIRM"), e ->
         {
             if (_draft.items.isEmpty() && _draft.money <= 0)
             {
@@ -118,31 +110,21 @@ public class CustomPriceEditorMenu extends AdminMenu
             }
             _listingDraft.price = _draft.toPrice();
             returnToEditor();
-        }));
-        updateButtons(true);
+        });
     }
 
-    @Override
-    public boolean onDropItem(ItemStack stack, int slot)
+    // An item put in an empty cost slot is added with the amount on the cursor; the admin keeps the item
+    private void addItem(Click click)
     {
-        if (slot >= ITEM_SLOTS || stack == null || stack.getType() == Material.AIR)
-            return false;
-
+        ItemStack stack = (ItemStack) click.cursor();
+        if (stack == null)
+            return;
         ItemKey item = ItemKeys.of(stack);
         int index = _draft.indexOf(item);
         if (index >= 0)
             _draft.items.set(index, new PriceRule.ItemCost(item, stack.getAmount()));
         else
             _draft.items.add(new PriceRule.ItemCost(item, stack.getAmount()));
-        refresh();
-        // The admin keeps the item on their cursor
-        return false;
-    }
-
-    @Override
-    public IMenuButton onDropItemSet(ItemStack stack, int slot)
-    {
-        return null;
     }
 
     private void returnToEditor()

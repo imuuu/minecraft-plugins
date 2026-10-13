@@ -1,5 +1,7 @@
 package imu.iAPI.Menus;
 
+import org.bukkit.Material;
+
 import java.util.function.Consumer;
 
 /**
@@ -29,13 +31,13 @@ public class ConfirmMenu extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fill(Icon.filler("gray_stained_glass_pane"));
-        canvas.set(YES, Icon.of("lime_concrete", "&a&lYes"), click ->
+        canvas.fill(Icon.filler(Material.GRAY_STAINED_GLASS_PANE));
+        canvas.set(YES, Icon.of(Material.LIME_CONCRETE, "&a&lYes"), click ->
         {
             click.back();
             _onYes.accept(click);
         });
         canvas.set(SUBJECT, _subject);
-        canvas.set(NO, Icon.of("red_concrete", "&c&lNo"), Click::back);
+        canvas.set(NO, Icon.of(Material.RED_CONCRETE, "&c&lNo"), Click::back);
     }
 }

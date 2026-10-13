@@ -5,8 +5,8 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Testing.MenuTester;
 import imu.iAPI.Menus.Viewer;
 import me.imu.imusminiquests.Quests.Quest;
-import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ class QuestMenusTest
         @Override
         public Icon panelIcon(Quest quest)
         {
-            return Icon.of("paper", quest.getName(), "Panel lore");
+            return Icon.of(Material.PAPER, quest.getName(), "Panel lore");
         }
 
         @Override
@@ -78,9 +78,9 @@ class QuestMenusTest
             for (int i = 0; i < perOpening - 1; i++)
             {
                 String name = "Item " + number + "." + i + " luck " + luck;
-                prizes.add(new Prize(Icon.of("diamond", name), viewer -> given.add(name)));
+                prizes.add(new Prize(Icon.of(Material.DIAMOND, name), viewer -> given.add(name)));
             }
-            prizes.add(new Prize(Icon.of("gold_ingot", "+10"), null));
+            prizes.add(new Prize(Icon.of(Material.GOLD_INGOT, "+10"), null));
             return new Opening(prizes, true);
         }
 

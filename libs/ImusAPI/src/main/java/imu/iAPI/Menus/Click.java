@@ -103,6 +103,22 @@ public final class Click
         _session.prompt(prompt);
     }
 
+    /**
+     * The item on the viewer's cursor, or null. It is the platform's own item (an ItemStack in game).
+     */
+    public Object cursor()
+    {
+        return _session.host().cursor();
+    }
+
+    /**
+     * Puts an item on the viewer's cursor, null to empty it; for menus that hold items in their slots.
+     */
+    public void setCursor(Object item)
+    {
+        _session.host().setCursor(item);
+    }
+
     public void message(String legacy)
     {
         viewer().message(legacy);

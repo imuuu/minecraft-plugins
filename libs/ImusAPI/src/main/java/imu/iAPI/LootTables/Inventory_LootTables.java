@@ -1,173 +1,104 @@
 package imu.iAPI.LootTables;
 
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Buttons.ButtonWithSelector;
-import imu.iAPI.Buttons.GridButton;
-import imu.iAPI.Buttons.SelectorString;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.Interfaces.IMenuButton;
-import imu.iAPI.InvUtil.CustomInventory;
-import imu.iAPI.Main.ImusAPI;
-import imu.iAPI.Utilities.ItemUtils;
-import org.bukkit.Material;
+import imu.iAPI.Menus.Button;
+import imu.iAPI.Menus.Canvas;
+import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Menu;
+import imu.iAPI.Menus.Pager;
+import imu.iAPI.Menus.Paper.PaperIcons;
+import imu.iAPI.Menus.Prompt;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Inventory_LootTables extends CustomInventory
+/**
+ * /ia loottables: every drop table; click one to see its items. On an item, left click sets the weight, right
+ * click the least and shift click the most dropped at once.
+ */
+public class Inventory_LootTables extends Menu
 {
+    private final Pager<String> _pager = Pager.rows(0, 4);
 
     public Inventory_LootTables()
     {
-        super(ImusAPI._instance, "&9Drop Tables", 9 * 5);
+        super("&9Drop Tables", 5);
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void render(Canvas canvas)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;
+        Map<String, ImusLootTable> tables = Manager_ImusLootTable.getInstance().get_lootTables();
+        _pager.render(canvas, new ArrayList<>(tables.keySet()), key -> Button.of(Icon.of(Material.CHEST, key, "Click to edit"),
+                click -> click.open(new TableMenu(key))), 36, 44);
     }
 
-    @Override
-    public void onAwake()
+    /**
+     * The items of one table.
+     */
+    private static final class TableMenu extends Menu
     {
-        initButtons();
-    }
+        private final String _name;
+        private final Pager<ILootTableItem<?>> _pager = Pager.rows(0, 4);
 
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
-        System.out.println("open loot tables inventory");
-    }
-
-    @Override
-    public void onClose()
-    {
-        super.onClose();
-    }
-
-    private void initButtons()
-    {
-        loadLootTables();
-    }
-
-    private void loadLootTables()
-    {
-        HashMap<String, ImusLootTable> _lootTables = Manager_ImusLootTable.getInstance().get_lootTables();
-
-        List<String> keys = new ArrayList<>(_lootTables.keySet());
-        List<ImusLootTable> values = new ArrayList<>(_lootTables.values());
-
-        List<IMenuButton> buttons = new ArrayList<>();
-
-        for (int i = 0; i < keys.size(); i++)
+        private TableMenu(String name)
         {
-            ImusLootTable table = values.get(i);
-            final String key = keys.get(i);
+            super("&9Drop Table " + name, 5);
+            _name = name;
+        }
 
-            ItemStack stack = new ItemStack(Material.CHEST);
-            ItemUtils.SetDisplayName(stack, keys.get(i));
-            ItemUtils.AddLore(stack, "Click to edit", true);
-
-            Button button = new Button(i, stack);
-            button.setAction(inventoryClickEvent ->
+        @Override
+        protected void render(Canvas canvas)
+        {
+            ImusLootTable table = Manager_ImusLootTable.getInstance().get_lootTable(_name);
+            if (table == null)
             {
-                loadLootTable(key);
-            });
-
-            buttons.add(button);
+                canvas.set(22, Icon.of(Material.BARRIER, "&cThe table is gone"));
+                return;
+            }
+            List<ILootTableItem<?>> items = new ArrayList<>(table.getItems());
+            _pager.render(canvas, items, item -> Button.of(icon(item), click -> edit(click, item)), 36, 44);
+            canvas.set(40, Icon.of(Material.RED_STAINED_GLASS_PANE, "&bGo Back"), Click::back);
         }
 
-        GridButton grid = new GridButton(buttons, 0, 9, 4);
-        addGrid(grid);
-        grid.update();
-        grid.generateLeftRightButtons(getSize() - 9, getSize() - 1);
-    }
-
-    private void loadLootTable(String name)
-    {
-        System.out.println("load loot table: " + name);
-        ImusLootTable table = Manager_ImusLootTable.getInstance().get_lootTable(name);
-        if (table == null)
+        private static Icon icon(ILootTableItem<?> item)
         {
-            System.out.println("table is null");
-            return;
-        }
-        List<IMenuButton> buttons = new ArrayList<>();
-
-        for (int i = 0; i < table.getItems().size(); i++)
-        {
-            ILootTableItem<?> item = table.getItems().get(i);
-            buttons.add(createDisplayItemButton(item));
-
+            Icon icon = item instanceof LootItemStack && item.get_value() instanceof ItemStack stack
+                    ? PaperIcons.of(stack)
+                    : Icon.of(Material.BARRIER, "Not ItemStack");
+            return icon.addLore("&9Weight: &e" + item.get_weight(), "&9MinAmount: &e" + item.get_minAmount(),
+                    "&9MaxAmount: &e" + item.get_maxAmount(), " ",
+                    "&bLeft &7weight, &bright &7min, &bshift &7max");
         }
 
-        GridButton grid = new GridButton(buttons, 0, 9, 4);
-        addGrid(grid);
-        grid.update();
-
-        grid.generateLeftRightButtons(getSize() - 9, getSize() - 1);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private IMenuButton createDisplayItemButton(ILootTableItem item)
-    {
-        int weight = item.get_weight();
-        int maxAmount = item.get_maxAmount();
-        int minAmount = item.get_minAmount();
-        ItemStack stack;
-        if (item instanceof LootItemStack)
+        private void edit(Click click, ILootTableItem<?> item)
         {
-            stack = ((ItemStack) item.get_value()).clone();
-        }
-        else
-        {
-            stack = new ItemStack(Material.BARRIER);
-            ItemUtils.SetDisplayName(stack, "Not ItemStack");
-
-        }
-        ButtonWithSelector buttonSelector = new ButtonWithSelector(0, stack, this);
-
-        SelectorString selectorString_weight = new SelectorString("&9Weight: &e%value%", weight);
-        selectorString_weight.setOnConfirm(buttonWithSelector ->
-        {
-            Manager_ImusLootTable.getInstance().updateItemStackAsync(((ItemStack) item.get_value()), null, null, (Integer) buttonWithSelector.getSelectorString().getValue(), success ->
+            if (!(item.get_value() instanceof ItemStack stack))
+                return;
+            String field = click.isShift() ? "MaxAmount" : click.isRight() ? "MinAmount" : "Weight";
+            int current = click.isShift() ? item.get_maxAmount() : click.isRight() ? item.get_minAmount() : item.get_weight();
+            click.prompt(Prompt.of(field, List.of("A whole number, 0 or more"), String.valueOf(current), 10, text ->
             {
-                if (success)  getPlayer().sendMessage("§6Weight §9updated successfully");
-                else  getPlayer().sendMessage("§fWeight update §cfailed");
-            });
-        });
-        buttonSelector.addLores(selectorString_weight);
-
-        SelectorString selectorString_minAmount = new SelectorString("&9MinAmount: &e%value%", minAmount);
-        selectorString_minAmount.setOnConfirm(buttonWithSelector ->
-        {
-            Manager_ImusLootTable.getInstance().updateItemStackAsync(((ItemStack) item.get_value()), (Integer) buttonWithSelector.getSelectorString().getValue(), null, null, success ->
-            {
-                if (success)  getPlayer().sendMessage("§6MinAmount §9updated successfully");
-                else  getPlayer().sendMessage("§fMinAmount update §cfailed");
-            });
-        });
-        buttonSelector.addLores(selectorString_minAmount);
-
-        SelectorString selectorString_maxAmount = new SelectorString("&9MaxAmount: &e%value%", maxAmount);
-        selectorString_maxAmount.setOnConfirm(buttonWithSelector ->
-        {
-            Manager_ImusLootTable.getInstance().updateItemStackAsync(((ItemStack) item.get_value()), null, (Integer) buttonWithSelector.getSelectorString().getValue(), null, success ->
-            {
-                if (success)  getPlayer().sendMessage("§6MaxAmount §9updated successfully");
-                else  getPlayer().sendMessage("§fMaxAmount update §cfailed");
-            });
-        });
-        buttonSelector.addLores(selectorString_maxAmount);
-
-
-        return buttonSelector;
+                int value;
+                try
+                {
+                    value = Integer.parseInt(text.trim());
+                } catch (NumberFormatException e)
+                {
+                    return "'" + text + "' is not a whole number";
+                }
+                if (value < 0)
+                    return "Can't be below 0";
+                Integer min = field.equals("MinAmount") ? value : null;
+                Integer max = field.equals("MaxAmount") ? value : null;
+                Integer weight = field.equals("Weight") ? value : null;
+                Manager_ImusLootTable.getInstance().updateItemStackAsync(stack, min, max, weight, success ->
+                        click.message(success ? "&6" + field + " &9updated successfully" : "&f" + field + " update &cfailed"));
+                return null;
+            }));
+        }
     }
-
-
-
 }

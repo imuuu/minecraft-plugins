@@ -33,6 +33,11 @@ public final class MenuSession
         return _viewer;
     }
 
+    MenuHost host()
+    {
+        return _host;
+    }
+
     /**
      * The menu shown, or null when the session has ended.
      */
@@ -173,7 +178,11 @@ public final class MenuSession
     private static Map<Integer, Icon> icons(Map<Integer, Button> buttons)
     {
         Map<Integer, Icon> icons = new HashMap<>();
-        buttons.forEach((slot, button) -> icons.put(slot, button.icon()));
+        buttons.forEach((slot, button) ->
+        {
+            if (button.icon() != null)
+                icons.put(slot, button.icon());
+        });
         return icons;
     }
 
@@ -204,8 +213,8 @@ public final class MenuSession
     {
         if (_ended || _current == null)
             return;
-        _current.onTick();
-        refresh();
+        if (_current.onTick())
+            refresh();
     }
 
     /**

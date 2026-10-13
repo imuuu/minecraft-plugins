@@ -7,7 +7,6 @@ import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Commands.ExampleCmd;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Handlers.CommandHandler;
-import imu.iAPI.Interfaces.ICustomInventory;
 import imu.iAPI.Interfaces.IHasSql;
 import imu.iAPI.Interfaces.IHasSqlSource;
 import imu.iAPI.LootTables.Manager_ImusLootTable;
@@ -46,11 +45,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     private ConfigMenu _configMenu;
 
     private MySQL _SQL;
-
-    //depricated
-    private HashMap<UUID, CustomInvLayout> _openedInvs = new HashMap<>();
-    private HashMap<UUID, ICustomInventory> _openedCustomInventories = new HashMap<>();
-
 
     private List<MySQL> _sqls = new ArrayList<>();
     public static HashSet<Material> AirHashSet;
@@ -117,19 +111,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         if (_configMenu != null)
             _configMenu.unregister();
         PaperMenus.disable();
-
-        for (CustomInvLayout inv : _openedInvs.values())
-        {
-            inv.GetPlayer().closeInventory();
-        }
-
-        for (ICustomInventory inv : _openedCustomInventories.values())
-        {
-            inv.getPlayer().closeInventory();
-        }
-
-        _openedCustomInventories.clear();
-        _openedInvs.clear();
 
         for (MySQL sql : _sqls)
         {
@@ -233,31 +214,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     public void RegisterSQL(MySQL sql)
     {
         _sqls.add(sql);
-    }
-
-    public void RegisterInvOpen(CustomInvLayout inv)
-    {
-        _openedInvs.put(inv.GetPlayer().getUniqueId(), inv);
-    }
-
-    public void UnregisterInv(CustomInvLayout inv)
-    {
-        _openedInvs.remove(inv.GetPlayer().getUniqueId());
-    }
-
-    public void RegisterCustomInventory(ICustomInventory inv)
-    {
-        _openedCustomInventories.put(inv.getPlayer().getUniqueId(), inv);
-    }
-
-    public void UnregisterCustomInventory(ICustomInventory inv)
-    {
-        _openedCustomInventories.remove(inv.getPlayer().getUniqueId());
-    }
-
-    public CustomInvLayout GetOpenedInv(Player player)
-    {
-        return _openedInvs.get(player.getUniqueId());
     }
 
     private void InitEntities()

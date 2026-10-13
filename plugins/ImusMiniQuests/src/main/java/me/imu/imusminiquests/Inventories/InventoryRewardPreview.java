@@ -6,6 +6,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import me.imu.imusminiquests.Managers.ManagerQuestPoints;
 import me.imu.imusminiquests.Quests.Quest;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +80,9 @@ public class InventoryRewardPreview extends Menu
                 canvas.set(slot, prize.icon());
         }
 
-        canvas.fillRow(5, Icon.filler("black_stained_glass_pane"));
+        canvas.fillRow(5, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
         if (canvas.canGoBack())
-            canvas.set(SLOT_BACK, Icon.of("red_stained_glass_pane", "&bGo Back"), Click::back);
+            canvas.set(SLOT_BACK, Icon.of(Material.RED_STAINED_GLASS_PANE, "&bGo Back"), Click::back);
 
         double luck = getLuck();
         List<String> info = new ArrayList<>();
@@ -98,10 +99,10 @@ public class InventoryRewardPreview extends Menu
         if (_commands)
             info.add("&8Command rewards ran nothing here");
         info.add("&eClick &7an item to take it");
-        canvas.set(SLOT_INFO, Icon.of("book", "&6" + _quest.getName(), info.toArray(String[]::new)));
+        canvas.set(SLOT_INFO, Icon.of(Material.BOOK, "&6" + _quest.getName(), info.toArray(String[]::new)));
 
-        canvas.set(SLOT_REROLL, Icon.of("ender_eye", "&6Roll again"), click -> roll());
-        canvas.set(SLOT_LUCK, Icon.of("rabbit_foot", "&6Luck: &e" + ManagerQuestPoints.formatLuck(luck),
+        canvas.set(SLOT_REROLL, Icon.of(Material.ENDER_EYE, "&6Roll again"), click -> roll());
+        canvas.set(SLOT_LUCK, Icon.of(Material.RABBIT_FOOT, "&6Luck: &e" + ManagerQuestPoints.formatLuck(luck),
                 "&7Rolls as a player with this much luck",
                 "&7from quest points would get them",
                 "&eClick &7to switch: none, half, most"), click ->

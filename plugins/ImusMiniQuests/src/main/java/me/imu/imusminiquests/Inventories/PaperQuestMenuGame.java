@@ -15,6 +15,7 @@ import me.imu.imusminiquests.Quests.RolledReward;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +91,7 @@ public final class PaperQuestMenuGame implements QuestMenuGame
             double money = reward.rollMoney(luck);
             if (money > 0)
             {
-                Icon icon = Icon.of("gold_ingot", "&6+" + ManagerEconomy.format(money), "&8Money, paid straight to the balance");
+                Icon icon = Icon.of(Material.GOLD_INGOT, "&6+" + ManagerEconomy.format(money), "&8Money, paid straight to the balance");
                 prizes.add(new Prize(withTier(icon, rolled.tier()), null));
             }
             commands |= reward.hasCommands();

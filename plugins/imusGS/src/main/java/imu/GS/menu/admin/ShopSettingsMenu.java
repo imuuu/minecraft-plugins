@@ -1,14 +1,13 @@
 package imu.GS.menu.admin;
 
+import imu.iAPI.Menus.Click;
 import imu.iAPI.Utilities.TextUtils;
 import imu.GS.GsService;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopSettings;
 import imu.GS.menu.Icons;
-import imu.iAPI.Buttons.Button;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -53,18 +52,16 @@ public class ShopSettingsMenu extends AdminMenu
     }
 
     @Override
-    protected void refresh()
+    protected void draw()
     {
-        clearButtons();
         if (_removing)
         {
             drawRemoveWarning();
-            updateButtons(true);
             return;
         }
 
         for (int slot = 0; slot < 27; slot++)
-            addButton(new Button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE)));
+            button(slot, Icons.filler(Material.BLACK_STAINED_GLASS_PANE));
 
         FileConfiguration config = _service.getPlugin().getConfig();
 
@@ -82,7 +79,7 @@ public class ShopSettingsMenu extends AdminMenu
 
         addButton(value(2, Material.GOLD_INGOT, "&6Sell Multiplier", Dialogs.format(_sellMultiplier) + " &7(players buy for price x this)", e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _sellMultiplier = config.getDouble("new-shop.sell-multiplier");
                 refresh();
@@ -93,7 +90,7 @@ public class ShopSettingsMenu extends AdminMenu
 
         addButton(value(4, Material.IRON_INGOT, "&6Buy Multiplier", Dialogs.format(_buyMultiplier) + " &7(players sell for price x this)", e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _buyMultiplier = config.getDouble("new-shop.buy-multiplier");
                 refresh();
@@ -105,19 +102,19 @@ public class ShopSettingsMenu extends AdminMenu
         addButton(toggle(6, Material.STICKY_PISTON, "&6Absolute position", _absolutePositions,
                 "&7On: items a player can't buy show as NOT AVAILABLE", "&7Off: they are left out", e ->
                 {
-                    _absolutePositions = e.isRightClick() || !_absolutePositions;
+                    _absolutePositions = e.isRight() || !_absolutePositions;
                     refresh();
                 }));
 
         addButton(toggle(8, Material.TRIPWIRE_HOOK, "&6Lock", _locked, "&7Locked: only admins can open the shop", "", e ->
         {
-            _locked = !e.isRightClick() && !_locked;
+            _locked = !e.isRight() && !_locked;
             refresh();
         }));
 
         addButton(value(10, Material.COMPASS, "&6Expire percent", Dialogs.format(_expirePercent * 100) + " %", e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _expirePercent = config.getDouble("new-shop.expire-percent");
                 refresh();
@@ -129,7 +126,7 @@ public class ShopSettingsMenu extends AdminMenu
 
         addButton(value(12, Material.CLOCK, "&6Expire Cooldown", _expireCooldown + " min", e ->
         {
-            if (e.isRightClick())
+            if (e.isRight())
             {
                 _expireCooldown = config.getInt("new-shop.expire-cooldown-minutes");
                 refresh();
@@ -140,49 +137,48 @@ public class ShopSettingsMenu extends AdminMenu
 
         addButton(toggle(14, Material.IRON_BARS, "&6Block Customer Sell", _customersCanOnlyBuy, "&7On: players can only buy", "", e ->
         {
-            _customersCanOnlyBuy = !e.isRightClick() && !_customersCanOnlyBuy;
+            _customersCanOnlyBuy = !e.isRight() && !_customersCanOnlyBuy;
             refresh();
         }));
 
         addButton(toggle(16, Material.NETHER_STAR, "&6Live Events", _liveEvents, "&7Flash deals, rotating stock and", "&7items found by players", e ->
         {
-            _liveEvents = e.isRightClick() || !_liveEvents;
+            _liveEvents = e.isRight() || !_liveEvents;
             refresh();
         }));
 
-        addButton(new Button(20, Icons.icon(Material.BARRIER, "&l&6Remove This Shop", "&eConfirmation Needed!"), e ->
+        button(20, Icons.icon(Material.BARRIER, "&l&6Remove This Shop", "&eConfirmation Needed!"), e ->
         {
             _removing = true;
             refresh();
-        }));
-        addButton(new Button(18, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&b<= &cBACK"),
-                e -> openNext(new ShopEditorMenu(_service, _shop))));
-        addButton(new Button(26, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&bCONFIRM"), e -> confirm()));
-        updateButtons(true);
+        });
+        button(18, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&b<= &cBACK"),
+                e -> openNext(new ShopEditorMenu(_service, _shop)));
+        button(26, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&bCONFIRM"), e -> confirm());
     }
 
     private void drawRemoveWarning()
     {
         ItemStack warning = Icons.glow(Icons.icon(Material.BARRIER, "&l&cWARNING!", "&eAll items of the shop will be &clost!", "&eYou are about to remove the shop!"));
         for (int slot = 0; slot < 27; slot++)
-            addButton(new Button(slot, warning));
+            button(slot, warning);
         for (int slot : new int[] { 8, 17, 26 })
         {
-            addButton(new Button(slot, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&bCONFIRM", "&cRemoves the shop"), e ->
+            button(slot, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, "&bCONFIRM", "&cRemoves the shop"), e ->
             {
                 String name = _shop.getDisplayName();
                 _service.deleteShop(_shop);
                 getPlayer().sendMessage(TextUtils.Color("&9Shop named " + name + " &9has been &cremoved"));
                 closeNext();
-            }));
+            });
         }
         for (int slot : new int[] { 0, 9, 18 })
         {
-            addButton(new Button(slot, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&bCANCEL"), e ->
+            button(slot, Icons.icon(Material.RED_STAINED_GLASS_PANE, "&bCANCEL"), e ->
             {
                 _removing = false;
                 refresh();
-            }));
+            });
         }
     }
 
@@ -214,12 +210,12 @@ public class ShopSettingsMenu extends AdminMenu
         openNext(new ShopEditorMenu(_service, _shop));
     }
 
-    private Button value(int slot, Material material, String name, String value, Consumer<InventoryClickEvent> click)
+    private Button value(int slot, Material material, String name, String value, Consumer<Click> click)
     {
         return new Button(slot, Icons.icon(material, name, "&6Set To &9" + value, "&bM1: &aSet &bM2: &cDefault"), click);
     }
 
-    private Button toggle(int slot, Material material, String name, boolean value, String help1, String help2, Consumer<InventoryClickEvent> click)
+    private Button toggle(int slot, Material material, String name, boolean value, String help1, String help2, Consumer<Click> click)
     {
         return new Button(slot, Icons.icon(material, name, "&6Set To " + (value ? "&aTrue" : "&cFalse"), help1, help2,
                 "&bM1: &aSwitch &bM2: &cDefault"), click);

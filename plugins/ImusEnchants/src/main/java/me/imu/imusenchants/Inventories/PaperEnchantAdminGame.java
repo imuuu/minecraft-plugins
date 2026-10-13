@@ -12,11 +12,11 @@ import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.ImusEnchants;
 import me.imu.imusenchants.Items.SlotCore;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +73,7 @@ public final class PaperEnchantAdminGame implements EnchantAdminGame
 					"&7For: &f" + enchant.GetAppliesToText()));
 			if (enchant.IsCurse())
 				details.add("&4Curse");
-			entries.add(new Entry(CUSTOM + enchant.GetKey(), Icon.of("enchanted_book"), enchant.GetName(), enchant.IsCurse() ? "&c" : "&d", details));
+			entries.add(new Entry(CUSTOM + enchant.GetKey(), Icon.of(Material.ENCHANTED_BOOK), enchant.GetName(), enchant.IsCurse() ? "&c" : "&d", details));
 		}
 		return entries;
 	}

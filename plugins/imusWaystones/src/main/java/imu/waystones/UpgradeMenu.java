@@ -12,6 +12,7 @@ import imu.waystones.engine.Cost;
 import imu.waystones.engine.Panel;
 import imu.waystones.engine.Rules;
 import imu.waystones.engine.UpgradeKind;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +25,9 @@ final class UpgradeMenu extends Menu
 {
     static final Map<UpgradeKind, Integer> SLOTS = Map.of(UpgradeKind.CAST_TIME, 10, UpgradeKind.COOLDOWN, 12,
             UpgradeKind.DIMENSION, 14, UpgradeKind.XP_USAGE, 16, UpgradeKind.FOUNDATION, 22);
-    private static final Map<UpgradeKind, String> ICONS = Map.of(UpgradeKind.CAST_TIME, "clock", UpgradeKind.COOLDOWN,
-            "compass", UpgradeKind.DIMENSION, "ender_pearl", UpgradeKind.XP_USAGE, "experience_bottle",
-            UpgradeKind.FOUNDATION, "diamond_block");
+    private static final Map<UpgradeKind, Material> ICONS = Map.of(UpgradeKind.CAST_TIME, Material.CLOCK, UpgradeKind.COOLDOWN,
+            Material.COMPASS, UpgradeKind.DIMENSION, Material.ENDER_PEARL, UpgradeKind.XP_USAGE, Material.EXPERIENCE_BOTTLE,
+            UpgradeKind.FOUNDATION, Material.DIAMOND_BLOCK);
     static final int BACK = 27, RENAME = 30, EXTRACT = 32;
 
     private final WaystoneGame _game;
@@ -44,21 +45,21 @@ final class UpgradeMenu extends Menu
     {
         Viewer viewer = canvas.viewer();
         Panel panel = _ws.panel(viewer.id());
-        canvas.fill(Icon.filler("black_stained_glass_pane"));
+        canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
 
         if (_ws.maxedOut)
-            canvas.set(13, Icon.of("nether_star", _game.text("maxed-out"), _game.text("maxed-out-lore")));
+            canvas.set(13, Icon.of(Material.NETHER_STAR, _game.text("maxed-out"), _game.text("maxed-out-lore")));
         else
         {
             for (UpgradeKind kind : UpgradeKind.BUYABLE)
                 canvas.set(SLOTS.get(kind), icon(kind, panel, viewer), click -> buy(click, kind));
-            canvas.set(EXTRACT, Icon.of("grindstone", _game.text("extract"), _game.text("extract-lore")), this::extract);
+            canvas.set(EXTRACT, Icon.of(Material.GRINDSTONE, _game.text("extract"), _game.text("extract-lore")), this::extract);
         }
 
         if (canvas.canGoBack())
-            canvas.set(BACK, Icon.of("red_wool", _game.text("menu-back")), Click::back);
+            canvas.set(BACK, Icon.of(Material.RED_WOOL, _game.text("menu-back")), Click::back);
         if (viewer.id().equals(_ws.owner) || viewer.hasPermission(ImusWaystones.ADMIN))
-            canvas.set(RENAME, Icon.of("name_tag", _game.text("rename")), this::rename);
+            canvas.set(RENAME, Icon.of(Material.NAME_TAG, _game.text("rename")), this::rename);
     }
 
     private Icon icon(UpgradeKind kind, Panel panel, Viewer viewer)
@@ -66,7 +67,7 @@ final class UpgradeMenu extends Menu
         Rules rules = _game.rules();
         int max = rules.maxTier(kind);
         if (max == 0)
-            return Icon.of("barrier", _game.text("upgrade-off", "upgrade", _game.text("upgrade." + kind.key() + ".name")));
+            return Icon.of(Material.BARRIER, _game.text("upgrade-off", "upgrade", _game.text("upgrade." + kind.key() + ".name")));
         int tier = Math.min(panel.tier(kind), max);
         List<String> lore = new ArrayList<>(_game.textList("upgrade." + kind.key() + ".lore"));
         lore.add(" ");

@@ -7,6 +7,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
 import imu.iAPI.Menus.Viewer;
+import org.bukkit.Material;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,10 +57,10 @@ public class InventoryCCollectMaterial extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fillRow(5, Icon.filler("orange_stained_glass_pane"));
-        canvas.set(OWN, Icon.of("player_head", "&eCollected Materials"), click -> showCollected(click.viewer(), click.viewer().id(), click.viewer().name()));
-        canvas.set(UNKNOWN, Icon.of("diamond_block", "&5Unknown Materials"), click -> showUnknown(click.viewer()));
-        canvas.set(PLAYERS, Icon.of("player_head", "&ePlayers Materials"), click -> showPlayers(click.viewer()));
+        canvas.fillRow(5, Icon.filler(Material.ORANGE_STAINED_GLASS_PANE));
+        canvas.set(OWN, Icon.of(Material.PLAYER_HEAD, "&eCollected Materials"), click -> showCollected(click.viewer(), click.viewer().id(), click.viewer().name()));
+        canvas.set(UNKNOWN, Icon.of(Material.DIAMOND_BLOCK, "&5Unknown Materials"), click -> showUnknown(click.viewer()));
+        canvas.set(PLAYERS, Icon.of(Material.PLAYER_HEAD, "&ePlayers Materials"), click -> showPlayers(click.viewer()));
         _pager.render(canvas, _buttons, button -> button, PREVIOUS, NEXT);
     }
 
@@ -89,7 +90,7 @@ public class InventoryCCollectMaterial extends Menu
             List<Button> buttons = new ArrayList<>();
             for (CollectMenuGame.PlayerCount count : counts)
             {
-                Icon icon = Icon.of("player_head", "&e" + count.name(), "&7=========================", "&9Materials: &6" + count.count(),
+                Icon icon = Icon.of(Material.PLAYER_HEAD, "&e" + count.name(), "&7=========================", "&9Materials: &6" + count.count(),
                         "    ", "    ", "&9(&eClick&9) To See More");
                 buttons.add(Button.of(icon, click -> showCollected(click.viewer(), count.id(), count.name())));
             }

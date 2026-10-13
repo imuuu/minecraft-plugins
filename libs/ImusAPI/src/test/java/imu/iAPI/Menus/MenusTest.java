@@ -3,6 +3,7 @@ package imu.iAPI.Menus;
 import imu.iAPI.Menus.Testing.MenuTester;
 import imu.iAPI.Menus.Testing.TestViewer;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +34,11 @@ class MenusTest
         @Override
         protected void render(Canvas canvas)
         {
-            canvas.fillRow(2, Icon.filler("black_stained_glass_pane"));
-            canvas.set(0, Icon.of("emerald", "&aCount " + count), click -> count += click.isRight() ? -1 : 1);
-            canvas.set(1, Icon.of("ender_pearl", "Open another"), click -> click.open(new CounterMenu()));
-            canvas.set(2, Buttons.confirm(Icon.of("tnt", "&cReset"), "&cReset the count?", click -> count = 0));
-            canvas.set(3, Icon.of("name_tag", "Rename"), click -> click.prompt(Prompt.of("Count", List.of(), "" + count, 5, text ->
+            canvas.fillRow(2, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
+            canvas.set(0, Icon.of(Material.EMERALD, "&aCount " + count), click -> count += click.isRight() ? -1 : 1);
+            canvas.set(1, Icon.of(Material.ENDER_PEARL, "Open another"), click -> click.open(new CounterMenu()));
+            canvas.set(2, Buttons.confirm(Icon.of(Material.TNT, "&cReset"), "&cReset the count?", click -> count = 0));
+            canvas.set(3, Icon.of(Material.NAME_TAG, "Rename"), click -> click.prompt(Prompt.of("Count", List.of(), "" + count, 5, text ->
             {
                 try
                 {
@@ -48,8 +49,8 @@ class MenusTest
                     return "Not a number";
                 }
             })));
-            canvas.set(4, Icon.of("barrier", "Broken"), click -> { throw new IllegalStateException("boom"); });
-            pager.render(canvas, numbers, n -> Button.display(Icon.of("paper", "#" + n)), 18, 26);
+            canvas.set(4, Icon.of(Material.BARRIER, "Broken"), click -> { throw new IllegalStateException("boom"); });
+            pager.render(canvas, numbers, n -> Button.display(Icon.of(Material.PAPER, "#" + n)), 18, 26);
             Buttons.back(canvas, 22);
         }
 
@@ -90,6 +91,10 @@ class MenusTest
             public void set(int slot, Icon icon) { sent.add(slot); }
 
             public void prompt(Prompt prompt) {}
+
+            public Object cursor() { return null; }
+
+            public void setCursor(Object item) {}
 
             public void close() {}
 
@@ -221,9 +226,9 @@ class MenusTest
             @Override
             protected void render(Canvas canvas)
             {
-                canvas.set(0, Buttons.toggle(Icon.of("lever", "Power"), on, value -> on = value));
-                canvas.set(1, Buttons.cycle(Icon.of("clock", "Mode"), List.of("slow", "fast", "faster"), mode, m -> m, value -> mode = value));
-                canvas.set(2, Buttons.counter(Icon.of("gold_nugget", "Amount"), amount, 1, 20, value -> amount = value));
+                canvas.set(0, Buttons.toggle(Icon.of(Material.LEVER, "Power"), on, value -> on = value));
+                canvas.set(1, Buttons.cycle(Icon.of(Material.CLOCK, "Mode"), List.of("slow", "fast", "faster"), mode, m -> m, value -> mode = value));
+                canvas.set(2, Buttons.counter(Icon.of(Material.GOLD_NUGGET, "Amount"), amount, 1, 20, value -> amount = value));
             }
         }
         Settings settings = new Settings();
@@ -279,15 +284,16 @@ class MenusTest
             }
 
             @Override
-            protected void onTick()
+            protected boolean onTick()
             {
                 seconds++;
+                return true;
             }
 
             @Override
             protected void render(Canvas canvas)
             {
-                canvas.set(4, Icon.of("clock", seconds + " s"));
+                canvas.set(4, Icon.of(Material.CLOCK, seconds + " s"));
             }
         }
         MenuTester menu = MenuTester.open(new Clock());
@@ -306,5 +312,53 @@ class MenusTest
         assertNotEquals(icon, icon.amount(2));
         assertEquals(List.of("line", "more"), icon.addLore("more").plainLore());
         assertEquals(List.of("line"), icon.plainLore(), "the original stays");
+    }
+
+    @Test
+    void itemsMoveBetweenTheCursorAndASlot()
+    {
+        // One slot that holds whatever the player puts in it
+        class Box extends Menu
+        {
+            Object held;
+
+            Box()
+            {
+                super("Box", 1);
+            }
+
+            @Override
+            protected void render(Canvas canvas)
+            {
+                if (held == null)
+                    canvas.set(4, Button.empty(click ->
+                    {
+                        held = click.cursor();
+                        click.setCursor(null);
+                    }));
+                else
+                    canvas.set(4, Icon.of(Material.DIAMOND, held.toString()), click ->
+                    {
+                        if (click.cursor() != null)
+                            return;
+                        click.setCursor(held);
+                        held = null;
+                    });
+            }
+        }
+        Box box = new Box();
+        MenuTester menu = MenuTester.open(box);
+        assertNull(menu.icon(4), "an empty slot");
+
+        menu.holding("Sword").click(4);
+        assertEquals("Sword", box.held);
+        assertNull(menu.cursor());
+        assertEquals("Sword", menu.name(4));
+
+        menu.holding("Apple").click(4);
+        assertEquals("Apple", menu.cursor(), "a full slot doesn't swap");
+        menu.holding(null).click(4);
+        assertEquals("Sword", menu.cursor());
+        assertNull(menu.icon(4));
     }
 }

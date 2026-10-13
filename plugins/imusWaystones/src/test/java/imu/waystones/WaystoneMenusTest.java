@@ -12,6 +12,7 @@ import imu.waystones.engine.UpgradeKind;
 import imu.waystones.engine.Visibility;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -107,7 +108,7 @@ class WaystoneMenusTest
         @Override
         public Icon icon(Waystone ws)
         {
-            return Icon.of("lodestone");
+            return Icon.of(Material.LODESTONE);
         }
 
         @Override

@@ -10,9 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import imu.iAPI.Main.ImusAPI;
 
 /**
- * @deprecated the old inventory system; new menus use {@link imu.iAPI.InvUtil.CustomInventory}
+ * Named lists of items admins can take copies of, opened with /ia inv &lt;name&gt;.
  */
-@Deprecated
 public class Manager_FastInventories
 {
 	public static Manager_FastInventories Instance;

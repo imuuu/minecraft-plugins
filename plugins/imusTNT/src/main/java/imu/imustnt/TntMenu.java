@@ -5,6 +5,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Viewer;
 import imu.imustnt.engine.TntType;
+import org.bukkit.Material;
 
 import java.util.function.Function;
 
@@ -34,7 +35,7 @@ class TntMenu extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fill(Icon.filler("purple_stained_glass_pane"));
+        canvas.fill(Icon.filler(Material.PURPLE_STAINED_GLASS_PANE));
         TntType[] types = TntType.values();
         for (int i = 0; i < types.length; i++)
         {

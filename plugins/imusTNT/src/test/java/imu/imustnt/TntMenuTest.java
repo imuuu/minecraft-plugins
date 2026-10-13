@@ -5,6 +5,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Testing.MenuTester;
 import imu.imustnt.engine.TntType;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ class TntMenuTest
 
     private MenuTester open()
     {
-        return MenuTester.open(new TntMenu("&5Special TNT", type -> Icon.of("tnt", type.key()),
+        return MenuTester.open(new TntMenu("&5Special TNT", type -> Icon.of(Material.TNT, type.key()),
                 (viewer, type, amount) -> _given.add(viewer.name() + " " + type + " " + amount)));
     }
 

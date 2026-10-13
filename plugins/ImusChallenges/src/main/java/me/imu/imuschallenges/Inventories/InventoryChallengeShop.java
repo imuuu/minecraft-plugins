@@ -5,6 +5,7 @@ import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Viewer;
 import me.imu.imuschallenges.CONSTANTS;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -70,11 +71,11 @@ public class InventoryChallengeShop extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fill(Icon.filler("black_stained_glass_pane"));
-        Icon special = Icon.of("blue_stained_glass_pane", "&6&lResets in &c&l" + _game.resetsIn(true));
+        canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
+        Icon special = Icon.of(Material.BLUE_STAINED_GLASS_PANE, "&6&lResets in &c&l" + _game.resetsIn(true));
         canvas.set(1, special);
         canvas.set(1 + 9 * 5, special);
-        Icon normal = Icon.of("blue_stained_glass_pane", "&9&lResets in &c&l" + _game.resetsIn(false));
+        Icon normal = Icon.of(Material.BLUE_STAINED_GLASS_PANE, "&9&lResets in &c&l" + _game.resetsIn(false));
         for (int i = 0; i < CONSTANTS.NORMAL_SLOT_COLUMNS; i++)
         {
             canvas.set(NORMAL_START - 9 + i, normal);
@@ -94,7 +95,7 @@ public class InventoryChallengeShop extends Menu
         if (tier.closed())
         {
             for (int i = 0; i < size(special); i++)
-                canvas.set(slot(special, i), Icon.filler("red_stained_glass_pane"));
+                canvas.set(slot(special, i), Icon.filler(Material.RED_STAINED_GLASS_PANE));
             return;
         }
 
@@ -104,7 +105,7 @@ public class InventoryChallengeShop extends Menu
             int slot = slot(special, i);
             int index = i;
             if (i >= tier.items().size())
-                canvas.set(slot, Icon.filler("purple_stained_glass_pane"));
+                canvas.set(slot, Icon.filler(Material.PURPLE_STAINED_GLASS_PANE));
             else if (i < tier.boughtSlots())
             {
                 Icon item = tier.items().get(i).addLore(" ", "&a&lCost: " + tier.costs().get(i) + " &4Challenge points");
@@ -118,7 +119,7 @@ public class InventoryChallengeShop extends Menu
             {
                 boolean armed = _armed.contains(slot);
                 String name = "&c&lBuy " + tierName + " &9slot" + (armed ? " &6&k#&r &e(Confirm by &bM2)" : "");
-                Icon forSale = Icon.of("purple_stained_glass_pane", name, " ", "&aCost: " + tier.slotPrice() + " &2$").glow(armed);
+                Icon forSale = Icon.of(Material.PURPLE_STAINED_GLASS_PANE, name, " ", "&aCost: " + tier.slotPrice() + " &2$").glow(armed);
                 canvas.set(slot, forSale, click ->
                 {
                     if (click.isLeft())

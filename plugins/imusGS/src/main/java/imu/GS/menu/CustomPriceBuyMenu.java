@@ -1,5 +1,6 @@
 package imu.GS.menu;
 
+import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.TextUtils;
@@ -14,9 +15,6 @@ import imu.GS.engine.shop.Listing;
 import imu.GS.engine.shop.Shop;
 import imu.GS.engine.shop.ShopListener;
 import imu.GS.engine.trade.TradeResult;
-import imu.iAPI.Buttons.Button;
-import imu.iAPI.Enums.INVENTORY_AREA;
-import imu.iAPI.InvUtil.CustomInventory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -35,7 +33,7 @@ import java.util.List;
  *  45 back   48 -&gt;   49 the item   50 &lt;-   53 buy
  * </pre>
  */
-public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
+public class CustomPriceBuyMenu extends GsMenu implements ShopListener
 {
     private static final Material[] BLOCKS = { Material.IRON_BLOCK, Material.COPPER_BLOCK, Material.GOLD_BLOCK,
             Material.DIAMOND_BLOCK, Material.EMERALD_BLOCK, Material.NETHERITE_BLOCK, Material.CRYING_OBSIDIAN };
@@ -43,7 +41,6 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             Material.BLUE_WOOL, Material.PURPLE_WOOL, Material.BROWN_WOOL, Material.BLACK_WOOL };
     private static final int[] SINGLE_AMOUNTS = { 1, 4, 8, 16, 32, 64 };
 
-    private final GsService _service;
     private final Shop _shop;
     private final Listing _listing;
     private Customer _customer;
@@ -51,8 +48,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
 
     public CustomPriceBuyMenu(GsService service, Shop shop, Listing listing)
     {
-        super(service.getPlugin(), Messages.get("custom-price.title", "item", displayName(listing)), 54);
-        _service = service;
+        super(service, Messages.get("custom-price.title", "item", displayName(listing)), 54);
         _shop = shop;
         _listing = listing;
         _selected = bundle();
@@ -69,32 +65,20 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
     }
 
     @Override
-    public INVENTORY_AREA setInventoryLock()
+    protected void onOpen(Viewer viewer)
     {
-        return INVENTORY_AREA.UPPER_LOWER_INV;
-    }
-
-    @Override
-    public void onAwake()
-    {
+        if (_customer != null)
+            return;
         // A custom price is paid from the whole inventory, hotbar included, like before
         PlayerInventoryAdapter inventory = new PlayerInventoryAdapter(getPlayer());
         inventory.setIncludeHotbarAndArmor(true);
         _customer = _service.customer(getPlayer(), inventory);
-    }
-
-    @Override
-    public void onOpen()
-    {
-        super.onOpen();
         _shop.addListener(this);
-        refresh();
     }
 
     @Override
-    public void onClose()
+    protected void onClose(Viewer viewer)
     {
-        super.onClose();
         _shop.removeListener(this);
     }
 
@@ -113,7 +97,7 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
 
     // Drawing ========================================================================================================
 
-    private void refresh()
+    protected void draw()
     {
         if (getPlayer() == null)
             return;
@@ -123,23 +107,21 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             return;
         }
 
-        clearButtons();
         ItemStack black = Icons.filler(Material.BLACK_STAINED_GLASS_PANE);
         for (int slot = 27; slot < 54; slot++)
-            addButton(new Button(slot, black));
+            button(slot, black);
 
         drawCost();
         drawAmounts();
 
-        addButton(new Button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, Messages.get("custom-price.back")), e -> backToShop()));
-        addButton(new Button(48, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-right"))));
-        addButton(new Button(50, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-left"))));
-        addButton(new Button(49, Icons.withLore(ItemKeys.template(_listing.getItem()),
-                Messages.lines("custom-price.info", "bundle", bundle(), "stock", _listing.getAmount()))));
-        addButton(new Button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, Messages.get("custom-price.buy"),
+        button(45, Icons.icon(Material.RED_STAINED_GLASS_PANE, Messages.get("custom-price.back")), e -> backToShop());
+        button(48, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-right")));
+        button(50, Icons.icon(Material.PURPLE_STAINED_GLASS_PANE, Messages.get("custom-price.buying-left")));
+        button(49, Icons.withLore(ItemKeys.template(_listing.getItem()),
+                Messages.lines("custom-price.info", "bundle", bundle(), "stock", _listing.getAmount())));
+        button(53, Icons.icon(Material.GREEN_STAINED_GLASS_PANE, Messages.get("custom-price.buy"),
                 Messages.lines("custom-price.buy-lore")),
-                e -> buy(e.isLeftClick())));
-        updateButtons(true);
+                e -> buy(e.isLeft()));
     }
 
     private void drawCost()
@@ -155,14 +137,14 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             ItemStack stack = Icons.withLore(ItemKeys.template(need.item()), List.of(
                     Messages.get(have >= need.amount() ? "custom-price.you-have-enough" : "custom-price.you-have-too-few", "amount", have),
                     Messages.get("custom-price.costs", "amount", need.amount(), "per-bundle", perBundle, "bundles", _selected / custom.bundleSize())));
-            addButton(new Button(slot, stack));
+            button(slot, stack);
         }
         if (cost.money() > 0 && slot < 27)
         {
             double balance = _service.getWallet().balance(getPlayer().getUniqueId());
-            addButton(new Button(slot, Icons.glow(Icons.icon(Material.PAPER, Messages.get("custom-price.extra"),
+            button(slot, Icons.glow(Icons.icon(Material.PAPER, Messages.get("custom-price.extra"),
                     Messages.get("custom-price.money", "price", Icons.money(cost.money())),
-                    Messages.get(balance >= cost.money() ? "custom-price.you-have-enough" : "custom-price.you-have-too-few", "amount", Icons.money(balance))))));
+                    Messages.get(balance >= cost.money() ? "custom-price.you-have-enough" : "custom-price.you-have-too-few", "amount", Icons.money(balance)))));
         }
     }
 
@@ -181,8 +163,8 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             int slot = 28 + i;
             if (amount > _listing.getAmount() || amount < bundle)
             {
-                addButton(new Button(slot, Icons.icon(Material.BARRIER, Messages.get("custom-price.not-in-stock", "amount", amount),
-                        Messages.get("custom-price.not-in-stock-lore", "stock", _listing.getAmount()))));
+                button(slot, Icons.icon(Material.BARRIER, Messages.get("custom-price.not-in-stock", "amount", amount),
+                        Messages.get("custom-price.not-in-stock-lore", "stock", _listing.getAmount())));
                 continue;
             }
 
@@ -193,16 +175,16 @@ public class CustomPriceBuyMenu extends CustomInventory implements ShopListener
             ItemStack stack = Icons.icon(icons[i], Messages.get("custom-price.buy-amount", "amount", amount), lore);
             if (!canPay)
                 Icons.glow(stack);
-            addButton(new Button(slot, stack, e ->
+            button(slot, stack, e ->
             {
                 if (_selected == amount)
                     return;
                 _selected = amount;
                 refresh();
-            }));
+            });
 
             if (amount == _selected)
-                addButton(new Button(slot + 9, Icons.icon(Material.REDSTONE_TORCH, Messages.get("custom-price.selected"))));
+                button(slot + 9, Icons.icon(Material.REDSTONE_TORCH, Messages.get("custom-price.selected")));
         }
     }
 

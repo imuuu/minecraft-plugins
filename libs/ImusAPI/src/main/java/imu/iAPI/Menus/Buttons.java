@@ -1,5 +1,7 @@
 package imu.iAPI.Menus;
 
+import org.bukkit.Material;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,7 +17,7 @@ public final class Buttons
 
     public static Button back()
     {
-        return Button.of(Icon.of("red_stained_glass_pane", "&bGo Back"), Click::back);
+        return Button.of(Icon.of(Material.RED_STAINED_GLASS_PANE, "&bGo Back"), Click::back);
     }
 
     /**
@@ -29,7 +31,7 @@ public final class Buttons
 
     public static Button close()
     {
-        return Button.of(Icon.of("barrier", "&cClose"), Click::close);
+        return Button.of(Icon.of(Material.BARRIER, "&cClose"), Click::close);
     }
 
     /**

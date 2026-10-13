@@ -93,7 +93,8 @@ test('another shop has its own limit', async () => {
 
   await other.click(await other.waitForCustomerSlot('iron_ingot'), 'right')
 
-  assert.equal(await balance(rcon, OTHER_BOT), before + 8 * 80)
+  // Balances have cents; adding them in floating point leaves a tiny error
+  assert.ok(Math.abs(await balance(rcon, OTHER_BOT) - (before + 8 * 80)) < 0.005)
 })
 
 test('/gs limits shows the full group', async () => {

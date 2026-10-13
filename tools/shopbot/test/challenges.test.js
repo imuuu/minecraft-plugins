@@ -30,16 +30,29 @@ const ADVANCEMENTS = {
     ['adventure/sleep_in_bed', 'Sweet Dreams'], ['adventure/shoot_arrow', 'Take Aim'], ['story/enchant_item', 'Enchanter']],
   goal: [['story/cure_zombie_villager', 'Zombie Doctor'], ['adventure/totem_of_undying', 'Postmortal'],
     ['adventure/summon_iron_golem', 'Hired Help'], ['end/dragon_breath', 'You Need a Mint'], ['end/elytra', "Sky's the Limit"],
-    ['end/find_end_city', 'The City at the End of the Game'], ['end/respawn_dragon', 'The End... Again...'],
-    ['nether/create_full_beacon', 'Beaconator']],
+    ['end/respawn_dragon', 'The End... Again...'],
+    ['nether/create_full_beacon', 'Beaconator'], ['end/dragon_egg', 'The Next Generation']],
   challenge: [['adventure/kill_all_mobs', 'Monsters Hunted'], ['adventure/sniper_duel', 'Sniper Duel'],
     ['adventure/two_birds_one_arrow', 'Two Birds, One Arrow'], ['nether/return_to_sender', 'Return to Sender'],
-    ['adventure/arbalistic', 'Arbalistic']]
+    ['adventure/arbalistic', 'Arbalistic'], ['adventure/adventuring_time', 'Adventuring Time'], ['adventure/bullseye', 'Bullseye'],
+    ['adventure/hero_of_the_village', 'Hero of the Village'], ['husbandry/balanced_diet', 'A Balanced Diet'],
+    ['husbandry/bred_all_animals', 'Two by Two'], ['husbandry/complete_catalogue', 'A Complete Catalogue'],
+    ['husbandry/obtain_netherite_hoe', 'Serious Dedication'], ['nether/uneasy_alliance', 'Uneasy Alliance'],
+    ['nether/fast_travel', 'Subspace Bubble'], ['nether/explore_nether', 'Hot Tourist Destinations'],
+    ['nether/all_potions', 'A Furious Cocktail'], ['nether/all_effects', 'How Did We Get Here?'],
+    ['nether/netherite_armor', 'Cover Me in Debris'], ['end/levitate', 'Great View From Up Here']]
 }
 const FRAME_POINTS = { task: 3, goal: 5, challenge: 10 }
 
+/**
+ * An advancement of the frame nobody has been first to, or null when the list is used up.
+ */
+function freshOrNull (frame) {
+  return ADVANCEMENTS[frame].find(([, title]) => !c.advancementTaken(title)) ?? null
+}
+
 function fresh (frame) {
-  const found = ADVANCEMENTS[frame].find(([, title]) => !c.advancementTaken(title))
+  const found = freshOrNull(frame)
   if (!found) throw new Error(`Every ${frame} advancement in the list has a first already; add more`)
   return found
 }
@@ -164,11 +177,19 @@ test('by default nobody gets the first advancement bonus', async () => {
   await rcon.command(`advancement revoke ${BOT} only minecraft:${key}`)
 })
 
-test('advancements give 3/5/10 points by frame, and with the bonus on the first player 10 more', async () => {
+test('advancements give 3/5/10 points by frame, and with the bonus on the first player 10 more', async t => {
   await rcon.command('ia config imuschallenges set points.first-advancement-everyone true')
   let expected = c.points(BOT)
+  let tested = 0
   for (const frame of ['task', 'goal', 'challenge']) {
-    const [key, title] = fresh(frame)
+    // Firsts stay; a frame whose list is used up is left out until more are added to ADVANCEMENTS
+    const found = freshOrNull(frame)
+    if (!found) {
+      t.diagnostic(`No ${frame} advancement left without a first; add more to ADVANCEMENTS`)
+      continue
+    }
+    tested++
+    const [key, title] = found
     await rcon.command(`advancement revoke ${BOT} only minecraft:${key}`)
     await rcon.command(`advancement revoke ${RIVAL} only minecraft:${key}`)
     rival.clearMessages()
@@ -183,6 +204,7 @@ test('advancements give 3/5/10 points by frame, and with the bonus on the first 
     await rcon.command(`advancement grant ${RIVAL} only minecraft:${key}`)
     await waitForPoints(RIVAL, { points: before.points + FRAME_POINTS[frame], lifetime: before.lifetime + FRAME_POINTS[frame] })
   }
+  assert.ok(tested > 0, 'Every advancement in ADVANCEMENTS has a first already; add more')
 })
 
 test('a player in creative gets the frame points but not the first bonus', async () => {

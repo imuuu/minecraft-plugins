@@ -9,6 +9,7 @@ import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
 import imu.iAPI.Menus.Prompt;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class ConfigEntriesMenu extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fillRow(5, Icon.filler("black_stained_glass_pane"));
+        canvas.fillRow(5, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
         FileConfiguration config = _menu.getConfig();
         _pager.render(canvas, _menu.getEntries(), entry -> new Button(icon(entry, config), click ->
         {
@@ -51,9 +52,9 @@ public class ConfigEntriesMenu extends Menu
         Object value = entry.get(config);
         Object defaultValue = entry.getDefault(config);
 
-        String material = entry.getIcon() == null ? "paper" : entry.getIcon().name();
+        Material material = entry.getIcon() == null ? Material.PAPER : entry.getIcon();
         if (entry.getType() == ConfigEntry.Type.BOOLEAN)
-            material = Boolean.TRUE.equals(value) ? "lime_dye" : "gray_dye";
+            material = Boolean.TRUE.equals(value) ? Material.LIME_DYE : Material.GRAY_DYE;
 
         List<String> lore = new ArrayList<>();
         for (String line : entry.getDescription())

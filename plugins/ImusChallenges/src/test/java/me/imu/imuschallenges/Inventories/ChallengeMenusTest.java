@@ -6,6 +6,7 @@ import imu.iAPI.Menus.Testing.MenuTester;
 import imu.iAPI.Menus.Testing.TestViewer;
 import imu.iAPI.Menus.Viewer;
 import org.junit.jupiter.api.Test;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +27,9 @@ class ChallengeMenusTest
         final List<String> done = new ArrayList<>();
         Consumer<List<Tier>> pending;
         boolean canBuy = true;
-        Tier special = new Tier(true, false, List.of(Icon.of("totem_of_undying", "Totem"), Icon.of("elytra", "Elytra")),
+        Tier special = new Tier(true, false, List.of(Icon.of(Material.TOTEM_OF_UNDYING, "Totem"), Icon.of(Material.ELYTRA, "Elytra")),
                 List.of(50, 80), 1, 0, 1000);
-        Tier normal = new Tier(false, false, List.of(Icon.of("bread", "Bread"), Icon.of("apple", "Apple"), Icon.of("coal", "Coal")),
+        Tier normal = new Tier(false, false, List.of(Icon.of(Material.BREAD, "Bread"), Icon.of(Material.APPLE, "Apple"), Icon.of(Material.COAL, "Coal")),
                 List.of(5, 6, 7), 3, 0, 500);
 
         @Override

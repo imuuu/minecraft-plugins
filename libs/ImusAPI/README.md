@@ -18,7 +18,7 @@ käytetään** ja mitä vältetään.
 | Itemin nimi, lore, enchantit, kunto | `ItemUtils` | – |
 | Data itemiin, blokkiin tai entityyn | `DataUtils.Get/Set/RemovePersistentData` | omia `NamespacedKey`-kikkoja |
 | Item pelaajalle tai maahan | `InvUtil.AddItemToInventoryOrDrop` | – |
-| Menu / GUI | `Menu` + `PaperMenus` (`imu.iAPI.Menus`) | `CustomInventory` (siirretään pois), `FastInventory` (vanhentunut) |
+| Menu / GUI | `Menu` + `PaperMenus` (`imu.iAPI.Menus`) | omia `InventoryClickEvent`-kuuntelijoita |
 | Komennot | `CommandHandler` + `CommandInterface` | omaa `CommandExecutor`-sekamelskaa |
 | Asetukset pelissä ja konsolista | `ConfigMenu` | omia asetusmenuja |
 | Tekstin kysyminen pelaajalta | `TextInputDialog.show(...)` | chat-keskustelut |
@@ -82,10 +82,10 @@ public class ShopMenu extends Menu
     @Override
     protected void render(Canvas canvas)
     {
-        canvas.fillRow(5, Icon.filler("black_stained_glass_pane"));
+        canvas.fillRow(5, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
         _pager.render(canvas, items(), item -> Button.of(icon(item), click -> buy(click.viewer(), item, _amount)), 45, 53);
-        canvas.set(49, Buttons.counter(Icon.of("gold_nugget", "&eMäärä"), _amount, 1, 64, value -> _amount = value));
-        canvas.set(50, Buttons.confirm(Icon.of("tnt", "&cTyhjennä"), "&cTyhjennetäänkö?", click -> clear()));
+        canvas.set(49, Buttons.counter(Icon.of(Material.GOLD_NUGGET, "&eMäärä"), _amount, 1, 64, value -> _amount = value));
+        canvas.set(50, Buttons.confirm(Icon.of(Material.TNT, "&cTyhjennä"), "&cTyhjennetäänkö?", click -> clear()));
         Buttons.back(canvas, 48);                           // vain jos tultiin toisesta menusta
     }
 }
@@ -95,13 +95,19 @@ PaperMenus.open(player, new ShopMenu());
 
 - Klikkaus saa `Click`-olion: `viewer()`, `kind()` (`isRight()`, `isShift()`), `open(menu)`, `back()`,
   `replace(menu)`, `close()` ja `prompt(Prompt)` (tekstin kysyminen dialogilla, menu palaa vastauksen jälkeen).
-- `Icon` on itemin kuvaus ilman `ItemStack`ia (`Icon.of("diamond", "&bNimi", "&7lore")`). Valmiin itemin,
-  esim. plugarin oman custom-itemin, saa näkymään `PaperIcons.of(itemStack)`.
+- `Icon` on itemin kuvaus ilman `ItemStack`ia: `Icon.of(Material.DIAMOND, "&bNimi", "&7lore")`. `Material` toimii myös
+  testeissä; `ItemStack`ia ei voi tehdä ilman serveriä. Valmiin itemin, esim. plugarin oman custom-itemin, saa
+  näkymään `PaperIcons.of(itemStack)`. Merkkijonoversio (`Icon.of("diamond")`) on configista luettuja nimiä varten.
 - Valmiit napit (`Buttons`): `back`, `close`, `toggle`, `cycle`, `counter`, `confirm` (avaa `ConfirmMenu`n).
 - `Viewer` on pelaaja ilman Bukkitia: `id()`, `name()`, `hasPermission()`, `message()`. Kun menu tarvitsee
   `Player`-olion (esim. itemin antamiseen), välitä se menulle rajapinnan takana, kuten imusTNT:n `TntMenu.Giver`.
 - `onOpen`/`onClose` jokaisella näyttämisellä ja lopullisella sulkemisella; `refreshTicks()` + `onTick()` ajastettuun
-  päivitykseen; `locksOwnInventory()` estää myös pelaajan oman inventoryn klikkaukset.
+  päivitykseen (`onTick` palauttaa `false`, kun mikään ei muuttunut); `locksOwnInventory()` estää myös pelaajan oman
+  inventoryn klikkaukset.
+- **Itemit menussa.** `click.cursor()` on kursorin item ja `click.setCursor(item)` vaihtaa sen (pelissä `ItemStack`).
+  `Button.empty(action)` on tyhjä slotti, joka kuulee klikkaukset, eli siihen voi laittaa itemin kursorista. Menu pitää
+  itemit omassa tilassaan ja antaa ne takaisin `onClose`ssa (esim. ImusEnchantsin enchant-pöytä). Shift-klikkaus
+  omasta inventorysta menuun on aina estetty; yhden slotin raahaus on sama kuin klikkaus.
 - Toisen menun avaamista ei tarvitse viivästää itse; `PaperMenus` avaa sen seuraavalla tickillä.
 
 Testissä:
@@ -128,10 +134,10 @@ interface WaystoneGame
 }
 ```
 
-Uudella menulla on nyt imusTNT, imusWaystones, ImusMiniQuests, ImusChallenges, ImusUnstableFearSystem, ImusEnchantsin
-`/ien admin` ja enchant-kauppa sekä ImusAPI:n `/ia config`. Vanhalla `CustomInventory`llä ovat vielä imusGS:n menut ja
-ImusEnchantsin enchant-pöytä, koska ne ottavat itemeitä menuun; ne siirretään, kun ytimessä on slotit itemeille.
-`FastInventory` on vanhentunut.
+Kaikki menut ovat tällä systeemillä. Testeihin asti rajapinnan takana ovat imusTNT, imusWaystones, ImusMiniQuests,
+ImusChallenges, ImusUnstableFearSystem, ImusEnchantsin `/ien admin` ja enchant-kauppa sekä `/ia config`. imusGS:n
+menut (`GsMenu`), enchant-pöytä, NPC-editori ja `/ia lootTables` käyttävät Bukkitia suoraan, ja niitä testataan
+botilla. `/ia inv` (`Fast_Inventory`) näyttää listat `ItemGalleryMenu`llä.
 
 ---
 

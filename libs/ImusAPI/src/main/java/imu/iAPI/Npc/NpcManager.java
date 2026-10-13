@@ -1,5 +1,6 @@
 package imu.iAPI.Npc;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Utilities.TextUtils;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
@@ -242,7 +243,7 @@ public class NpcManager implements Listener
 
     public void openEditor(Player player, LivingEntity npc)
     {
-        new NpcEditorInventory(_plugin, this, npc).open(player);
+        PaperMenus.open(player, new NpcEditorInventory(this, npc));
     }
 
     LivingEntity spawnEntity(NpcType type, Location loc)

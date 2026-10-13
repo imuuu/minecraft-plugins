@@ -2,13 +2,13 @@ package imu.iAPI.FastInventory;
 
 import java.util.ArrayList;
 
+import imu.iAPI.Menus.Paper.PaperMenus;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * @deprecated the old inventory system; new menus use {@link imu.iAPI.InvUtil.CustomInventory}
+ * Named lists of items admins can take copies of, opened with /ia inv &lt;name&gt;.
  */
-@Deprecated
 public class Fast_Inventory
 {
 	private String ID = "";
@@ -34,14 +34,7 @@ public class Fast_Inventory
 	
 	public void OpenInv(Player player)
 	{
-		ArrayList<ItemStack> clones = new ArrayList<>();
-		
-		for(ItemStack stack : _stacks)
-		{
-			clones.add(stack);
-		}
-				
-		new Click_Get_Inv(player, InvName, clones).openThis();
+		PaperMenus.open(player, new ItemGalleryMenu(InvName, _stacks));
 	}
 	
 	public void AddStack(ItemStack stack)

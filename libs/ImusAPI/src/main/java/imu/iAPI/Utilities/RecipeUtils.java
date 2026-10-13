@@ -2,9 +2,9 @@ package imu.iAPI.Utilities;
 
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.Tuple;
+import org.bukkit.Material;
 import java.util.LinkedList;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
