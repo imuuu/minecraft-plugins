@@ -52,6 +52,12 @@ balances before and after each click, so they can be run again on the same serve
 | `enchants-tools.test.js` | Tool enchants at every level: Tunnel shapes, Vein Miner and Timber block counts, Harvest areas, Haste, Wisdom; Smelting, Telekinesis, Glass Breaker, Replanter |
 | `enchants-fishing.test.js` | Real catches at every level: Auto Reel, Survivalist, Double Catch, Seasoned Angler (each catch's XP must be one the level can give), Long Cast |
 | `enchants-misc.test.js` | A custom book clicked on a tool, a Slot Core and a book in the table grid, Curse of Fragility, Soulbound |
+| `miniquests-objectives.test.js` | ImusMiniQuests objectives done for real: breaking blocks and grown crops, killing, fishing, crafting, smelting, enchanting, breeding, trading, eating, taming, shearing, walking; wrong targets, placed blocks, creative; FIRST and ALL modes |
+| `miniquests-rewards.test.js` | Claiming: progress of an unfinished panel, exact rewards (item, tool tier with slots, custom book, Slot Cores, money, command, message), quest points and luck, locked rewards and unlocking, random rewards, legendary panels, time limits, unplaceable panels, the menu |
+| `miniquests-drops.test.js` | Panels from hostile mobs (not animals), listed blocks and loot chests, and none with drops off |
+
+The MiniQuests tests add their own quests (`lib/miniquest-fixture.js`) to the end of the server's `quests.yml`
+and take them out again when done.
 
 The enchant tests put enchants straight on items with `/ien enchant` and set ImusEnchants' `testing.fixed-roll`,
 the roll chance enchants make instead of a random one. Each chance is checked at every level: a roll just below
