@@ -1,0 +1,47 @@
+# imusTNT settings. Change them in game or from the console with /ia config imustnt (list|set <setting> <value>).
+
+# Ticks from lighting to the blast (20 = one second)
+fuse-ticks: 80
+# Block layers the blast reaches, counted down from the TNT's own layer
+layers: 1
+# Blocks this blast resistant or more stay (obsidian and ancient debris are 1200, bedrock is more)
+blast-resistance-limit: 1200
+# Blocks that can be used stay: chests, furnaces, doors, buttons...
+keep-usable-blocks: true
+# These stay too
+protected-blocks:
+  - CHEST
+  - ENDER_CHEST
+  - DIAMOND_ORE
+  - DEEPSLATE_DIAMOND_ORE
+  - DIAMOND_BLOCK
+  - NETHERITE_BLOCK
+  - SPAWNER
+
+# The items. Changing these changes new items; the ones players have keep working. {size} is the area.
+items:
+  chunk-tnt:
+    name: "&4Chunk TNT"
+    lore:
+      - "&3Removes &call &6blocks in a &lchunk &3area of {size}"
+      - "&3Removes &cLava and &9Water"
+      - "&3Leaves &6inventories&3, &bdiamonds&3 and &5debris"
+      - "&3Broken blocks drop nothing!"
+      - " "
+      - "&l&6Light it with Flint and Steel!"
+  chunk-stone-tnt:
+    name: "&7Chunk Stone TNT"
+    lore:
+      - "&3Turns &call &6blocks in a &lchunk &3area of {size} into stone"
+      - "&3Replaces &cLava and &9Water"
+      - "&3Leaves &6inventories&3, &bdiamonds&3 and &5debris"
+      - " "
+      - "&l&6Light it with Flint and Steel!"
+
+# Texts players see. & colour codes and {placeholders} work; an empty text ("") isn't sent.
+messages:
+  menu-title: "&3Special &4TNT &3- &bclick &3to take"
+  usage: "&e/imustnt menu &7| &e/imustnt give <type> [player] [amount]"
+  unknown-type: "&cNo such TNT. Types: &e{types}"
+  unknown-player: "&cNo player &e{player} &conline"
+  given: "&aGave &e{amount} {item} &ato &e{player}"

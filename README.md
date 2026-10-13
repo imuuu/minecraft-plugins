@@ -22,7 +22,8 @@ server: `ImusAPI`, `DontLoseItems`, `ImusChallenges`, `ImusEnchants`,
 `ImusMiniQuests`. `DontLoseItems` has since been split into `ImusDontLoseItems`
 (death handling), `ImusDifficult` (survival tweaks), `ImusHellGear` (custom items)
 and `ImusUnstableFearSystem` (FEAR difficulty, nether and Unstable End; needs
-`ImusHellGear`).
+`ImusHellGear`). `HomeTele` came back from the archive, rewritten. `HomeTele`,
+`imusSpawners`, `imusTNT` and `imusWaystones` have a README of their own.
 
 ## Prerequisites
 
@@ -144,10 +145,9 @@ doesn't replace a local build with the same commit from GitHub.
 
 ## Known leftovers
 
-- `org.bukkit.conversations` (ConversationFactory, Prompt, ...) is marked for
-  removal in Paper. It still works on 26.2 and is used in 12 files across
-  ImusAPI, imusGS and imusWaystones; its replacement, Paper's Dialog API, is
-  a different UI, so the prompts were left as they are.
+- `org.bukkit.conversations` is marked for removal in Paper. Only
+  `PlayerUtils.StartConversation` in ImusAPI still uses it, and no plugin calls
+  it any more; new code asks for text with `TextInputDialog`.
 - Paper nags about `System.out.println` in five plugins. Cosmetic.
 
 ## Porting notes (1.20.2 Spigot → 26.2 Paper)
@@ -170,8 +170,7 @@ doesn't replace a local build with the same commit from GitHub.
 ## Archive
 
 `archive/` holds plugins that are no longer deployed: `imusCasino`,
-`imusGeneralStore`, `imusMiniGames`, `imusCards`, `imusFishing`, `HomeTele`,
-`TokenTp`, `imusAntiCheat`, `imusDEFAULTplate` (the boilerplate the others
+`imusGeneralStore`, `imusMiniGames`, `imusCards`, `imusFishing`, `TokenTp`, `imusAntiCheat`, `imusDEFAULTplate` (the boilerplate the others
 were copied from) and `Old Versions/`. They have no POM and are not part of
 the reactor — they are kept so the code is not lost. `archive/imusEnchants`
 is the pre-Maven Eclipse version of `plugins/ImusEnchants`; it still holds

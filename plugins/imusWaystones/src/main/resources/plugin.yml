@@ -1,8 +1,41 @@
 name: imusWaystones
 author: imu
-version: 1.0
-main: imu.iWaystones.Main.ImusWaystones
+version: 2.0
+main: imu.waystones.ImusWaystones
+description: Waystones players build and travel between, with upgrades of their own
 api-version: '26.2'
-softdepend: [imusAPI]
+depend: [imusAPI]
 commands:
-   iw:
+  waystones:
+    description: Waystones; admins can list and reload them
+    usage: /<command> [list|reload]
+    aliases: [iw, waystone]
+permissions:
+  imuswaystones.use:
+    description: Build waystones
+    default: true
+  imuswaystones.admin:
+    description: List, remove and set up any waystone, upgrade free, change the settings
+    default: op
+  imuswaystones.build-anywhere:
+    description: Build own waystones close to each other
+    default: op
+  imuswaystones.bypass:
+    description: One second teleports without cooldowns or XP
+    default: op
+  # The old imusWaystones' permissions
+  iw.build.ingnore:
+    description: Same as imuswaystones.build-anywhere
+    default: false
+    children:
+      imuswaystones.build-anywhere: true
+  iw.list:
+    description: Same as imuswaystones.admin
+    default: false
+    children:
+      imuswaystones.admin: true
+  iw.reload:
+    description: Same as imuswaystones.admin
+    default: false
+    children:
+      imuswaystones.admin: true

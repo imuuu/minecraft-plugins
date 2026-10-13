@@ -23,5 +23,10 @@
             <groupId>me.imu</groupId>
             <artifactId>ImusAPI</artifactId>
         </dependency>
+        <!-- Tests of upgrades, destinations and warmups (imu.waystones.engine), which don't touch Bukkit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+        </dependency>
     </dependencies>
 </project>

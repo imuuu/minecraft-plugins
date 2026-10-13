@@ -1,0 +1,32 @@
+# ImusSpawners settings. Change them in game or from the console with /ia config imusspawners (list|set <setting> <value>).
+
+# % chance a natural spawner drops when broken with silk touch
+silk-touch-chance: 14
+# % every miss adds to that player's chance; getting a spawner sets it back
+chance-increase-per-miss: 13
+# The chance never goes above this %
+max-chance: 100
+# % chance a dropped natural spawner is a random mob instead of its own
+random-type-chance: 5
+# Mobs a random spawner is never
+random-type-excluded:
+  - WANDERING_TRADER
+  - WARDEN
+  - ARMOR_STAND
+  - GIANT
+  - ENDER_DRAGON
+  - WITHER
+  - ELDER_GUARDIAN
+
+# Texts players see. & colour codes and {placeholders} work; an empty text ("") isn't sent.
+messages:
+  item-name: "&6Spawner: &5{type}"
+  got: "&aYou rolled &e{roll}&a, under your chance &e{chance}%&a: the spawner dropped!"
+  got-random: "&aYou rolled &e{roll}&a, under your chance &e{chance}%&a, and the spawner is a &drandom mob&a: &e{type}!"
+  missed: "&cYou rolled &e{roll}&c, your chance was &e{chance}%&c. Next time it is &e{next}%"
+  stats: "&9{player}'s spawner chance: &e{chance}% &7({tries} tried, {got} got)"
+  usage: "&e/spawners &7- your chance | &e/spawners give <mob> [player] [amount] &7| &e/spawners stats <player>"
+  unknown-type: "&cNo spawner mob &e{type}"
+  unknown-player: "&cNo player &e{player}"
+  given: "&aGave &e{amount} {type} &aspawner(s) to &e{player}"
+  no-permission: "&cYou don't have permission to do that"

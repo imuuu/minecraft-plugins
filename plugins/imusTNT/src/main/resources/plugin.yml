@@ -1,9 +1,23 @@
 name: imusTNT
 author: imu
-version: 1.0
-main: imu.imusTNT.main.ImusTNT
-description: Imus Tnts
+version: 2.0
+main: imu.imustnt.ImusTNT
+description: Chunk TNTs that clear a layer of a chunk or turn it into stone
 api-version: '26.2'
 depend: [imusAPI]
 commands:
-   it:
+  imustnt:
+    description: Special TNT for admins
+    usage: /<command> menu | give <type> [player] [amount]
+    aliases: [it]
+    permission: imustnt.admin
+permissions:
+  imustnt.admin:
+    description: Take and give special TNT, change the settings
+    default: op
+  # The old imusTNT's permission
+  it.inv:
+    description: Same as imustnt.admin
+    default: false
+    children:
+      imustnt.admin: true

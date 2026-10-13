@@ -1,8 +1,16 @@
 name: ImusSpawners
 author: imu
-version: 1.0
-main: imu.imusSpawners.main.ImusSpawners
-description: Imus Spawners
+version: 2.0
+main: imu.spawners.ImusSpawners
+description: Spawners with silk touch on a lucky roll that gets likelier with every miss
 api-version: '26.2'
 depend: [imusAPI]
 commands:
+  spawners:
+    description: Your chance of getting a spawner, and admin commands
+    usage: /<command> | give <mob> [player] [amount] | stats <player>
+    aliases: [imusspawners]
+permissions:
+  imusspawners.admin:
+    description: Give spawners, see anyone's chance, change the settings
+    default: op

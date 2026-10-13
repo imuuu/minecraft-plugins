@@ -1,0 +1,192 @@
+# imusWaystones settings. Change them in game or from the console with /ia config imuswaystones (list|set <setting> <value>),
+# or edit this file and run /waystones reload. The database is set in DataBaseSettings.yml.
+
+structure:
+  # A waystone is one of these blocks, any wall on it and any slab on top
+  base-blocks:
+    - COPPER_BLOCK
+    - WAXED_COPPER_BLOCK
+    - EXPOSED_COPPER
+    - WEATHERED_COPPER
+    - OXIDIZED_COPPER
+    - WAXED_EXPOSED_COPPER
+    - WAXED_WEATHERED_COPPER
+    - WAXED_OXIDIZED_COPPER
+    - EMERALD_BLOCK
+    - IRON_BLOCK
+    - GOLD_BLOCK
+    - DIAMOND_BLOCK
+    - NETHERITE_BLOCK
+# Blocks between a player's own waystones (imuswaystones.build-anywhere skips this)
+min-distance-between-own: 300
+# Blocks from which a waystone's floating name shows
+name-view-distance: 20
+# Blocks a player may move while the teleport gets ready
+cancel-distance: 0.5
+
+teleport:
+  # Seconds to stand still before a teleport, and what every Cast Time tier takes off
+  cast-seconds: 30
+  cast-seconds-per-tier: 3
+  min-cast-seconds: 1
+  # The cooldown in seconds at each Foundation tier, from no upgrade to the top
+  foundation-cooldown-seconds: [5400, 2400, 1500, 60]
+  # % of the cooldown every Cooldown tier takes off
+  cooldown-percent-per-tier: 5
+  # XP levels a teleport costs, and what every XP Usage tier takes off. 0 = teleports are free and
+  # the XP Usage upgrade is off
+  xp-levels: 0
+  xp-levels-per-tier: 1
+
+# What each next tier of an upgrade costs, from tier 0 up: "ITEM:amount ITEM:amount". The list's length is the
+# highest tier; an empty list turns the upgrade off.
+upgrades:
+  cast-time:
+    - LAPIS_BLOCK:10
+    - LAPIS_BLOCK:20
+    - LAPIS_BLOCK:30
+    - LAPIS_BLOCK:33
+    - LAPIS_BLOCK:40
+    - LAPIS_BLOCK:40 DIAMOND:2
+    - LAPIS_BLOCK:30 DIAMOND:5
+    - LAPIS_BLOCK:20 DIAMOND:10
+    - LAPIS_BLOCK:10 DIAMOND:12
+  cooldown:
+    - DIAMOND:1
+    - DIAMOND:6
+    - DIAMOND:11
+    - DIAMOND:16
+    - DIAMOND:21
+    - DIAMOND:26
+    - DIAMOND:31
+    - DIAMOND:36
+    - DIAMOND:41
+    - DIAMOND:46
+  dimension:
+    - ENDER_PEARL:8 BLAZE_ROD:16 RED_MUSHROOM:16
+    - ENDER_PEARL:10 ENDER_EYE:32 PURPUR_BLOCK:64
+  xp-usage:
+    - IRON_BLOCK:1
+    - IRON_BLOCK:3
+    - IRON_BLOCK:5
+    - GOLD_BLOCK:1
+    - GOLD_BLOCK:5
+    - GOLD_BLOCK:10
+    - DIAMOND:3
+    - IRON_BLOCK:10 GOLD_BLOCK:5 DIAMOND_BLOCK:2
+    - GOLD_BLOCK:10 DIAMOND_BLOCK:3
+    - GOLD_BLOCK:5 DIAMOND_BLOCK:5 NETHERITE_BLOCK:1
+  foundation:
+    - GOLD_BLOCK:1
+    - DIAMOND_BLOCK:1
+    - NETHERITE_BLOCK:1
+
+# Texts players see. & colour codes and {placeholders} work; an empty text ("") isn't sent.
+messages:
+  default-name: "&6{player}'s Waystone"
+  confirm-prompt: "&3Waystone built! "
+  confirm-button: "&a&l[Confirm]"
+  confirm-hover: "&7Make this a waystone"
+  nothing-to-confirm: "&cBuild a waystone first: a base block, a wall on it and a slab on top"
+  not-loaded: "&cThe waystones are still loading, try again in a moment"
+  not-whole: "&cThat isn't a whole waystone any more"
+  already: "&cThat is a waystone already"
+  too-far: "&cGo back to the waystone to confirm it"
+  too-close: "&cYour waystones need &e{min} &cblocks between them; this one is &e{distance} &cfrom another"
+  created: "&3Waystone &r{name} &3ready! Right-click it to travel and to upgrade it."
+  discovered: "&3You found the waystone &r{name}&3!"
+  broken: "&cThis waystone was broken and is gone"
+  destroyed: "&3Waystone &r{name} &3destroyed"
+  destroyed-owner: "&cSomeone destroyed your waystone &r{name}"
+  removed: "&eWaystone &r{name} &eremoved"
+  unbreakable: "&cThis waystone can't be broken"
+  creative-break: "&cIn creative, remove a waystone from its menu"
+  world-not-loaded: "&cThe world &e{world} &cisn't loaded"
+  warmup-title: "&2Teleporting in &5{seconds}s"
+  warmup-subtitle: "&4Don't move"
+  cancelled: "&4Teleport cancelled!"
+  destination-gone: "&cThe destination waystone is broken"
+  not-enough-xp: "&cYou need &e{levels} &cXP levels to teleport"
+  cant-afford: "&cYou don't have the items for that"
+  upgrades-applied: "&6The upgrades were applied to this waystone"
+  upgrades-not-higher: "&eYou have those upgrades here already"
+  upgrades-extracted: "&5Your upgrades on this waystone are now on the item"
+  nothing-to-extract: "&cYou have no upgrades here"
+  renamed: "&3The waystone is now &r{name}"
+  reloaded: "&aWaystones reloaded"
+  usage: "&eBuild a waystone: a base block, a wall on it and a slab on top. Right-click it to travel."
+  usage-admin: "&e/waystones list &7- every waystone | &e/waystones reload"
+  no-permission: "&cYou don't have permission to do that"
+  # Menus
+  menu-upgrades: "&eUpgrades"
+  menu-upgrades-lore: "&7Your own upgrades on this waystone"
+  menu-previous: "&b<< Previous"
+  menu-next: "&bNext >>"
+  menu-back: "&bBack"
+  no-destinations: "&eNowhere to go yet"
+  no-destinations-lore: "&7Right-click other waystones to find them"
+  closed-disabled: "&cThis waystone is off"
+  closed-arrival-only: "&eYou can only arrive at this waystone"
+  closed-cooldown: "&cYou can leave from here again in &e{time}"
+  destination-owner: "&7Owner: &b{owner}"
+  destination-world: "&7World: &b{world}"
+  destination-click: "&7(&eClick&7) &2to teleport"
+  admin-visibility: "&eWho sees it"
+  admin-unbreakable: "&eUnbreakable"
+  admin-max-out: "&eMax out (no cooldown, cast or XP)"
+  admin-enabled: "&eOn"
+  admin-remove: "&cRemove this waystone"
+  admin-remove-lore: "&7Shift click"
+  admin-current: "&9Now: &2{value}"
+  admin-click: "&7Click to change"
+  "on": "yes"
+  "off": "no"
+  visibility:
+    BY_TOUCH: "players who touched it"
+    TO_ALL: "everyone"
+    ONE_WAY: "nobody (leave only)"
+    TO_ALL_ONE_WAY: "everyone (arrive only)"
+  upgrades-title: "&5Upgrades: &r{name}"
+  maxed-out: "&5Maxed out!"
+  maxed-out-lore: "&7An admin made this waystone as fast as it gets"
+  extract: "&bTake the upgrades onto an item"
+  extract-lore: "&7Shift right click. Use the item on another waystone to get them there."
+  rename: "&2Rename the waystone"
+  rename-title: "Waystone name"
+  rename-help: "& colour codes work"
+  rename-empty: "The name can't be empty"
+  upgrade-off: "&8{upgrade} is off"
+  upgrade-now: "&9Now: &b{value}"
+  upgrade-tier: "&9Tier &6{tier}&9/&6{max}"
+  upgrade-maxed: "&5Maxed out!"
+  upgrade-cost: "&2Next tier costs:"
+  upgrade-cost-line: "&3 {amount} x {item}"
+  upgrade-click: "&7(&eClick&7) &eto upgrade"
+  upgrade-admin-click: "&7(&cShift right click&7) &cupgrade free (admin)"
+  upgrade-item-name: "&6Waystone Upgrades"
+  upgrade-item-line: "&e{upgrade}: &2{tier}"
+  upgrade-item-hint: "&7Right-click a waystone with this"
+  dimension:
+    "0": "this dimension"
+    "1": "+ the Nether"
+    "2": "+ the Nether and the End"
+  upgrade:
+    cast-time:
+      name: "&2Cast Time"
+      lore: ["&eEvery tier makes the wait before a teleport shorter"]
+    cooldown:
+      name: "&5Cooldown"
+      lore: ["&eEvery tier takes some of the foundation's cooldown off"]
+    dimension:
+      name: "&3Dimensions"
+      lore: ["&eLets you travel to waystones you found", "&ein other dimensions: tier 1 the Nether, tier 2 the End"]
+    xp-usage:
+      name: "&6XP Usage"
+      lore: ["&eEvery tier makes a teleport cost fewer XP levels"]
+    foundation:
+      name: "&dFoundation"
+      lore: ["&eThe base of the cooldown. Maxed out, this", "&ewaystone is as fast as it gets"]
+  list-title: "&5Waystones ({count})"
+  list-location: "&7At: &b{world} {x} {y} {z}"
+  list-visibility: "&7Seen by: &b{visibility}"
+  list-click: "&7(&eClick&7) go there, (&cShift right click&7) remove"
