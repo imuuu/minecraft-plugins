@@ -1,6 +1,7 @@
 package me.imu.imusenchants.CustomEnchants;
 
 import imu.iAPI.Enums.ITEM_CATEGORY;
+import me.imu.imusenchants.CONSTANTS;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
@@ -147,7 +148,7 @@ public abstract class CustomEnchant
 
 	protected static boolean Roll(double chance)
 	{
-		return _random.nextDouble() < chance;
+		return CONSTANTS.ALWAYS_TRIGGER || _random.nextDouble() < chance;
 	}
 
 	protected static String Percent(double value)

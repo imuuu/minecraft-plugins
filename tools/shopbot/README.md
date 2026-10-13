@@ -42,6 +42,19 @@ balances before and after each click, so they can be run again on the same serve
 | `hometele.test.js` | HomeTele: /sethome and /home after the warmup, moving cancels, the cooldown, named homes up to the limit, /homelist |
 | `hometele-upgrade.test.js` | An old HomeTele's homes.yml and settings.yml carry over (restarts the server, SHOPBOT_RESTART=1) |
 | `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
+| `tnt.test.js` | imusTNT: Chunk TNT clears its chunk layer but leaves chests, Chunk Stone TNT fills it with stone, special TNT drops itself, the admin menu |
+| `spawners.test.js` | ImusSpawners: a lucky silk touch roll, a placed spawner always comes back, a miss raises the chance, `/spawners give` |
+| `waystones.test.js` | imusWaystones: building and confirming, room between own waystones, finding by touch, travelling, an upgrade, the cooldown, admin settings, breaking (empties the waystone tables) |
+| `old-plugins-upgrade.test.js` | The old imusWaystones and ImusSpawners data carries over (restarts the server, SHOPBOT_RESTART=1) |
+| `enchants-armor.test.js` | ImusEnchants armor enchants: Night Vision, Aquatic, Jump Boost, Saturation, Fall Guard, Magma Walker, Regrowth, Reflect, Stopping Force |
+| `enchants-combat.test.js` | Melee enchants on still mobs: Venom, Withering, Frost, Lifesteal, Execute, Cleave, Beheading, Scavenger, Telekinesis and Wisdom |
+| `enchants-bow.test.js` | Bow enchants: Poison Arrow, Hunter, Retrieval, Sniper, Ender Arrow |
+| `enchants-tools.test.js` | Tool enchants: Tunnel, Vein Miner, Timber, Smelting, Telekinesis, Glass Breaker, Haste, Harvest, Replanter |
+| `enchants-fishing.test.js` | A real catch with Auto Reel, Survivalist and Double Catch; Long Cast (Seasoned Angler's random XP isn't testable) |
+| `enchants-misc.test.js` | A custom book clicked on a tool, a Slot Core and a book in the table grid, Curse of Fragility, Soulbound |
+
+The enchant tests put enchants straight on items with `/ien enchant` and turn `testing.always-trigger` on, so
+chance enchants always work; they turn it off again when done. The bots play in survival, where enchants work.
 
 `restart.test.js` stops the server and starts it again in the background (with the Java of
 `run/Kaynnista-palvelin.bat`, log in `run/logs/shopbot-server.log`), so it is skipped unless asked for.

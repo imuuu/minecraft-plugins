@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -84,6 +86,15 @@ public class EnchantEffects
 		{
 			_dealingExtraDamage.remove(source.getUniqueId());
 		}
+	}
+
+	// The attack strength is reset before the hit lands, so getAttackCooldown() is about 0 in damage
+	// events. A swing charged to 90% does at least 0.2 + 0.8 * 0.9² = 85% of the weapon's damage;
+	// crits and enchants only add to that.
+	public static boolean IsFullStrengthHit(EntityDamageByEntityEvent event, Player attacker)
+	{
+		AttributeInstance attack = attacker.getAttribute(Attribute.ATTACK_DAMAGE);
+		return attack == null || event.getDamage() >= attack.getValue() * 0.84;
 	}
 
 	public static boolean IsDealingExtraDamage(LivingEntity entity)

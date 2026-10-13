@@ -116,6 +116,8 @@ public class SettingsMenu
 				.description("&7Tool and armor trades cost")
 				.description("&7a booster and a diamond")
 				.note("new trades");
+		menu.addBoolean("testing.always-trigger", "Testing: always trigger", Material.TARGET)
+				.description("Enchants that work on a chance always do; keep off");
 
 		return menu;
 	}

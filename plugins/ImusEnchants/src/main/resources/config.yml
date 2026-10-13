@@ -61,3 +61,7 @@ villagers:
   sell-boosters: true
   # Tool and armor trades cost a booster and a diamond instead of their normal price
   gear-costs-boosters: true
+
+testing:
+  # Enchants that work on a chance (Venom, Lifesteal, Reflect...) always do. For testing, keep it off
+  always-trigger: false

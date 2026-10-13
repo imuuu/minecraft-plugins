@@ -14,6 +14,7 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.EntityBlockFormEvent;
+import org.bukkit.damage.DamageType;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -82,7 +83,8 @@ public class MagmaWalkerEnchant extends CustomEnchant
 	@Override
 	public void OnDamaged(EntityDamageEvent event, Player victim, ItemStack armor, int level)
 	{
-		if (event.getCause() == EntityDamageEvent.DamageCause.HOT_FLOOR)
+		// Paper 26 reports magma blocks as CONTACT, the damage type tells them apart
+		if (event.getCause() == EntityDamageEvent.DamageCause.HOT_FLOOR || event.getDamageSource().getDamageType() == DamageType.HOT_FLOOR)
 			event.setCancelled(true);
 	}
 }

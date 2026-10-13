@@ -43,7 +43,7 @@ public class CleaveEnchant extends CustomEnchant
 	@Override
 	public void OnAttack(EntityDamageByEntityEvent event, Player attacker, LivingEntity victim, ItemStack weapon, int level)
 	{
-		if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK || attacker.getAttackCooldown() < 0.9f)
+		if (event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK || !EnchantEffects.IsFullStrengthHit(event, attacker))
 			return;
 
 		double damage = event.getFinalDamage() * GetShare(level);

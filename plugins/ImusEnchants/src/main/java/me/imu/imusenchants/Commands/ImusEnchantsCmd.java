@@ -6,6 +6,7 @@ import me.imu.imusenchants.CONSTANTS;
 import me.imu.imusenchants.ImusEnchants;
 import me.imu.imusenchants.CustomEnchants.CustomEnchant;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantBook;
+import me.imu.imusenchants.CustomEnchants.CustomEnchantData;
 import me.imu.imusenchants.CustomEnchants.CustomEnchantRegistry;
 import me.imu.imusenchants.CustomEnchants.EnchantSettings;
 import me.imu.imusenchants.Enums.MATERIAL_SLOT_RANGE;
@@ -21,6 +22,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -232,6 +234,12 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
+		if (args[0].equalsIgnoreCase("enchant"))
+		{
+			EnchantHeld(sender, label, args);
+			return true;
+		}
+
 		sender.sendMessage(TextUtils.Color("&cUnknown command. Use &e/" + label + " help"));
 		return true;
 	}
@@ -294,6 +302,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			sender.sendMessage("");
 			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " core [player] [amount] &8- &7give Slot Cores"));
 			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " book <enchant> [level] [player] &8- &7give a custom book"));
+			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " enchant <enchant> [level] [player] &8- &7put it on the held item"));
 			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " admin &8- &7switch enchants on/off server wide"));
 			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " config &8- &7change settings"));
 			sender.sendMessage(TextUtils.Color("&cAdmin: &e/" + label + " reload &8- &7re-read config.yml"));
@@ -383,6 +392,61 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 		sender.sendMessage(TextUtils.Color("&dGave &6" + amount + " &dSlot Core(s) to &e" + target.getName()));
 	}
 
+	// Puts a custom enchant straight on the item in the player's main hand, at any level up to the max.
+	// Level 0 takes it off. Doesn't check conflicts: admins may make anything.
+	private void EnchantHeld(CommandSender sender, String label, String[] args)
+	{
+		if (!sender.hasPermission(PERMISSION_ADMIN))
+		{
+			sender.sendMessage(TextUtils.Color("&cNo permission!"));
+			return;
+		}
+		if (args.length < 2)
+		{
+			sender.sendMessage(TextUtils.Color("&e/" + label + " enchant <enchant> [level] [player]"));
+			return;
+		}
+		CustomEnchant enchant = CustomEnchantRegistry.Get(args[1]);
+		if (enchant == null)
+		{
+			sender.sendMessage(TextUtils.Color("&cUnknown enchant &e" + args[1]));
+			return;
+		}
+		int level = 1;
+		if (args.length >= 3)
+		{
+			try
+			{
+				level = Math.max(0, Math.min(enchant.GetMaxLevel(), Integer.parseInt(args[2])));
+			}
+			catch (NumberFormatException e)
+			{
+				sender.sendMessage(TextUtils.Color("&cInvalid level: " + args[2]));
+				return;
+			}
+		}
+		Player target = args.length >= 4 ? Bukkit.getPlayerExact(args[3]) : sender instanceof Player ? (Player) sender : null;
+		if (target == null)
+		{
+			sender.sendMessage(TextUtils.Color(args.length >= 4 ? "&cPlayer not found: " + args[3] : "&e/" + label + " enchant <enchant> <level> <player>"));
+			return;
+		}
+		ItemStack held = target.getInventory().getItemInMainHand();
+		if (!enchant.CanApplyToItem(held))
+		{
+			sender.sendMessage(TextUtils.Color("&d" + enchant.GetName() + " &cdoesn't go on " + (held.getType().isAir() ? "an empty hand" : held.getType().name().toLowerCase())
+					+ "&c. It goes on: &e" + enchant.GetAppliesToText()));
+			return;
+		}
+		if (level == 0)
+			CustomEnchantData.Remove(held, enchant);
+		else
+			CustomEnchantData.Add(held, enchant, level);
+		target.getInventory().setItemInMainHand(held);
+		sender.sendMessage(TextUtils.Color(level == 0 ? "&dTook &e" + enchant.GetName() + " &doff " + target.getName() + "'s item"
+				: "&dPut &e" + enchant.GetDisplayName(level) + " &don " + target.getName() + "'s item"));
+	}
+
 	private void GiveBook(CommandSender sender, String label, String[] args)
 	{
 		if (!sender.hasPermission(PERMISSION_ADMIN))
@@ -470,6 +534,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			{
 				options.add("core");
 				options.add("book");
+				options.add("enchant");
 				options.add("admin");
 				options.add("config");
 				options.add("reload");
@@ -484,11 +549,11 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			for (Player player : Bukkit.getOnlinePlayers())
 				options.add(player.getName());
 		}
-		else if (args.length == 2 && args[0].equalsIgnoreCase("book") && sender.hasPermission(PERMISSION_ADMIN))
+		else if (args.length == 2 && (args[0].equalsIgnoreCase("book") || args[0].equalsIgnoreCase("enchant")) && sender.hasPermission(PERMISSION_ADMIN))
 		{
 			CustomEnchantRegistry.GetAll().forEach(e -> options.add(e.GetKey()));
 		}
-		else if (args.length == 4 && args[0].equalsIgnoreCase("book") && sender.hasPermission(PERMISSION_ADMIN))
+		else if (args.length == 4 && (args[0].equalsIgnoreCase("book") || args[0].equalsIgnoreCase("enchant")) && sender.hasPermission(PERMISSION_ADMIN))
 		{
 			for (Player player : Bukkit.getOnlinePlayers())
 				options.add(player.getName());
