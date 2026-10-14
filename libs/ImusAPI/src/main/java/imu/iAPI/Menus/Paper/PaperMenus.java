@@ -193,13 +193,19 @@ public final class PaperMenus implements Listener
             if (raw < size)
                 top.add(raw);
         }
+        Host host = window._host;
+        Menu menu = host._session.current();
         if (top.isEmpty())
+        {
+            // Only in the player's own inventory: fine unless the menu locks it
+            if (menu == null || menu.locksOwnInventory())
+                event.setCancelled(true);
             return;
+        }
         event.setCancelled(true);
 
         // A drag over one slot of the menu is a slow click with the cursor's item; it runs once the cancelled
         // drag has put the item back on the cursor
-        Host host = window._host;
         if (top.size() == 1 && event.getRawSlots().size() == 1 && window == host._window)
         {
             int slot = top.iterator().next();

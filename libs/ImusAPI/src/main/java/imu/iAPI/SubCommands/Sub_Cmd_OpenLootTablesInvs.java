@@ -5,6 +5,7 @@ import imu.iAPI.CmdUtil.CmdData;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Interfaces.CommandInterface;
 import imu.iAPI.LootTables.Inventory_LootTables;
+import imu.iAPI.LootTables.Manager_ImusLootTable;
 import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Managers.Manager_Database;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,11 @@ public class Sub_Cmd_OpenLootTablesInvs implements CommandInterface
 		if(invName == null || invName.isEmpty()) return false;
 		
 		Manager_FastInventories.Instance.OpenFastInv(invName, (Player)sender);*/
+		if (Manager_ImusLootTable.getInstance() == null)
+		{
+			sender.sendMessage("The loot tables are off: imusAPI's database couldn't be opened, see the console");
+			return true;
+		}
 		PaperMenus.open((Player) sender, new Inventory_LootTables());
 		
         return true;

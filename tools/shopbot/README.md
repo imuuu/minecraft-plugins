@@ -87,6 +87,10 @@ the click (and keeps the shop's 0.2 s click cooldown between clicks). Use `waitF
 `waitForCustomerSlot(item)` and `waitForOwnSlot(item)` for a slot that should be there, and `until(check)` for
 anything else that shows up a little later; keep `shopSlotsWith(item)` for checking that something is gone.
 
+`lib/db.js` runs SQL on a plugin's database, SQLite or MySQL as `database.type` in `run/plugins/imusAPI/config.yml`
+says: SQLite with Node's own `node:sqlite` on the plugin's `data.db`, MySQL with the mysql client. Every test runs on
+either.
+
 `lib/fixture.js` resets a test player, reads balances, sets prices and opens shops. `lib/rcon.js` runs console
 commands; use `minecraft:give` for items with components, Essentials' `/give` doesn't understand them. Shop menu slots: 0-26 the shop, 27-35 buttons (33 = hotbar on/off),
 36-53 the player's items.

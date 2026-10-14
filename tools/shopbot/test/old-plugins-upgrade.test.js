@@ -12,7 +12,7 @@ const { Vec3 } = require('vec3')
 const { Rcon, SERVER_DIR } = require('../lib/rcon')
 const { joinServer, sleep } = require('../lib/shopbot')
 const { offlineUuid } = require('../lib/hometele-fixture')
-const { sql } = require('../lib/mysql')
+const { sql } = require('../lib/db')
 const server = require('../lib/server')
 
 const BOT = 'OldStoneBot'

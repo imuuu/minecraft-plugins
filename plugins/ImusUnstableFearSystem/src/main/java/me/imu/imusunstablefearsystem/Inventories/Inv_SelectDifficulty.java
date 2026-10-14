@@ -36,12 +36,6 @@ public class Inv_SelectDifficulty extends Menu
 	}
 
 	@Override
-	public boolean locksOwnInventory()
-	{
-		return true;
-	}
-
-	@Override
 	protected void render(Canvas canvas)
 	{
 		canvas.fill(Icon.filler(Material.BLACK_STAINED_GLASS_PANE));

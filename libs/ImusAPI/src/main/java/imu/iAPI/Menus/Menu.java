@@ -65,11 +65,13 @@ public abstract class Menu
     }
 
     /**
-     * Whether clicks in the player's own inventory below are blocked too. Moving items into the menu always is.
+     * Whether the player's own inventory below is locked while the menu is open: no clicks, drags or number keys in
+     * it. On by default; a menu the player puts items in from their inventory (e.g. an enchanting table) turns it
+     * off. Moving items into the menu is blocked either way, unless the menu takes them on a click.
      */
     public boolean locksOwnInventory()
     {
-        return false;
+        return true;
     }
 
     /**

@@ -1,13 +1,13 @@
 package imu.iAPI.Main;
 
-import com.j256.ormlite.jdbc.DataSourceConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
-import com.zaxxer.hikari.HikariDataSource;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Commands.ExampleCmd;
 import imu.iAPI.FastInventory.Manager_FastInventories;
 import imu.iAPI.Handlers.CommandHandler;
-import imu.iAPI.Interfaces.IHasSql;
+import imu.iAPI.Database.Database;
+import imu.iAPI.Database.DatabaseException;
+import imu.iAPI.Database.DatabaseSettings;
 import imu.iAPI.Interfaces.IHasSqlSource;
 import imu.iAPI.LootTables.Manager_ImusLootTable;
 import imu.iAPI.Managers.Manager_CommandSender;
@@ -24,6 +24,7 @@ import imu.iAPI.SubCommands.Sub_Cmd_OpenNamedInvs;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -32,7 +33,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.sql.SQLException;
 import java.util.*;
 
-public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
+public class ImusAPI extends JavaPlugin implements IHasSqlSource
 {
     public static ImusAPI _instance;
     public static MySQLHelper _sqlHelper;
@@ -44,9 +45,8 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     private NpcManager _npcManager;
     private ConfigMenu _configMenu;
 
-    private MySQL _SQL;
+    private Database _database;
 
-    private List<MySQL> _sqls = new ArrayList<>();
     public static HashSet<Material> AirHashSet;
     public static HashSet<Material> Ores;
 
@@ -68,6 +68,12 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     public void onEnable()
     {
         _instance = this;
+        saveDefaultConfig();
+        configureDatabase();
+        // Settings added in an update go into an existing config.yml, with their explanations
+        getConfig().options().copyDefaults(true);
+        copyDefaultComments();
+        saveConfig();
         connectDataBase();
         InitilizeDataBases();
 
@@ -77,13 +83,9 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
 
         _sqlHelper = new MySQLHelper();
         _fastInvs = new Manager_FastInventories();
-        _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);
-
-
-        saveDefaultConfig();
-        // Settings added in an update go into an existing config.yml
-        getConfig().options().copyDefaults(true);
-        saveConfig();
+        // The loot tables live in the database; without it they are off
+        if (_databaseManager != null)
+            _lootTableManager = new Manager_ImusLootTable(this, _databaseManager);
 
         _npcManager = new NpcManager(this);
         getServer().getPluginManager().registerEvents(_npcManager, this);
@@ -112,21 +114,65 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
             _configMenu.unregister();
         PaperMenus.disable();
 
-        for (MySQL sql : _sqls)
-        {
-            sql.CloseDataSource();
-        }
+        if (_database != null)
+            _database.close();
     }
 
     private void InitilizeDataBases()
     {
+        if (_database == null)
+            return;
         try
         {
             _databaseManager = new Manager_Database(this);
+            _database.copyFromIfAsked();
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            getLogger().log(java.util.logging.Level.SEVERE, "Couldn't make the loot table tables in " + _database.describe(), e);
+        }
+    }
+
+    private void copyDefaultComments()
+    {
+        Configuration defaults = getConfig().getDefaults();
+        if (defaults == null)
+            return;
+        for (String path : defaults.getKeys(true))
+        {
+            if (getConfig().getComments(path).isEmpty() && !defaults.getComments(path).isEmpty())
+                getConfig().setComments(path, defaults.getComments(path));
+        }
+    }
+
+    // Plugin folder to the database name it asks for, for reading older DataBaseSettings.yml files
+    private static final Map<String, String> OLD_DATABASE_FILES = Map.of("imusAPI", "imusAPI", "imusGS", "imusGS",
+            "imusWaystones", "imusWaystones", "ImusChallenges", "ImusChallenges");
+
+    /**
+     * Reads the database section of config.yml for every plugin. A server that had DataBaseSettings.yml files (older
+     * versions) keeps its MySQL: the first start writes their settings into config.yml.
+     */
+    private void configureDatabase()
+    {
+        if (!getConfig().isSet("database.type"))
+        {
+            DatabaseSettings old = DatabaseSettings.fromOldFiles(getDataFolder().getParentFile(), OLD_DATABASE_FILES);
+            if (old != null)
+            {
+                old.write(getConfig().createSection("database"));
+                saveConfig();
+                getLogger().warning("Moved the MySQL settings of the DataBaseSettings.yml files into the database section of "
+                        + "config.yml; those files aren't read any more");
+            }
+        }
+        try
+        {
+            Database.configure(DatabaseSettings.read(getConfig().getConfigurationSection("database")));
+        } catch (IllegalArgumentException e)
+        {
+            getLogger().severe(e.getMessage() + " in config.yml; using SQLite");
+            Database.configure(DatabaseSettings.sqlite());
         }
     }
     public void RegisterCommands()
@@ -211,11 +257,6 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
         return _tab_cmd1;
     }
 
-    public void RegisterSQL(MySQL sql)
-    {
-        _sqls.add(sql);
-    }
-
     private void InitEntities()
     {
         EntitiesNoBosses = new HashSet<>();
@@ -283,36 +324,35 @@ public class ImusAPI extends JavaPlugin implements IHasSql, IHasSqlSource
     }
 
 
-    @Override
-    public boolean connectDataBase()
+    private void connectDataBase()
     {
-        Bukkit.getLogger().info(ChatColor.DARK_PURPLE + "[imusAPI] Connecting to database...");
         try
         {
-            _SQL = new MySQL(this, 20, 2, "imusAPI");
+            _database = Database.open(this, "imusAPI", 10);
+            getLogger().info("Data in " + _database.describe());
         }
-        catch (Exception e)
+        catch (DatabaseException e)
         {
-            Bukkit.getLogger().info(ChatColor.DARK_PURPLE + "[imusAPI] Connecting to database FAILED");
-            Bukkit.getLogger().info("Pls check your config.yml and restart the server");
-            e.printStackTrace();
-            _SQL = null;
-            return false;
+            // The loot tables need it; everything else works without
+            getLogger().severe(e.getMessage() + " The loot tables are off until a restart.");
+            _database = null;
         }
-        return true;
     }
 
-    @Override
-    public MySQL getSQL()
+    /**
+     * imusAPI's own database, or null when it couldn't be opened.
+     */
+    public Database getDatabase()
     {
-        return _SQL;
+        return _database;
     }
 
     @Override
     public ConnectionSource getSource() throws SQLException
     {
-        HikariDataSource dataSource = getSQL().getDataSource();
-        return new DataSourceConnectionSource(dataSource, dataSource.getJdbcUrl());
+        if (_database == null)
+            throw new SQLException("imusAPI's database isn't open");
+        return _database.connectionSource();
     }
 
 

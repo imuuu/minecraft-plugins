@@ -1,15 +1,16 @@
 package me.imu.imuschallenges;
 
-import com.j256.ormlite.jdbc.DataSourceConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
-import com.zaxxer.hikari.HikariDataSource;
+import com.j256.ormlite.table.TableUtils;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Main.ImusAPI;
 import me.imu.imuschallenges.Shop.ChallengeShopNpcAction;
 import imu.iAPI.Other.ImusTabCompleter;
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
+import imu.iAPI.Database.DatabaseException;
+import me.imu.imuschallenges.Database.Tables.*;
 import me.imu.imuschallenges.Commands.ExampleCmd;
 import me.imu.imuschallenges.Managers.*;
 import me.imu.imuschallenges.SubCommands.*;
@@ -32,7 +33,7 @@ public class ImusChallenges extends JavaPlugin
 
     public static ImusChallenges getInstance() {return _instance;}
 
-    private MySQL _SQL;
+    private Database _database;
     private ImusTabCompleter _tab_cmd1;
     private CmdHelper _cmdHelper;
 
@@ -52,7 +53,11 @@ public class ImusChallenges extends JavaPlugin
     {
         _instance = this;
         saveDefaultConfig();
-        connectDataBase();
+        if (!connectDataBase())
+        {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         _configMenu = createConfigMenu();
         registerCommands();
         System.out.println("ImusChallenges has been enabled!");
@@ -88,6 +93,8 @@ public class ImusChallenges extends JavaPlugin
             _managerChallengeShop.shutdown();
         if (_managerPlayerPoints != null)
             _managerPlayerPoints.shutdown();
+        if (_database != null)
+            _database.close();
         System.out.println("ImusChallenges has been disabled!");
 
     }
@@ -220,22 +227,39 @@ public class ImusChallenges extends JavaPlugin
         permission = new Permission(permissionNode, "Allows broadcast challenge shop update", PermissionDefault.OP);
         Bukkit.getPluginManager().addPermission(permission);
     }
+    // Every table is made before the managers read anything, so a copy from the other database comes first
+    private static final Class<?>[] TABLES = { TablePlayers.class, TablePointType.class, TablePlayerPoints.class,
+            TableCollected_materials.class, TableExludedCollectMaterials.class, TablePlayerAchievements.class, TablePlayerShopStats.class };
+
     private boolean connectDataBase()
     {
-        Bukkit.getLogger().info(ChatColor.GREEN + "[imusChallenges] Connecting to database...");
-        _SQL = new MySQL(this, 10,"ImusChallenges");
-        return true;
+        try
+        {
+            _database = Database.open(this, "ImusChallenges", 10);
+            getLogger().info("Data in " + _database.describe());
+            for (Class<?> table : TABLES)
+                TableUtils.createTableIfNotExists(_database.connectionSource(), table);
+            _database.copyFromIfAsked();
+            return true;
+        } catch (DatabaseException e)
+        {
+            getLogger().severe(e.getMessage());
+        } catch (SQLException e)
+        {
+            getLogger().severe("Couldn't make the tables in " + _database.describe() + ": " + e.getMessage());
+        }
+        getLogger().severe("ImusChallenges needs its database; it is off until a restart");
+        return false;
     }
 
-    public MySQL getSQL()
+    public Database getDatabase()
     {
-        return _SQL;
+        return _database;
     }
 
     public ConnectionSource getSource() throws SQLException
     {
-        HikariDataSource dataSource = getSQL().getDataSource();
-        return new DataSourceConnectionSource(dataSource, dataSource.getJdbcUrl());
+        return _database.connectionSource();
     }
 
 

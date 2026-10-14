@@ -8,7 +8,7 @@ const { Vec3 } = require('vec3')
 const { Rcon } = require('../lib/rcon')
 const { joinServer, sleep } = require('../lib/shopbot')
 const { resetPlayer } = require('../lib/fixture')
-const { sql } = require('../lib/mysql')
+const { sql } = require('../lib/db')
 
 const OWNER = 'WayBot'
 const FINDER = 'WayFinder'

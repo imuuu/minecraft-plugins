@@ -41,6 +41,13 @@ public class CustomPriceEditorMenu extends AdminMenu
         _draft = draft;
     }
 
+    // The player picks items up from their own inventory to put them in
+    @Override
+    public boolean locksOwnInventory()
+    {
+        return false;
+    }
+
     @Override
     protected void draw()
     {

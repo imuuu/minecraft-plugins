@@ -1,7 +1,7 @@
 'use strict'
 // Reads ImusChallenges' database for the tests: a player's points, the materials and advancements someone has
 // been first to, and the current leader. Firsts stay in the database, so every run picks ones nobody has yet.
-const { sql } = require('./mysql')
+const { sql } = require('./db')
 
 const DB = 'imuschallenges'
 

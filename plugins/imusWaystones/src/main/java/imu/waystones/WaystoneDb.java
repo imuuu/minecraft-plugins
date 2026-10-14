@@ -1,6 +1,6 @@
 package imu.waystones;
 
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.waystones.engine.Panel;
 import imu.waystones.engine.UpgradeKind;
@@ -45,13 +45,14 @@ final class WaystoneDb
     }
 
     private final ImusWaystones _plugin;
-    private final MySQL _sql;
+    private final Database _db;
+    private boolean _copyTried;
     private final ExecutorService _thread = Executors.newSingleThreadExecutor(r -> new Thread(r, "imusWaystones-db"));
 
-    WaystoneDb(ImusWaystones plugin, MySQL sql)
+    WaystoneDb(ImusWaystones plugin, Database db)
     {
         _plugin = plugin;
-        _sql = sql;
+        _db = db;
     }
 
     /**
@@ -61,23 +62,45 @@ final class WaystoneDb
     {
         _thread.execute(() ->
         {
-            try (Connection con = _sql.GetConnection())
+            try (Connection con = _db.getConnection())
             {
-                setUp(con);
+                setUp(con, _db.isSqlite());
+                // Once, after the tables are made and before anything is read
+                if (!_copyTried)
+                {
+                    _copyTried = true;
+                    _db.copyFromIfAsked();
+                }
                 Loaded loaded = read(con);
                 Bukkit.getScheduler().runTask(_plugin, () -> whenLoaded.accept(loaded));
             } catch (Exception e)
             {
                 _plugin.getLogger().severe("Couldn't load the waystones: " + e.getMessage()
-                        + ". Check DataBaseSettings.yml and that the database is running.");
+                        + ". Check the database section of imusAPI's config.yml.");
             }
         });
     }
 
-    private static void setUp(Connection con) throws SQLException
+    private static void setUp(Connection con, boolean sqlite) throws SQLException
     {
         try (Statement st = con.createStatement())
         {
+            if (sqlite)
+            {
+                // SQLite has no ENUM and its own auto increment; the rest is the same
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS waystones (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid CHAR(36) NOT NULL UNIQUE, "
+                        + "name VARCHAR(100), loc_world VARCHAR(64), loc_x INT NOT NULL, loc_y INT NOT NULL, loc_z INT NOT NULL, "
+                        + "display_item TEXT, visibility_type VARCHAR(20) DEFAULT 'BY_TOUCH', "
+                        + "max_out BOOLEAN DEFAULT FALSE, unbreakable BOOLEAN DEFAULT FALSE, `enable` BOOLEAN DEFAULT TRUE)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS discovered (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid_player CHAR(36) NOT NULL, "
+                        + "uuid_ws CHAR(36) NOT NULL)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS waystone_owners (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid_player CHAR(36) NOT NULL, "
+                        + "player_name VARCHAR(50) NOT NULL, uuid_ws CHAR(36) NOT NULL)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS upgrades (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid_ws CHAR(36) NOT NULL, "
+                        + "uuid_player CHAR(36) NOT NULL, upgrade_name VARCHAR(20) NOT NULL, tier INT NOT NULL)");
+                return;
+            }
+
             st.executeUpdate("CREATE TABLE IF NOT EXISTS waystones (id INT AUTO_INCREMENT, uuid CHAR(36) NOT NULL UNIQUE, "
                     + "name VARCHAR(100), loc_world VARCHAR(64), loc_x INT NOT NULL, loc_y INT NOT NULL, loc_z INT NOT NULL, "
                     + "display_item TEXT, visibility_type ENUM('BY_TOUCH','TO_ALL','ONE_WAY','TO_ALL_ONE_WAY') DEFAULT 'BY_TOUCH', "
@@ -232,10 +255,7 @@ final class WaystoneDb
         run(con ->
         {
             try (PreparedStatement ps = con.prepareStatement("INSERT INTO waystones (uuid, name, loc_world, loc_x, loc_y, loc_z, "
-                    + "display_item, visibility_type, max_out, unbreakable, `enable`) VALUES (?,?,?,?,?,?,?,?,?,?,?) "
-                    + "ON DUPLICATE KEY UPDATE name = VALUES(name), display_item = VALUES(display_item), "
-                    + "visibility_type = VALUES(visibility_type), max_out = VALUES(max_out), unbreakable = VALUES(unbreakable), "
-                    + "`enable` = VALUES(`enable`)"))
+                    + "display_item, visibility_type, max_out, unbreakable, `enable`) VALUES (?,?,?,?,?,?,?,?,?,?,?) " + upsert()))
             {
                 int i = 1;
                 ps.setString(i++, row.id().toString());
@@ -262,6 +282,18 @@ final class WaystoneDb
             for (Map.Entry<UUID, Map<UpgradeKind, Integer>> panel : panels.entrySet())
                 writePanel(con, row.id(), panel.getKey(), panel.getValue());
         });
+    }
+
+    // A waystone saved again keeps its row and id
+    private String upsert()
+    {
+        return _db.isSqlite()
+                ? "ON CONFLICT(uuid) DO UPDATE SET name = excluded.name, display_item = excluded.display_item, "
+                + "visibility_type = excluded.visibility_type, max_out = excluded.max_out, unbreakable = excluded.unbreakable, "
+                + "`enable` = excluded.`enable`"
+                : "ON DUPLICATE KEY UPDATE name = VALUES(name), display_item = VALUES(display_item), "
+                + "visibility_type = VALUES(visibility_type), max_out = VALUES(max_out), unbreakable = VALUES(unbreakable), "
+                + "`enable` = VALUES(`enable`)";
     }
 
     /**
@@ -343,7 +375,7 @@ final class WaystoneDb
     {
         _thread.execute(() ->
         {
-            try (Connection con = _sql.GetConnection())
+            try (Connection con = _db.getConnection())
             {
                 work.run(con);
             } catch (Exception e)
@@ -367,6 +399,6 @@ final class WaystoneDb
         {
             Thread.currentThread().interrupt();
         }
-        _sql.CloseDataSource();
+        _db.close();
     }
 }

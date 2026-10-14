@@ -17,7 +17,8 @@ import imu.iAPI.Handlers.CommandHandler;
 import imu.iAPI.Interfaces.CommandInterface;
 import imu.iAPI.Main.ImusAPI;
 import imu.iAPI.Other.ImusTabCompleter;
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
+import imu.iAPI.Database.DatabaseException;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,7 +51,19 @@ public class ImusGS extends JavaPlugin
         ItemKeys.setLogger(getLogger());
         Messages.load(this);
 
-        _service = new GsService(this, new MySQL(this, 10, "imusGS"));
+        Database database;
+        try
+        {
+            database = Database.open(this, "imusGS", 10);
+        } catch (DatabaseException e)
+        {
+            getLogger().severe(e.getMessage());
+            getLogger().severe("imusGS needs its database; it is off until a restart");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getLogger().info("Data in " + database.describe());
+        _service = new GsService(this, database);
         getServer().getPluginManager().registerEvents(_service, this);
         getServer().getPluginManager().registerEvents(_service.getLive(), this);
         getServer().getPluginManager().registerEvents(_service.getLive().getTracker(), this);
@@ -72,7 +85,7 @@ public class ImusGS extends JavaPlugin
             _configMenu.unregister();
         if (ImusAPI._instance != null && ImusAPI._instance.GetNpcManager() != null)
             ImusAPI._instance.GetNpcManager().unregisterAction(ShopNpcAction.ID);
-        // Saves every changed shop and waits for the database; ImusAPI closes the connection pool after this
+        // Saves every changed shop, waits for the database and closes it
         if (_service != null)
             _service.stop();
     }

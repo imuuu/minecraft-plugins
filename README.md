@@ -76,11 +76,16 @@ Other plugins, all loaded as `depend`/`softdepend` in `plugin.yml`:
 
 ProtocolLib is no longer needed: its uses were replaced with Paper API.
 
-**imusAPI requires a MySQL/MariaDB server.** It has no fallback: without a
-database its `onEnable` fails, and every plugin that depends on it fails to
-load. Connection settings are in `plugins/imusAPI/config.yml` (defaults:
-`localhost:3306`, user `root`, empty password). ImusChallenges, imusGS and
-imusWaystones create their own databases on the same server.
+**Databases: SQLite by default, MySQL/MariaDB if you want.** The `database`
+section of `plugins/imusAPI/config.yml` decides for imusAPI, imusGS,
+imusWaystones and ImusChallenges together. With `sqlite` (the default) each
+keeps a `data.db` in its own folder and nothing needs installing; with `mysql`
+each gets a database of its own name on the server. `copy-from` copies all the
+data from the other kind on the next start, either way. A server that had the
+old `DataBaseSettings.yml` files keeps MySQL: the first start moves their
+settings into `config.yml`. If the chosen database can't be reached, the
+plugins that need it say so in the console and stay off; imusAPI itself runs
+without its loot tables.
 
 ## CI
 

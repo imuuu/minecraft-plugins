@@ -25,6 +25,13 @@ public class UniquesMenu extends AdminMenu
         super(service, null, "&5========== Uniques =========", 54);
     }
 
+    // The player picks items up from their own inventory to put them in
+    @Override
+    public boolean locksOwnInventory()
+    {
+        return false;
+    }
+
     @Override
     protected void draw()
     {

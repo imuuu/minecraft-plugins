@@ -135,6 +135,13 @@ public class InventoryEnchanting extends Menu
         _enchantedItem = null;
     }
 
+    // The player picks items up from their own inventory to put them in
+    @Override
+    public boolean locksOwnInventory()
+    {
+        return false;
+    }
+
     // Drawing ========================================================================================================
 
     @Override

@@ -78,7 +78,7 @@ test('back returns to the list', async () => {
   bot.closeWindow()
 })
 
-test('nothing can be taken out of a menu or put in', async () => {
+test('nothing can be taken out of a menu or put in, and the own inventory is locked', async () => {
   await rcon.command(`minecraft:clear ${BOT}`)
   await rcon.command(`minecraft:give ${BOT} dirt 5`)
   await bot.until(() => bot.count('dirt') === 5, 3000, 'No dirt')
@@ -91,6 +91,15 @@ test('nothing can be taken out of a menu or put in', async () => {
   bot.closeWindow()
   await sleep(500)
   assert.equal(bot.bot.inventory.items().filter(item => item.name !== 'dirt').length, 0, 'took something out')
+
+  // The bot's own inventory is locked too: a click doesn't pick its dirt up
+  await openTntSettings()
+  const ownDirt = bot.ownSlotsWith('dirt')[0]
+  await bot.click(ownDirt)
+  assert.equal(bot.bot.currentWindow.selectedItem, null, 'the dirt went on the cursor')
+  assert.equal(bot.slot(ownDirt)?.name, 'dirt')
+  bot.closeWindow()
+  await sleep(300)
 
   // Putting the bot's dirt in with a shift click
   await openTntSettings()

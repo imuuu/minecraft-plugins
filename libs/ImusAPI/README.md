@@ -24,7 +24,7 @@ käytetään** ja mitä vältetään.
 | Tekstin kysyminen pelaajalta | `TextInputDialog.show(...)` | chat-keskustelut |
 | NPC, joka tekee jotain klikattaessa | `NpcManager` + `NpcAction` | Citizens-riippuvuutta |
 | Custom-enchantit tai -itemit muiden käyttöön | `CustomEnchants`, `CustomItems` | suoria riippuvuuksia plugarista toiseen |
-| Tietokanta | `MySQL` (HikariCP-pooli) | omia yhteyksiä |
+| Tietokanta | `Database.open(...)` (SQLite tai MySQL, HikariCP-pooli) | omia yhteyksiä |
 
 ---
 
@@ -102,8 +102,9 @@ PaperMenus.open(player, new ShopMenu());
 - `Viewer` on pelaaja ilman Bukkitia: `id()`, `name()`, `hasPermission()`, `message()`. Kun menu tarvitsee
   `Player`-olion (esim. itemin antamiseen), välitä se menulle rajapinnan takana, kuten imusTNT:n `TntMenu.Giver`.
 - `onOpen`/`onClose` jokaisella näyttämisellä ja lopullisella sulkemisella; `refreshTicks()` + `onTick()` ajastettuun
-  päivitykseen (`onTick` palauttaa `false`, kun mikään ei muuttunut); `locksOwnInventory()` estää myös pelaajan oman
-  inventoryn klikkaukset.
+  päivitykseen (`onTick` palauttaa `false`, kun mikään ei muuttunut); pelaajan oma inventory
+  on lukittu menun ollessa auki; menu, johon pelaaja laittaa itemeitä omasta inventorystaan (esim. enchant-pöytä),
+  palauttaa `locksOwnInventory()`-metodista `false`.
 - **Itemit menussa.** `click.cursor()` on kursorin item ja `click.setCursor(item)` vaihtaa sen (pelissä `ItemStack`).
   `Button.empty(action)` on tyhjä slotti, joka kuulee klikkaukset, eli siihen voi laittaa itemin kursorista. Menu pitää
   itemit omassa tilassaan ja antaa ne takaisin `onClose`ssa (esim. ImusEnchantsin enchant-pöytä). Shift-klikkaus
@@ -245,10 +246,34 @@ Esimerkit: `ImusEnchantsProvider` (ImusEnchants) ja `TntItems` (imusTNT).
 
 ## Tietokanta
 
+Kaikki plugarit käyttävät samaa asetusta, imusAPI:n `config.yml`:n `database`-osiota: `type: sqlite` (oletus,
+`data.db` plugarin kansioon) tai `type: mysql` (palvelin, tunnukset `mysql`-kohdassa; jokainen plugari saa oman
+tietokantansa nimellään, ja `mysql.databases` antaa sille toisen nimen).
+
 ```java
-MySQL sql = new MySQL(this, 10, "myplugin");   // poolin koko, tietokanta; asetukset DataBaseSettings.yml:stä
-try (Connection con = sql.GetConnection()) { ... }
+Database db;
+try
+{
+    db = Database.open(this, "myplugin", 10);   // MySQL:n poolin koko; SQLitellä muutama yhteys
+} catch (DatabaseException e)
+{
+    getLogger().severe(e.getMessage());        // syy ja mitä tarkistaa
+    getServer().getPluginManager().disablePlugin(this);
+    return;
+}
+createTables(db);            // db.isSqlite() niille lauseille, jotka eroavat
+db.copyFromIfAsked();        // taulujen jälkeen, ennen kuin mitään luetaan
+try (Connection con = db.getConnection()) { ... }
+// ORMLite: db.connectionSource(); onDisable: db.close()
 ```
+
+- **Erot SQLiten ja MySQL:n välillä:** SQLite: `INTEGER PRIMARY KEY AUTOINCREMENT` eikä `AUTO_INCREMENT`, ei `ENUM`ia,
+  `ON CONFLICT(...) DO UPDATE` eikä `ON DUPLICATE KEY UPDATE`, ajat `datetime('now','localtime')`, indeksit
+  `CREATE INDEX IF NOT EXISTS`. `REPLACE INTO`, `LIMIT` ja backtickit käyvät molemmissa. Ajat tallentuvat SQLiteen
+  tekstinä samassa muodossa kuin MySQL ne näyttää. ORMLite valitsee murteen itse.
+- **Datan siirto:** `copy-from: sqlite` (tai `mysql`) kopioi seuraavalla käynnistyksellä jokaisen plugarin datan toisesta
+  tietokannasta. Kopio tehdään vain tyhjään tietokantaan, ja lähde jää ennalleen. Konsoliin tulee rivimäärät taulu
+  kerrallaan; poista `copy-from` sen jälkeen.
 
 Älä aja tietokantakutsuja pääsäikeellä: lue `runTaskAsynchronously`-tehtävässä ja palaa pääsäikeelle `runTask`:lla
 ennen kuin kosket Bukkit-olioihin.

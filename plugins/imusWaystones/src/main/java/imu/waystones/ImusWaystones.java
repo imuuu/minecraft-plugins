@@ -1,7 +1,8 @@
 package imu.waystones;
 
 import imu.iAPI.Config.ConfigMenu;
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
+import imu.iAPI.Database.DatabaseException;
 import imu.iAPI.Utilities.TextUtils;
 import imu.waystones.engine.Cost;
 import imu.waystones.engine.Rules;
@@ -43,7 +44,19 @@ public class ImusWaystones extends JavaPlugin
         saveConfig();
         readSettings();
 
-        _db = new WaystoneDb(this, new MySQL(this, 4, "imusWaystones"));
+        Database database;
+        try
+        {
+            database = Database.open(this, "imusWaystones", 4);
+        } catch (DatabaseException e)
+        {
+            getLogger().severe(e.getMessage());
+            getLogger().severe("imusWaystones needs its database; it is off until a restart");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getLogger().info("Data in " + database.describe());
+        _db = new WaystoneDb(this, database);
         _waystones = new Waystones(_db);
         _holograms = new Holograms(this, _waystones);
         _waystones.setHolograms(_holograms);

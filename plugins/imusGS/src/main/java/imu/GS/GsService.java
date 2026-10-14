@@ -36,7 +36,7 @@ import imu.GS.prices.ServerPriceRules;
 import imu.GS.prices.UniqueItems;
 import imu.GS.prices.profile.PriceProfiles;
 import imu.GS.prices.profile.ProfileCalculator;
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.ChatColor;
@@ -106,15 +106,17 @@ public class GsService implements Listener
         }
     };
 
+    private final Database _database;
     private boolean _loaded;
     private boolean _pressureDirty;
     private BukkitTask _tickTask;
     private BukkitTask _saveTask;
 
-    public GsService(ImusGS plugin, MySQL sql)
+    public GsService(ImusGS plugin, Database database)
     {
         _plugin = plugin;
-        _db = new GsDatabase(sql, plugin.getLogger());
+        _db = new GsDatabase(database, plugin.getLogger());
+        _database = database;
         _rules = new ServerPriceRules(_materials, _enchants, _uniques,
                 () -> plugin.getConfig().getDouble("pricing.durability-penalty"));
         _rules.setTierFactors(setting -> plugin.getConfig().getDoubleList("pricing." + setting));
@@ -144,6 +146,8 @@ public class GsService implements Listener
             try
             {
                 _db.createTables();
+                // Before anything is read, so the copied data is what loads
+                _database.copyFromIfAsked();
                 int tradeLogDays = _plugin.getConfig().getInt("shop.trade-log-days", 90);
                 if (tradeLogDays > 0)
                 {

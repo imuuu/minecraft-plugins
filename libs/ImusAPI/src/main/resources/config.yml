@@ -6,3 +6,21 @@ npc:
   look-at-players: true
   # How close a player must be, in blocks
   look-range: 8
+
+# Where imusAPI and the plugins built on it (imusGS, imusWaystones, ImusChallenges...) keep their data.
+# Changes take effect after a restart.
+database:
+  # sqlite: a data.db file in each plugin's folder, nothing to install.
+  # mysql: a MySQL or MariaDB server; each plugin gets a database of its own name there.
+  type: sqlite
+  mysql:
+    host: localhost
+    port: 3306
+    username: root
+    password: ""
+    # A plugin's database under another name, e.g. imusGS: shops_db
+    databases: {}
+  # Copy everything from the other kind on the next start: set type to the new one and copy-from to the old one,
+  # e.g. type: mysql and copy-from: sqlite. Nothing is copied into a database that has data already, and the old
+  # one stays as it was. Empty it again after the copy.
+  copy-from: ""

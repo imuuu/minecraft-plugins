@@ -23,9 +23,11 @@
             <groupId>me.imu</groupId>
             <artifactId>ImusAPI</artifactId>
         </dependency>
+        <!-- ImusAPI ships ORMLite and hands out its connections; a copy of our own would be a different class -->
         <dependency>
             <groupId>com.j256.ormlite</groupId>
             <artifactId>ormlite-jdbc</artifactId>
+            <scope>provided</scope>
         </dependency>
         <!-- Tests of the menus, which don't touch Bukkit -->
         <dependency>

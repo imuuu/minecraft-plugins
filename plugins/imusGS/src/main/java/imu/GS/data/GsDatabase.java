@@ -12,7 +12,7 @@ import imu.GS.engine.trade.Trade;
 import imu.GS.prices.EnchantPrices;
 import imu.GS.prices.GearTier;
 import imu.GS.prices.MaterialPrices;
-import imu.iAPI.Other.MySQL;
+import imu.iAPI.Database.Database;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 
@@ -36,14 +36,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Everything imusGS keeps in MySQL. Reads happen at startup; every write goes through one background thread, in
+ * Everything imusGS keeps in its database, SQLite or MySQL as imusAPI's config.yml says. Reads happen at startup; every write goes through one background thread, in
  * order, so two saves of the same shop never overlap. {@link #close()} waits for the writes still queued.
  *
  * <p>Writes take snapshots made on the main thread ({@link ShopRow}...), never live shops.</p>
  */
 public class GsDatabase
 {
-    private final MySQL _sql;
+    private final Database _db;
     private final Logger _logger;
     private final ExecutorService _writer = Executors.newSingleThreadExecutor(r ->
     {
@@ -52,9 +52,9 @@ public class GsDatabase
         return thread;
     });
 
-    public GsDatabase(MySQL sql, Logger logger)
+    public GsDatabase(Database db, Logger logger)
     {
-        _sql = sql;
+        _db = db;
         _logger = logger;
     }
 
@@ -96,7 +96,11 @@ public class GsDatabase
 
     public void createTables() throws SQLException
     {
-        try (Connection con = _sql.GetConnection(); Statement st = con.createStatement())
+        boolean sqlite = _db.isSqlite();
+        // The same tables in both: SQLite takes any type name, but has its own auto increment, times and indexes
+        String autoId = sqlite ? "id INTEGER PRIMARY KEY AUTOINCREMENT" : "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY";
+        String now = sqlite ? "TEXT NOT NULL DEFAULT (datetime('now','localtime'))" : "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP";
+        try (Connection con = _db.getConnection(); Statement st = con.createStatement())
         {
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_shops ("
                     + "id CHAR(36) NOT NULL PRIMARY KEY, "
@@ -110,8 +114,8 @@ public class GsDatabase
                     + "slot INT NOT NULL, "
                     + "item MEDIUMTEXT NOT NULL, "
                     + "amount INT NOT NULL, "
-                    + "data TEXT NOT NULL, "
-                    + "INDEX (shop_id))");
+                    + "data TEXT NOT NULL"
+                    + (sqlite ? ")" : ", INDEX (shop_id))"));
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_materials ("
                     + "material VARCHAR(64) NOT NULL PRIMARY KEY, "
                     + "price DOUBLE NOT NULL, "
@@ -122,8 +126,6 @@ public class GsDatabase
                     + "tags VARCHAR(1000) NOT NULL DEFAULT '', "
                     + "limit_group VARCHAR(64) NULL)");
             addColumnIfMissing(con, st, "gs_materials", "limit_group", "VARCHAR(64) NULL");
-            // Custom enchant and item prices are kept here with their namespaced keys
-            st.executeUpdate("ALTER TABLE gs_enchant_settings MODIFY name VARCHAR(160) NOT NULL");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_sell_limits ("
                     + "grp VARCHAR(64) NOT NULL PRIMARY KEY, "
                     + "allowance DOUBLE NOT NULL, "
@@ -155,15 +157,15 @@ public class GsDatabase
                     + "max_price DOUBLE NOT NULL, "
                     + "book_multiplier DOUBLE NOT NULL)");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_enchant_settings ("
-                    + "name VARCHAR(50) NOT NULL PRIMARY KEY, "
+                    + "name VARCHAR(160) NOT NULL PRIMARY KEY, "
                     + "value DOUBLE NOT NULL)");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_uniques ("
                     + "item MEDIUMTEXT NOT NULL, "
                     + "item_hash CHAR(64) NOT NULL PRIMARY KEY, "
                     + "price DOUBLE NOT NULL)");
             st.executeUpdate("CREATE TABLE IF NOT EXISTS gs_trades ("
-                    + "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-                    + "time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                    + autoId + ", "
+                    + "time " + now + ", "
                     + "type VARCHAR(4) NOT NULL, "
                     + "shop_id CHAR(36) NOT NULL, "
                     + "shop_name VARCHAR(100) NOT NULL, "
@@ -171,13 +173,31 @@ public class GsDatabase
                     + "player_name VARCHAR(16) NOT NULL, "
                     + "item MEDIUMTEXT NOT NULL, "
                     + "amount INT NOT NULL, "
-                    + "price DOUBLE NOT NULL, "
-                    + "INDEX (player_id), INDEX (shop_id))");
+                    + "price DOUBLE NOT NULL"
+                    + (sqlite ? ")" : ", INDEX (player_id), INDEX (shop_id))"));
+
+            if (sqlite)
+            {
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS gs_listings_shop ON gs_listings (shop_id)");
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS gs_trades_player ON gs_trades (player_id)");
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS gs_trades_shop ON gs_trades (shop_id)");
+                return;
+            }
+            // Older tables: custom enchant and item prices are kept here with their namespaced keys
+            st.executeUpdate("ALTER TABLE gs_enchant_settings MODIFY name VARCHAR(160) NOT NULL");
             // Item components and names can hold any character, e.g. the flash deal mark or an emoji
             for (String table : List.of("gs_shops", "gs_listings", "gs_materials", "gs_enchants", "gs_enchant_settings",
                     "gs_uniques", "gs_trades", "gs_sell_limits", "gs_flash_deals", "gs_wanted", "gs_progress", "gs_sell_pressure"))
                 useUtf8mb4(con, st, table);
         }
+    }
+
+    /**
+     * The condition "logged in the last ? days".
+     */
+    private String withinDays()
+    {
+        return _db.isSqlite() ? "time >= datetime('now', 'localtime', '-' || ? || ' days')" : "time >= NOW() - INTERVAL ? DAY";
     }
 
     private static void useUtf8mb4(Connection con, Statement st, String table) throws SQLException
@@ -212,8 +232,8 @@ public class GsDatabase
      */
     public int deleteOldTrades(int days) throws SQLException
     {
-        try (Connection con = _sql.GetConnection();
-             PreparedStatement ps = con.prepareStatement("DELETE FROM gs_trades WHERE time < NOW() - INTERVAL ? DAY"))
+        try (Connection con = _db.getConnection();
+             PreparedStatement ps = con.prepareStatement("DELETE FROM gs_trades WHERE NOT (" + withinDays() + ")"))
         {
             ps.setInt(1, days);
             return ps.executeUpdate();
@@ -225,7 +245,7 @@ public class GsDatabase
     public List<ShopRow> loadShops() throws SQLException
     {
         List<ShopRow> shops = new ArrayList<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement shopPs = con.prepareStatement("SELECT id, name, display_name, settings FROM gs_shops");
              PreparedStatement listingPs = con.prepareStatement("SELECT id, page, slot, item, amount, data FROM gs_listings WHERE shop_id=?"))
         {
@@ -250,7 +270,7 @@ public class GsDatabase
     public List<MaterialRow> loadMaterials() throws SQLException
     {
         List<MaterialRow> rows = new ArrayList<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT material, price, smart_multiplier, overflow_softcap, overflow_drop, overflow_min, tags, limit_group FROM gs_materials");
              ResultSet rs = ps.executeQuery())
         {
@@ -273,7 +293,7 @@ public class GsDatabase
     public Map<String, SellLimit> loadSellLimits() throws SQLException
     {
         Map<String, SellLimit> limits = new LinkedHashMap<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT grp, allowance, refill_per_hour, min_fraction FROM gs_sell_limits");
              ResultSet rs = ps.executeQuery())
         {
@@ -289,7 +309,7 @@ public class GsDatabase
     public Map<UUID, String> loadFlashDeals() throws SQLException
     {
         Map<UUID, String> deals = new LinkedHashMap<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT shop_id, data FROM gs_flash_deals");
              ResultSet rs = ps.executeQuery())
         {
@@ -304,7 +324,7 @@ public class GsDatabase
      */
     public void loadProgress(ServerProgress progress) throws SQLException
     {
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT kind, name, level FROM gs_progress");
              ResultSet rs = ps.executeQuery())
         {
@@ -356,7 +376,7 @@ public class GsDatabase
     public List<WantedRequests.Wanted> loadWanted() throws SQLException
     {
         List<WantedRequests.Wanted> wanted = new ArrayList<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT shop_id, item, bonus, end_millis FROM gs_wanted");
              ResultSet rs = ps.executeQuery())
         {
@@ -369,7 +389,7 @@ public class GsDatabase
     public List<SellPressure.Entry> loadSellPressure() throws SQLException
     {
         List<SellPressure.Entry> entries = new ArrayList<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT shop_id, grp, pressure, updated FROM gs_sell_pressure");
              ResultSet rs = ps.executeQuery())
         {
@@ -381,7 +401,7 @@ public class GsDatabase
 
     public void loadEnchants(EnchantPrices enchants) throws SQLException
     {
-        try (Connection con = _sql.GetConnection())
+        try (Connection con = _db.getConnection())
         {
             try (PreparedStatement ps = con.prepareStatement("SELECT enchant, max_level, min_price, max_price, book_multiplier FROM gs_enchants");
                  ResultSet rs = ps.executeQuery())
@@ -421,7 +441,7 @@ public class GsDatabase
     public List<UniqueRow> loadUniques() throws SQLException
     {
         List<UniqueRow> rows = new ArrayList<>();
-        try (Connection con = _sql.GetConnection();
+        try (Connection con = _db.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT item, price FROM gs_uniques");
              ResultSet rs = ps.executeQuery())
         {
@@ -737,8 +757,8 @@ public class GsDatabase
      */
     public TradeStats loadTradeStats(int days, UUID shopId) throws SQLException
     {
-        String where = " WHERE time >= NOW() - INTERVAL ? DAY" + (shopId != null ? " AND shop_id = ?" : "");
-        try (Connection con = _sql.GetConnection())
+        String where = " WHERE " + withinDays() + (shopId != null ? " AND shop_id = ?" : "");
+        try (Connection con = _db.getConnection())
         {
             Total bought = new Total("BUY", 0, 0, 0);
             Total sold = new Total("SELL", 0, 0, 0);
@@ -854,7 +874,7 @@ public class GsDatabase
         }
         _writer.execute(() ->
         {
-            try (Connection con = _sql.GetConnection())
+            try (Connection con = _db.getConnection())
             {
                 con.setAutoCommit(false);
                 try
@@ -888,6 +908,7 @@ public class GsDatabase
         {
             Thread.currentThread().interrupt();
         }
+        _db.close();
     }
 
     private static String truncate(String text, int max)
