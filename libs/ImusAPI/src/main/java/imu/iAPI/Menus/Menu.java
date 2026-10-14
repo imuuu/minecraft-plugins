@@ -75,6 +75,16 @@ public abstract class Menu
     }
 
     /**
+     * An item shown in every slot of the player's own inventory while the menu is open, or null for none. Shown on
+     * the player's screen only: their real items don't change and come back when the menu closes. E.g. a shop that
+     * shows the player's items in the menu itself covers the inventory below with black panes.
+     */
+    public Icon ownInventoryCover()
+    {
+        return null;
+    }
+
+    /**
      * Draws the menu again if it is shown, after its data changed outside a click (another player's trade, data
      * from the database). The drawing waits for the next {@link #refreshDelayTicks()}: many changes in between
      * make one drawing, so a busy shop can't make every viewer draw on every trade. A click draws at once anyway.

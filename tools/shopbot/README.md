@@ -43,6 +43,7 @@ balances before and after each click, so they can be run again on the same serve
 | `hometele-upgrade.test.js` | An old HomeTele's homes.yml and settings.yml carry over (restarts the server, SHOPBOT_RESTART=1) |
 | `restart.test.js` | Shops, stock, prices, sell limits, flash deals and wanted requests are the same after the server restarts |
 | `menus.test.js` | ImusAPI's menus in the game: `/ia config` and a plugin's settings, a toggle and a reset saved to config.yml, going back, no items out of or into a menu; `/ien admin`, the enchanting table's shop, `/waystones list` |
+| `client-items.test.js` | Items shown on the screen only: a shop covers the bot's own inventory with black panes and the real items are back after closing, nothing is covered in creative, the enchanting table blinks a book that fits it as a lime pane and the real book never changes |
 | `menus-shutdown.test.js` | An enchanting table holding a pickaxe and an unsaved book is open while the server stops; both are back after it starts (restarts the server, SHOPBOT_RESTART=1) |
 | `tnt.test.js` | imusTNT: Chunk TNT clears its chunk layer but leaves chests, Chunk Stone TNT fills it with stone, special TNT drops itself, the admin menu |
 | `spawners.test.js` | ImusSpawners: a lucky silk touch roll, a placed spawner always comes back, a miss raises the chance, `/spawners give` |

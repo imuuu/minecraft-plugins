@@ -7,6 +7,7 @@ import imu.iAPI.Menus.MenuHost;
 import imu.iAPI.Menus.MenuSession;
 import imu.iAPI.Menus.Prompt;
 import imu.iAPI.Menus.Text;
+import imu.iAPI.Packets.ClientItems;
 import imu.iAPI.Utilities.TextInputDialog;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -299,6 +300,9 @@ public final class PaperMenus implements Listener
         private Window _window;
         private BukkitTask _ticker;
         private BukkitTask _flush;
+        private BukkitTask _coverTask;
+        // The player's own inventory shows fakes now, to be shown for real again when the menu goes
+        private boolean _covered;
         private int _lastFlushTick = Integer.MIN_VALUE / 2;
         private long _lastClick;
         private boolean _clicking;
@@ -321,6 +325,9 @@ public final class PaperMenus implements Listener
             {
                 _clicking = false;
             }
+            // A trade may have changed the player's items; the real ones go out at the end of the tick
+            if (_covered)
+                Bukkit.getScheduler().runTask(_plugin, this::cover);
         }
 
         private boolean clickAllowed()
@@ -361,12 +368,45 @@ public final class PaperMenus implements Listener
                     _expectingClose = false;
                     _opening = false;
                 }
+                cover();
             });
 
             cancelTicker();
             int ticks = menu.refreshTicks();
             if (ticks > 0)
                 _ticker = Bukkit.getScheduler().runTaskTimer(_plugin, _session::tick, ticks, ticks);
+            // Anything that changes the player's items sends the real ones; cover them again now and then
+            if (menu.ownInventoryCover() != null)
+                _coverTask = Bukkit.getScheduler().runTaskTimer(_plugin, this::cover, 20, 20);
+        }
+
+        /**
+         * Covers the player's own inventory with the menu's cover, on their screen only.
+         */
+        private void cover()
+        {
+            Menu menu = _session.current();
+            if (menu == null || _opening || _session.prompt() != null || _session.hasEnded())
+                return;
+            Icon cover = menu.ownInventoryCover();
+            if (cover != null && ClientItems.allowed(_player))
+            {
+                ClientItems.coverOwn(_player, PaperIcons.stack(cover));
+                _covered = true;
+            }
+        }
+
+        // The real items again, once the window that showed the fakes is gone
+        private void uncover()
+        {
+            if (!_covered)
+                return;
+            _covered = false;
+            Bukkit.getScheduler().runTask(_plugin, () ->
+            {
+                if (_player.isOnline())
+                    ClientItems.restore(_player);
+            });
         }
 
         @Override
@@ -380,6 +420,7 @@ public final class PaperMenus implements Listener
         public void prompt(Prompt prompt)
         {
             cancelTicker();
+            uncover();
             later(() ->
             {
                 _expectingClose = true;
@@ -457,11 +498,15 @@ public final class PaperMenus implements Listener
         private void end()
         {
             cancelTicker();
+            uncover();
             _hosts.remove(_player.getUniqueId(), this);
         }
 
         private void cancelTicker()
         {
+            if (_coverTask != null)
+                _coverTask.cancel();
+            _coverTask = null;
             if (_flush != null)
                 _flush.cancel();
             _flush = null;

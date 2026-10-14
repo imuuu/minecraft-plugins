@@ -9,6 +9,7 @@ import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.MenuSession;
 import imu.iAPI.Menus.Paper.PaperIcons;
 import imu.iAPI.Menus.Viewer;
+import imu.iAPI.Packets.ClientItems;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.ItemUtils;
 import imu.iAPI.Utilities.ItemUtils.DisplayNamePosition;
@@ -21,6 +22,7 @@ import me.imu.imusenchants.Enums.TOUCH_TYPE;
 import me.imu.imusenchants.ImusEnchants;
 import me.imu.imusenchants.Managers.ManagerEnchants;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Material;
@@ -61,6 +63,9 @@ public class InventoryEnchanting extends Menu
     private final Set<Integer> _pending = new HashSet<>();
     private int _redMark = -1;
     private long _timeID;
+    // The blinking of the player's items that fit the table: a count of half seconds, and what is shown now
+    private int _blinkTick;
+    private final Set<Integer> _blinking = new HashSet<>();
 
     public InventoryEnchanting()
     {
@@ -127,6 +132,7 @@ public class InventoryEnchanting extends Menu
         Player player = PlayerOf(viewer);
         if (player == null)
             return;
+        _blinking.clear();
         for (ItemStack piece : TakePending())
             InvUtil.AddItemToInventoryOrDrop(player, piece);
         if (_item != null)
@@ -140,6 +146,70 @@ public class InventoryEnchanting extends Menu
     public boolean locksOwnInventory()
     {
         return false;
+    }
+
+    // Blinking the player's items ===================================================================================
+
+    @Override
+    public int refreshTicks()
+    {
+        return 10;
+    }
+
+    /**
+     * Every two seconds the player's items that fit the table show as lime panes for half a second, on their screen
+     * only; the items themselves don't change.
+     */
+    @Override
+    protected boolean onTick()
+    {
+        MenuSession session = session();
+        Player player = session == null ? null : PlayerOf(session.viewer());
+        if (player == null || !ClientItems.allowed(player))
+            return false;
+
+        if (!_blinking.isEmpty())
+        {
+            // What is there now: the player may have moved the item meanwhile
+            for (int slot : _blinking)
+            {
+                ItemStack real = player.getInventory().getItem(slot);
+                ClientItems.showOwn(player, slot, real == null ? new ItemStack(Material.AIR) : real);
+            }
+            _blinking.clear();
+        }
+        else if (_blinkTick % 4 == 0)
+        {
+            ItemStack[] items = player.getInventory().getStorageContents();
+            for (int slot = 0; slot < items.length && slot < 36; slot++)
+            {
+                ItemStack item = items[slot];
+                if (item == null || item.getType().isAir() || !Fits(item))
+                    continue;
+                _blinking.add(slot);
+                ClientItems.showOwn(player, slot, Highlight(item));
+            }
+        }
+        _blinkTick++;
+        // Nothing in the menu changed
+        return false;
+    }
+
+    // What the table takes now: an item with slots when it is empty, otherwise pieces for the open slots
+    private boolean Fits(ItemStack item)
+    {
+        if (_item == null)
+            return EnchantedItem.HasSlots(item) && ManagerEnchants.IsValidToEnchant(item);
+        return _enchantedItem != null && !_open.isEmpty()
+                && ManagerEnchants.Instance.IsValidGUIitem(TOUCH_TYPE.DROP, _enchantedItem, item);
+    }
+
+    private static ItemStack Highlight(ItemStack item)
+    {
+        ItemStack pane = new ItemStack(Material.LIME_STAINED_GLASS_PANE, item.getAmount());
+        ItemUtils.SetDisplayName(pane, "&a" + ItemUtils.GetNameOrMaterial(item));
+        ItemUtils.AddLore(pane, "&7Fits the enchanting table", true);
+        return pane;
     }
 
     // Drawing ========================================================================================================

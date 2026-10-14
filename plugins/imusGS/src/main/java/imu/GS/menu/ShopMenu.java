@@ -1,6 +1,7 @@
 package imu.GS.menu;
 
 import imu.iAPI.Menus.Click;
+import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.TextUtils;
@@ -91,6 +92,13 @@ public class ShopMenu extends GsMenu implements ShopListener
         _shop.removeListener(this);
         _service.menuClosed(this);
         _shop.removeViewer();
+    }
+
+    // The player's own items are shown in the menu, so the inventory below is covered on their screen
+    @Override
+    public Icon ownInventoryCover()
+    {
+        return Icon.filler(Material.BLACK_STAINED_GLASS_PANE);
     }
 
     // The flash deal button blinks
