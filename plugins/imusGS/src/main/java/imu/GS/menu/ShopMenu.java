@@ -2,6 +2,7 @@ package imu.GS.menu;
 
 import imu.iAPI.Menus.Click;
 import imu.iAPI.Menus.Icon;
+import imu.iAPI.Menus.Paper.OwnItemRows;
 import imu.iAPI.Menus.Viewer;
 import imu.iAPI.Utilities.InvUtil;
 import imu.iAPI.Utilities.TextUtils;
@@ -44,7 +45,7 @@ import java.util.Map;
  *
  * Left click buys or sells 1, right click 8, shift + left 64, shift + right all of it.
  */
-public class ShopMenu extends GsMenu implements ShopListener
+public class ShopMenu extends GsMenu implements ShopListener, OwnItemRows
 {
     private static final int SHOP_SLOTS = Shop.PAGE_SIZE;
     private static final int CUSTOMER_START = 36;
@@ -99,6 +100,18 @@ public class ShopMenu extends GsMenu implements ShopListener
     public Icon ownInventoryCover()
     {
         return Icon.filler(Material.BLACK_STAINED_GLASS_PANE);
+    }
+
+    // The player's own items tell what they sell for here, on the player's screen only
+    @Override
+    public List<String> ownItemRows(ItemStack item)
+    {
+        if (PlayerInventoryAdapter.category(item) == ItemCategory.SHULKER_BOX)
+            return null;
+        ItemKey key = ItemKeys.of(item);
+        if (!_service.getTrades().buysItem(_shop, key))
+            return List.of("", Messages.get("shop.doesnt-buy"));
+        return List.of("", Messages.get("shop.own-item-sells", "price", Icons.money(_service.getPrices().sellPrice(_shop, key, 1))));
     }
 
     // The flash deal button blinks

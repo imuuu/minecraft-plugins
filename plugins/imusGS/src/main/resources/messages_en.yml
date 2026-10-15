@@ -33,6 +33,7 @@ shop:
   shulker-nothing: "&cThe shop doesn't buy anything in it"
   shulker-sell: "&9Sell Content with &5{price}"
   doesnt-buy: "&cThe shop doesn't buy this"
+  own-item-sells: "&7Sells here: &5{price} &7each"
   price-drops: "&b&k# &e&nThe Price Drops&b&k #"
   price-drops-in: "&e&nThe Price Drops in:&2&l {amount}"
   full-price-for: "&e&nFull Price for:&2&l {amount}"

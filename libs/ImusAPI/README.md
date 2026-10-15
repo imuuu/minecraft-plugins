@@ -129,6 +129,23 @@ PaperMenus.open(player, new ShopMenu());
   Enchant-pöytä vilkuttaa pöytään sopivia itemeitä vihreinä paneeleina. Ei koskaan creativessa, jossa client päättää
   itemeistä itse. Paperilla ei ole tähän API:a, joten se käyttää Paperin sisäosia reflektiolla; jos ne muuttuvat
   päivityksessä, `ClientItems.available()` on `false`, mitään ei näytetä ja konsoliin tulee yksi varoitus.
+  Kun ikkuna, jossa näytettiin feikkejä, sulkeutuu, ImusAPI lähettää oikeat itemit itse, joten haamuja ei jää.
+- **Feikki-rivit tooltippeihin.** `ClientItems.showRows(player, slot, rivit)` lisää oman inventoryn itemin
+  tooltippiin rivejä vain pelaajan ruudulla, ja `showRows(player, item -> rivit)` kaikkiin itemeihin kerralla.
+  Menu, joka toteuttaa `OwnItemRows`-rajapinnan (`List<String> ownItemRows(ItemStack item)`, &-värikoodit), näyttää
+  rivit pelaajan omissa itemeissä koko ajan kun se on auki; ne lähetetään uudestaan klikkausten jälkeen ja kerran
+  sekunnissa, koska serveri lähettää slotin oikean itemin aina kun se muuttuu. Esim. imusGS:n kauppa näyttää, paljonko
+  item myy siinä kaupassa:
+
+  ```java
+  public class ShopMenu extends GsMenu implements OwnItemRows
+  {
+      public List<String> ownItemRows(ItemStack item)
+      {
+          return List.of("", "&7Sells here: &5" + price(item) + " &7each");
+      }
+  }
+  ```
 
 Testissä:
 

@@ -1,6 +1,7 @@
 package imu.iAPI.Main;
 
 import com.j256.ormlite.support.ConnectionSource;
+import imu.iAPI.Packets.ClientItems;
 import imu.iAPI.CmdUtil.CmdHelper;
 import imu.iAPI.Commands.ExampleCmd;
 import imu.iAPI.FastInventory.Manager_FastInventories;
@@ -96,6 +97,7 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
         _npcManager.loadSettings();
 
         PaperMenus.enable(this);
+        ClientItems.enable(this);
         _permissions = new PaperPermissions(this, () -> getConfig().getDouble("permissions.nearby-range", 32));
         RegisterCommands();
         Permissions.onChange(names -> _tab_cmd1.SetRule("/ia perms", 2, new ArrayList<>(names)));

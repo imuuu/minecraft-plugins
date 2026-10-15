@@ -1,14 +1,30 @@
 package imu.iAPI.Packets;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+import imu.iAPI.Utilities.TextUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -20,6 +36,10 @@ import java.util.logging.Logger;
  * <p>
  * Never for players in creative: their client decides what is in their inventory, and a fake item could become a
  * real one. {@link #allowed(Player)} says whether a player can be shown fakes.
+ * <p>
+ * Fakes in the player's own inventory stay on their screen after the window closes, since the client keeps one copy
+ * of its inventory for all windows. After {@link #enable(Plugin)} the real items are sent again when a window that
+ * showed fakes closes, so whoever shows them doesn't need to.
  */
 public final class ClientItems
 {
@@ -32,8 +52,39 @@ public final class ClientItems
     private static Method _asNmsCopy;
     private static Constructor<?> _setSlotPacket;
     private static Boolean _available;
+    // The players whose screen shows fakes now
+    private static final Set<UUID> _faked = ConcurrentHashMap.newKeySet();
 
     private ClientItems() {}
+
+    /**
+     * Sends players their real items when a window that showed fakes closes. ImusAPI calls this when it starts.
+     */
+    public static void enable(Plugin plugin)
+    {
+        Bukkit.getPluginManager().registerEvents(new Listener()
+        {
+            @EventHandler(priority = EventPriority.MONITOR)
+            public void onClose(InventoryCloseEvent event)
+            {
+                if (!(event.getPlayer() instanceof Player player) || !_faked.contains(player.getUniqueId()))
+                    return;
+                // At the end of the tick: another window opening right after this sends all real items itself,
+                // and the fakes it may show stay
+                Bukkit.getScheduler().runTask(plugin, () ->
+                {
+                    if (player.isOnline() && player.getOpenInventory().getTopInventory().getType() == InventoryType.CRAFTING)
+                        restore(player);
+                });
+            }
+
+            @EventHandler
+            public void onQuit(PlayerQuitEvent event)
+            {
+                _faked.remove(event.getPlayer().getUniqueId());
+            }
+        }, plugin);
+    }
 
     /**
      * Finds the internals once; false when this Paper version doesn't have them.
@@ -97,6 +148,7 @@ public final class ClientItems
             int stateId = (int) _getStateId.invoke(menu);
             Object packet = _setSlotPacket.newInstance(windowId, stateId, rawSlot, _asNmsCopy.invoke(null, item));
             _send.invoke(_connection.get(handle), packet);
+            _faked.add(player.getUniqueId());
             return true;
         } catch (ReflectiveOperationException | RuntimeException e)
         {
@@ -151,10 +203,60 @@ public final class ClientItems
     }
 
     /**
+     * A copy of the item with rows added under its tooltip, with &amp; colour codes.
+     */
+    public static ItemStack withRows(ItemStack item, List<String> rows)
+    {
+        ItemStack copy = item.clone();
+        ItemMeta meta = copy.getItemMeta();
+        if (meta == null)
+            return copy;
+        List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+        for (String row : rows)
+            lore.add(TextUtils.Color(row));
+        meta.setLore(lore);
+        copy.setItemMeta(meta);
+        return copy;
+    }
+
+    /**
+     * Adds rows to the tooltip of the item in a slot of the player's own inventory (0-35), on their screen only.
+     * Anything that sends the slot again (a click, the item changing) shows the real tooltip, so show the rows
+     * again after that; menus that implement {@code OwnItemRows} do it on their own.
+     *
+     * @return false when the slot is empty, there are no rows or they couldn't be shown
+     */
+    public static boolean showRows(Player player, int inventorySlot, List<String> rows)
+    {
+        ItemStack item = player.getInventory().getItem(inventorySlot);
+        if (item == null || item.getType().isAir() || rows == null || rows.isEmpty())
+            return false;
+        return showOwn(player, inventorySlot, withRows(item, rows));
+    }
+
+    /**
+     * Adds rows to the tooltips of all the player's own items: {@code rows} gives each item's rows, empty or null
+     * for none.
+     */
+    public static void showRows(Player player, Function<ItemStack, List<String>> rows)
+    {
+        if (!allowed(player))
+            return;
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        for (int slot = 0; slot < Math.min(36, contents.length); slot++)
+        {
+            ItemStack item = contents[slot];
+            if (item != null && !item.getType().isAir())
+                showRows(player, slot, rows.apply(item));
+        }
+    }
+
+    /**
      * Sends the player their real items again.
      */
     public static void restore(Player player)
     {
+        _faked.remove(player.getUniqueId());
         player.updateInventory();
     }
 

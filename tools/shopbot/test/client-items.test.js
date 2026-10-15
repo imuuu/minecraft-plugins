@@ -85,6 +85,18 @@ test('items show as they come and go: a sold-out slot turns to a pane, a bought 
   await bot.until(() => bot.count('diamond') === 1 && bot.count(PANE) === 0, 3000, 'Panes left after closing')
 })
 
+test('the own items tell what they sell for, on the screen only', async () => {
+  await openShop(rcon, bot, SHOP)
+  const slot = await bot.waitForOwnSlot('diamond')
+  await bot.until(() => bot.lore(slot).some(line => /Sells here: .+ each/.test(line)), 3000,
+    () => `diamond lore: ${bot.lore(slot).join(' | ')}`)
+
+  bot.closeWindow()
+  await sleep(1000)
+  const diamond = bot.bot.inventory.items().find(item => item.name === 'diamond')
+  assert.ok(!(diamond.customLore ?? []).some(line => JSON.stringify(line).includes('Sells here')), 'no row after closing')
+})
+
 test('in creative nothing is covered', async () => {
   await rcon.command(`gamemode creative ${BOT}`)
   try {
@@ -135,4 +147,14 @@ test('the enchanting table blinks the items that fit it', async () => {
 
   bot.closeWindow()
   await bot.until(() => bot.count('enchanted_book') === 1 && bot.count('lime_stained_glass_pane') === 0, 3000, 'No book after closing')
+
+  // Closed while the pane shows: the real book comes back to the screen, no ghost pane stays
+  const again = bot.nextWindow(5000, 'The table did not open again')
+  await bot.bot.activateBlock(bot.bot.blockAt(new Vec3(X + 2, Y, Z)))
+  await again
+  await bot.until(() => ownSlots().includes('lime_stained_glass_pane'), 4000, 'No pane the second time')
+  bot.closeWindow()
+  await sleep(1000)
+  assert.equal(bot.count('lime_stained_glass_pane'), 0, 'no ghost pane after closing')
+  assert.equal(bot.count('enchanted_book'), 1, 'the book shows after closing')
 })

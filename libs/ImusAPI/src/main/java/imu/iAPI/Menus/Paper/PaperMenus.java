@@ -378,23 +378,37 @@ public final class PaperMenus implements Listener
             int ticks = menu.refreshTicks();
             if (ticks > 0)
                 _ticker = Bukkit.getScheduler().runTaskTimer(_plugin, _session::tick, ticks, ticks);
-            // A slot that empties shows nothing; cover the empty ones again now and then
-            if (menu.ownInventoryCover() != null)
+            // A slot that empties shows nothing and a changed item its real tooltip; show the fakes again now and then
+            if (menu.ownInventoryCover() != null || menu instanceof OwnItemRows)
                 _coverTask = Bukkit.getScheduler().runTaskTimer(_plugin, this::cover, 20, 20);
         }
 
         /**
-         * Covers the empty slots of the player's own inventory with the menu's cover, on their screen only.
+         * Covers the empty slots of the player's own inventory with the menu's cover and adds the menu's rows to the
+         * tooltips of their items, on their screen only.
          */
         private void cover()
         {
             Menu menu = _session.current();
-            if (menu == null || _opening || _session.prompt() != null || _session.hasEnded())
+            if (menu == null || _opening || _session.prompt() != null || _session.hasEnded() || !ClientItems.allowed(_player))
                 return;
             Icon cover = menu.ownInventoryCover();
-            if (cover != null && ClientItems.allowed(_player))
+            if (cover != null)
             {
                 ClientItems.coverEmptyOwn(_player, PaperIcons.stack(cover));
+                _covered = true;
+            }
+            if (menu instanceof OwnItemRows rows)
+            {
+                try
+                {
+                    ClientItems.showRows(_player, rows::ownItemRows);
+                } catch (RuntimeException e)
+                {
+                    _plugin.getLogger().log(Level.SEVERE, "The tooltip rows of " + menu.getClass().getSimpleName() + " failed", e);
+                    closeSafely(this);
+                    return;
+                }
                 _covered = true;
             }
         }

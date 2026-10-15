@@ -32,6 +32,7 @@ shop:
   shulker-nothing: "&cKauppa ei osta siitä mitään"
   shulker-sell: "&9Myy sisältö: &5{price}"
   doesnt-buy: "&cKauppa ei osta tätä"
+  own-item-sells: "&7Myy täällä: &5{price} &7/kpl"
   price-drops: "&b&k# &e&nHinta laskee&b&k #"
   price-drops-in: "&e&nHinta laskee:&2&l {amount} &e&nkpl päästä"
   full-price-for: "&e&nTäysi hinta vielä:&2&l {amount} &e&nkpl"

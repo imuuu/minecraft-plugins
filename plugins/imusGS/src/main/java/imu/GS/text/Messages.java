@@ -86,7 +86,9 @@ public final class Messages
      */
     public static String get(String key, Object... placeholders)
     {
-        return fill(_texts.getString(key, key), placeholders);
+        // getString(key, def) would skip the bundled defaults, so a text added in an update would show its key
+        String text = _texts.getString(key);
+        return fill(text == null ? key : text, placeholders);
     }
 
     /**
