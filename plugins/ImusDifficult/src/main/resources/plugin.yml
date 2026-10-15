@@ -6,6 +6,10 @@ authors: [ imu ]
 description: Survival tweaks - armor wear from poison and fire, harder shulkers, portal opening dates, AFK kick
 depend:
   - imusAPI
+commands:
+  imusdifficult:
+    description: ImusDifficult's permissions menu
+    usage: /<command> perms
 permissions:
   imusdifficult.config:
     level: very_high

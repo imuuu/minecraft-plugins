@@ -93,7 +93,7 @@ class TntCommands implements TabExecutor
     {
         List<String> options = new ArrayList<>();
         if (args.length == 1)
-            options.addAll(List.of("menu", "give", "permissions"));
+            options.addAll(List.of("menu", "give", "perms"));
         else if (args.length == 2 && args[0].equalsIgnoreCase("give"))
             options.addAll(keys());
         else if (args.length == 3 && args[0].equalsIgnoreCase("give"))

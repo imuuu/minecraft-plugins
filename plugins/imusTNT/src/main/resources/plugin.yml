@@ -8,7 +8,7 @@ depend: [imusAPI]
 commands:
   imustnt:
     description: Special TNT for admins
-    usage: /<command> menu | give <type> [player] [amount] | permissions
+    usage: /<command> menu | give <type> [player] [amount] | perms
     aliases: [it]
     permission: imustnt.admin
 permissions:

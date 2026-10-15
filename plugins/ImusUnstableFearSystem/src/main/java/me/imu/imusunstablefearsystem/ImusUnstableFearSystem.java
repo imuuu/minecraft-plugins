@@ -1,5 +1,6 @@
 package me.imu.imusunstablefearsystem;
 
+import imu.iAPI.Permissions.PermissionsCommand;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -28,6 +29,7 @@ public class ImusUnstableFearSystem extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
+		PermissionsCommand.register(this, "imusunstablefearsystem");
 		Instance = this;
 		saveDefaultConfig();
 		getConfig().options().copyDefaults(true);

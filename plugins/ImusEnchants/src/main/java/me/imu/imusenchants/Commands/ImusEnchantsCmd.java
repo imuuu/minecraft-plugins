@@ -231,7 +231,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 			return true;
 		}
 
-		if (args[0].equalsIgnoreCase("permissions"))
+		if (args[0].equalsIgnoreCase("perms") || args[0].equalsIgnoreCase("permissions"))
 		{
 			if (!(sender instanceof Player))
 				sender.sendMessage(TextUtils.Color("&cOnly players can open the permissions menu"));
@@ -552,7 +552,7 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				options.add("reload");
 			}
 			if (sender.hasPermission(PaperPermissions.USE_PERMISSION))
-				options.add("permissions");
+				options.add("perms");
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("help"))
 		{

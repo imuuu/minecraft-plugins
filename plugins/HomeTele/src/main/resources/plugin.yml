@@ -6,6 +6,9 @@ description: Homes players can teleport to
 api-version: '26.2'
 depend: [imusAPI]
 commands:
+  hometele:
+    description: HomeTele's permissions menu
+    usage: /<command> perms
   sethome:
     description: Set a home where you stand
     usage: /<command> [name]

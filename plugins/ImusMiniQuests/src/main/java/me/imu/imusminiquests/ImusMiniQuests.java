@@ -267,7 +267,7 @@ public class ImusMiniQuests extends JavaPlugin
 
         handler.registerPermissionsCmd(cmd1);
 
-        cmd1AndArguments.put(cmd1, new String[] { "points", "unlocks", "menu", "give", "list", "complete", "economy", "reload", "config", "permissions" });
+        cmd1AndArguments.put(cmd1, new String[] { "points", "unlocks", "menu", "give", "list", "complete", "economy", "reload", "config", "perms" });
         cmd1AndArguments.put("economy", new String[] { "refresh" });
 
         getCommand(cmd1).setExecutor(handler);

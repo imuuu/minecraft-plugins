@@ -61,12 +61,21 @@ public class CommandHandler implements CommandExecutor
     }
     
     /**
-     * "/&lt;mainCmd&gt; permissions": imusAPI's permissions menu of this plugin, the players close by first
-     * (the same as /ia perms &lt;plugin&gt;).
+     * "/&lt;mainCmd&gt; perms" (or "permissions"): imusAPI's permissions menu of this plugin, the players close by
+     * first (the same as /ia perms &lt;plugin&gt;).
      */
     public void registerPermissionsCmd(String mainCmd)
     {
-        registerSubCmd(mainCmd, "permissions", new CommandInterface()
+        for (String name : new String[] { "perms", "permissions" })
+        {
+            registerSubCmd(mainCmd, name, permissionsCmd());
+            setPermissionOnLastCmd(PaperPermissions.USE_PERMISSION);
+        }
+    }
+
+    private CommandInterface permissionsCmd()
+    {
+        return new CommandInterface()
         {
             @Override
             public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
@@ -79,8 +88,7 @@ public class CommandHandler implements CommandExecutor
             public void FailedMsg(CommandSender sender, String msg)
             {
             }
-        });
-        setPermissionOnLastCmd(PaperPermissions.USE_PERMISSION);
+        };
     }
 
     public void setPermissionOnLastCmd(String permissionName)

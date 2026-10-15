@@ -237,10 +237,11 @@ permissions:
 - **Komennot:** `/ia perms` (plugarilista), `/ia perms <plugari>` (lähellä olevat pelaajat), `/ia perms <plugari> <pelaaja>`
   (suoraan pelaajan permissionit, myös offline). Oikeus `ia.permissions`. Etäisyys: `permissions.nearby-range` imusAPI:n
   configissa (oletus 32).
-- **Jokaisella plugarilla** on oma `permissions`-alikomento: `/gs`, `/ic`, `/imq`, `/ien`, `/imustnt`, `/spawners`,
-  `/waystones permissions`. `CommandHandler`illa yksi rivi: `handler.registerPermissionsCmd("gs")`; omassa
-  komentoluokassa `PaperPermissions.open(player, getName())`. Plugarit ilman pääkomentoa (HomeTele, ImusDifficult,
-  ImusHellGear…) löytyvät `/ia perms`ista.
+- **Jokaisella plugarilla** on oma `perms`-alikomento (myös `permissions`): `/gs`, `/ic`, `/imq`, `/ien`, `/imustnt`,
+  `/spawners`, `/waystones`, sekä `/hometele`, `/imusdifficult`, `/imusdontloseitems`, `/imushellgear` ja
+  `/imusunstablefearsystem perms`. `CommandHandler`illa yksi rivi: `handler.registerPermissionsCmd("gs")`; omassa
+  komentoluokassa `PaperPermissions.open(player, getName())`; plugari ilman pääkomentoa saa sen
+  `PermissionsCommand.register(this, "<komento>")`-rivillä ja komennolla `plugin.yml`:ssä.
 - **Ilman restarttia:** menusta vaihdettu permission on voimassa heti, myös komentojen tab-täydennys. Käsin muokattu
   `permissions.yml` luetaan uudelleen komennolla `/ia perms reload` (myös konsolista).
 - **Klikkaus** antaa tai ottaa pois, **oikea klikkaus** palauttaa plugarin oletukseen, **Reset all** kaikki kerralla.

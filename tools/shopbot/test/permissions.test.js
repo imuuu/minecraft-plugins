@@ -123,9 +123,11 @@ test('a high permission given in the menu works at once, and taking it away too'
 })
 
 test('every plugin\'s command opens its own permissions', async () => {
-  for (const [command, plugin] of [['gs permissions', 'imusGS'], ['waystones permissions', 'imusWaystones'],
-    ['spawners permissions', 'ImusSpawners'], ['imq permissions', 'ImusMiniQuests'], ['ic permissions', 'ImusChallenges'],
-    ['ien permissions', 'ImusEnchants']]) {
+  for (const [command, plugin] of [['gs perms', 'imusGS'], ['waystones perms', 'imusWaystones'],
+    ['spawners perms', 'ImusSpawners'], ['imq perms', 'ImusMiniQuests'], ['ic permissions', 'ImusChallenges'],
+    ['ien perms', 'ImusEnchants'], ['imustnt perms', 'imusTNT'], ['hometele perms', 'HomeTele'],
+    ['imusdifficult perms', 'ImusDifficult'], ['imusdontloseitems perms', 'ImusDontLoseItems'],
+    ['imushellgear perms', 'ImusHellGear'], ['imusunstablefearsystem perms', 'ImusUnstableFearSystem']]) {
     const opened = admin.nextWindow(5000, `/${command} opened nothing`)
     await admin.command(command)
     await opened

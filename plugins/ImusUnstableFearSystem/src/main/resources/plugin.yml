@@ -9,6 +9,10 @@ depend:
   - ImusHellGear
 softdepend:
   - BetterStructures
+commands:
+  imusunstablefearsystem:
+    description: ImusUnstableFearSystem's permissions menu
+    usage: /<command> perms
 permissions:
   imusunstablefearsystem.config:
     level: very_high

@@ -302,7 +302,7 @@ public class ImusChallenges extends JavaPlugin
 
         handler.registerPermissionsCmd(cmd1);
 
-        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config", "create", "permissions" });
+        cmd1AndArguments.put(cmd1, new String[] { "view", "shop", "add", "set", "reset", "reload", "config", "create", "perms" });
         cmd1AndArguments.put("create", new String[] { "npc" });
         cmd1AndArguments.put("set", new String[] { "points", "lifetime" });
         cmd1AndArguments.put("reset", new String[] { "points" });

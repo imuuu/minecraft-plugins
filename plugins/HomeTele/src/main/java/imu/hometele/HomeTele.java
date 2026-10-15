@@ -1,5 +1,6 @@
 package imu.hometele;
 
+import imu.iAPI.Permissions.PermissionsCommand;
 import imu.hometele.engine.Cooldowns;
 import imu.hometele.engine.HomeBook;
 import imu.iAPI.Config.ConfigMenu;
@@ -26,6 +27,7 @@ public class HomeTele extends JavaPlugin
     @Override
     public void onEnable()
     {
+        PermissionsCommand.register(this, "hometele");
         saveDefaultConfig();
         // Settings added in an update go into an existing config.yml
         getConfig().options().copyDefaults(true);

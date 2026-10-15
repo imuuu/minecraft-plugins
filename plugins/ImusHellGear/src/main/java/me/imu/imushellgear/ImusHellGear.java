@@ -1,5 +1,6 @@
 package me.imu.imushellgear;
 
+import imu.iAPI.Permissions.PermissionsCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
@@ -25,6 +26,7 @@ public class ImusHellGear extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
+		PermissionsCommand.register(this, "imushellgear");
 		Instance = this;
 		saveDefaultConfig();
 		getConfig().options().copyDefaults(true);

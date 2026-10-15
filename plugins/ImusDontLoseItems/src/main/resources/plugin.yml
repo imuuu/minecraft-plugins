@@ -6,6 +6,10 @@ authors: [ imu ]
 description: Keeps the hotbar and armor on death for a durability cost, punishes logging out in combat
 depend:
   - imusAPI
+commands:
+  imusdontloseitems:
+    description: ImusDontLoseItems's permissions menu
+    usage: /<command> perms
 permissions:
   imusdontloseitems.config:
     level: very_high

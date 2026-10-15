@@ -8,6 +8,10 @@ depend:
   - imusAPI
 softdepend:
   - ImusEnchants
+commands:
+  imushellgear:
+    description: ImusHellGear's permissions menu
+    usage: /<command> perms
 permissions:
   imushellgear.config:
     level: very_high

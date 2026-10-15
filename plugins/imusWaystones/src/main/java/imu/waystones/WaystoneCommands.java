@@ -67,7 +67,7 @@ final class WaystoneCommands implements TabExecutor
                     _plugin.send(sender, "reloaded");
                 }
             }
-            case "permissions" ->
+            case "perms", "permissions" ->
             {
                 if (sender instanceof Player player)
                     PaperPermissions.open(player, _plugin.getName());
@@ -147,7 +147,7 @@ final class WaystoneCommands implements TabExecutor
     {
         List<String> options = new ArrayList<>();
         if (args.length == 1 && sender.hasPermission(ImusWaystones.ADMIN))
-            options.addAll(List.of("list", "reload", "permissions"));
+            options.addAll(List.of("list", "reload", "perms"));
         String typed = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);
         return options.stream().filter(o -> o.startsWith(typed)).toList();
     }

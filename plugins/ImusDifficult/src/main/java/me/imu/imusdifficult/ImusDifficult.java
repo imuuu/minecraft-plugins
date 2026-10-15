@@ -1,5 +1,6 @@
 package me.imu.imusdifficult;
 
+import imu.iAPI.Permissions.PermissionsCommand;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +22,7 @@ public class ImusDifficult extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
+		PermissionsCommand.register(this, "imusdifficult");
 		Instance = this;
 		saveDefaultConfig();
 		getConfig().options().copyDefaults(true);

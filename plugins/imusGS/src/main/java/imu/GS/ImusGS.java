@@ -166,7 +166,7 @@ public class ImusGS extends JavaPlugin
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove", "customprices", "permissions" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove", "customprices", "perms" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc", "preset" });
         arguments.put("open", new String[] { "shop" });

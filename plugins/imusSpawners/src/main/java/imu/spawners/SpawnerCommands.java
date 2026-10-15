@@ -62,7 +62,7 @@ class SpawnerCommands implements TabExecutor
                 else
                     showStats(sender, target);
             }
-            case "permissions" ->
+            case "perms", "permissions" ->
             {
                 if (sender instanceof Player player)
                     PaperPermissions.open(player, _plugin.getName());
@@ -120,7 +120,7 @@ class SpawnerCommands implements TabExecutor
         List<String> options = new ArrayList<>();
         boolean admin = sender.hasPermission(ADMIN);
         if (args.length == 1 && admin)
-            options.addAll(List.of("give", "stats", "permissions"));
+            options.addAll(List.of("give", "stats", "perms"));
         else if (args.length == 2 && admin && args[0].equalsIgnoreCase("give"))
             SpawnerItems.spawnable().forEach(type -> options.add(type.name().toLowerCase(Locale.ROOT)));
         else if ((args.length == 3 && args[0].equalsIgnoreCase("give") || args.length == 2 && args[0].equalsIgnoreCase("stats")) && admin)
