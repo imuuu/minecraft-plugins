@@ -528,7 +528,8 @@ public class CustomEnchantEvents implements Listener
 		if (!(event.getClickedInventory() instanceof PlayerInventory))
 			return;
 
-		if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT)
+		// In creative the own inventory screen sends what the slot became: the item on the cursor, put on the target
+		if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT && event.getClick() != ClickType.CREATIVE)
 			return;
 
 		ItemStack cursor = event.getCursor();

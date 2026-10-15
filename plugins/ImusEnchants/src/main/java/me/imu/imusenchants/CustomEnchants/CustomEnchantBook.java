@@ -38,7 +38,8 @@ public class CustomEnchantBook
 		}
 
 		ItemUtils.AddLore(book, "&3▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬", true);
-		ItemUtils.AddLore(book, "&3Click it on an item to apply &eLevel I", true);
+		ItemUtils.AddLore(book, "&3Click it on an item without slots: &eLevel I", true);
+		ItemUtils.AddLore(book, "&3Item with slots: put it in its &eenchanting table", true);
 		ItemUtils.AddLore(book, "&3Higher levels: &6slots &3+ &6boosters", true);
 		DataUtils.SetPersistentData(book, PD_CUSTOM_BOOK, PersistentDataType.STRING, enchant.GetKey() + ":" + level);
 		return book;

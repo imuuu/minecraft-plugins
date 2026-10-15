@@ -6,6 +6,7 @@
 const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const { Vec3 } = require('vec3')
+const nbt = require('prismarine-nbt')
 const { Rcon } = require('../lib/rcon')
 const { sleep } = require('../lib/shopbot')
 const f = require('../lib/enchant-fixture')
@@ -59,6 +60,37 @@ test('a custom book clicked on a sword gives it the enchant', async () => {
   await bot.waitForMessage(/Applied Venom/)
   assert.equal(await customEnchants(0), 'venom:1')
   assert.equal(await f.count(rcon, BOT, 'enchanted_book'), 0, 'the book is used up')
+})
+
+test('in creative a custom book put on a sword gives it the enchant too', async () => {
+  await reset()
+  await rcon.command(`gamemode creative ${BOT}`)
+  try {
+    await rcon.command(`minecraft:item replace entity ${BOT} hotbar.0 with iron_sword`)
+    await rcon.command(`ien book venom 1 ${BOT}`)
+    await bot.until(() => bot.bot.inventory.items().some(item => item.name === 'enchanted_book'), 3000, 'No book given')
+    const book = bot.bot.inventory.items().find(item => item.name === 'enchanted_book')
+    bot.clearMessages()
+    // The creative inventory screen sends only what the slot became: the book where the sword is. Mineflayer can't
+    // write a creative item's components, so the book goes as the packet itself, with its data only, which is what
+    // makes it a custom book
+    const data = book.components.find(component => component.type === 'custom_data').data
+    bot.bot._client.write('set_creative_slot', {
+      slot: HOTBAR,
+      item: {
+        itemCount: 1,
+        itemId: book.type,
+        addedComponentCount: 1,
+        removedComponentCount: 0,
+        components: [{ type: 'custom_data', data: nbt.protos.big.createPacketBuffer('anonymousNbt', data) }],
+        removeComponents: []
+      }
+    })
+    await bot.waitForMessage(/Applied Venom/)
+    assert.equal(await customEnchants(0), 'venom:1')
+  } finally {
+    await rcon.command(`gamemode survival ${BOT}`)
+  }
 })
 
 test('a Slot Core gives slots, and a book in the table grid enchants the tool', async () => {
