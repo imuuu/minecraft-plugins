@@ -265,7 +265,9 @@ public class ImusMiniQuests extends JavaPlugin
         for (String sub : new String[] { cmd1_sub1, cmd1_sub2, cmd1_sub4, cmd1_sub7, cmd1_sub8, cmd1_sub9 })
             handler.allowConsole(cmd1, sub);
 
-        cmd1AndArguments.put(cmd1, new String[] { "points", "unlocks", "menu", "give", "list", "complete", "economy", "reload", "config" });
+        handler.registerPermissionsCmd(cmd1);
+
+        cmd1AndArguments.put(cmd1, new String[] { "points", "unlocks", "menu", "give", "list", "complete", "economy", "reload", "config", "permissions" });
         cmd1AndArguments.put("economy", new String[] { "refresh" });
 
         getCommand(cmd1).setExecutor(handler);

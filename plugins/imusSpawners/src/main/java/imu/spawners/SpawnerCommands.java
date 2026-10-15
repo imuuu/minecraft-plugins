@@ -1,5 +1,6 @@
 package imu.spawners;
 
+import imu.iAPI.Permissions.PaperPermissions;
 import imu.iAPI.Utilities.InvUtil;
 import imu.spawners.engine.Luck;
 import imu.spawners.engine.Names;
@@ -61,6 +62,11 @@ class SpawnerCommands implements TabExecutor
                 else
                     showStats(sender, target);
             }
+            case "permissions" ->
+            {
+                if (sender instanceof Player player)
+                    PaperPermissions.open(player, _plugin.getName());
+            }
             default -> _plugin.send(sender, "usage");
         }
         return true;
@@ -114,7 +120,7 @@ class SpawnerCommands implements TabExecutor
         List<String> options = new ArrayList<>();
         boolean admin = sender.hasPermission(ADMIN);
         if (args.length == 1 && admin)
-            options.addAll(List.of("give", "stats"));
+            options.addAll(List.of("give", "stats", "permissions"));
         else if (args.length == 2 && admin && args[0].equalsIgnoreCase("give"))
             SpawnerItems.spawnable().forEach(type -> options.add(type.name().toLowerCase(Locale.ROOT)));
         else if ((args.length == 3 && args[0].equalsIgnoreCase("give") || args.length == 2 && args[0].equalsIgnoreCase("stats")) && admin)

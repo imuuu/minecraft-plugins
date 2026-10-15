@@ -121,3 +121,30 @@ test('a high permission given in the menu works at once, and taking it away too'
   admin.closeWindow()
   assert.equal(await playerGetsTnt(), false, `${PLAYER} could still use /imustnt`)
 })
+
+test('every plugin\'s command opens its own permissions', async () => {
+  for (const [command, plugin] of [['gs permissions', 'imusGS'], ['waystones permissions', 'imusWaystones'],
+    ['spawners permissions', 'ImusSpawners'], ['imq permissions', 'ImusMiniQuests'], ['ic permissions', 'ImusChallenges'],
+    ['ien permissions', 'ImusEnchants']]) {
+    const opened = admin.nextWindow(5000, `/${command} opened nothing`)
+    await admin.command(command)
+    await opened
+    assert.match(admin.windowTitle(), new RegExp(`${plugin}: pick a player`))
+    admin.closeWindow()
+    await sleep(300)
+  }
+})
+
+test('permissions.yml edited by hand applies with /ia perms reload, no restart', async () => {
+  const uuid = player.bot.player.uuid
+  const before = fs.readFileSync(FILE, 'utf8')
+  fs.writeFileSync(FILE, `players:\n  ${uuid}:\n    name: ${PLAYER}\n    grants:\n    - imustnt.admin\n`)
+  try {
+    assert.match(await rcon.command('ia perms reload'), /1 players/)
+    assert.equal(await playerGetsTnt(), true, `${PLAYER} couldn't use /imustnt after the reload`)
+  } finally {
+    fs.writeFileSync(FILE, before)
+    await rcon.command('ia perms reload')
+  }
+  assert.equal(await playerGetsTnt(), false, `${PLAYER} could still use /imustnt`)
+})

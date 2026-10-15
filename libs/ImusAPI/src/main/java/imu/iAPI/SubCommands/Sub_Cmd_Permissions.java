@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 
 /**
  * /ia perms [plugin] [player]: the permissions menu. Without a plugin every plugin with permissions, without a
- * player the players close by.
+ * player the players close by. /ia perms reload reads permissions.yml again after editing it by hand (console too).
  */
 public class Sub_Cmd_Permissions implements CommandInterface
 {
@@ -28,7 +28,17 @@ public class Sub_Cmd_Permissions implements CommandInterface
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		Player player = (Player) sender;
+		if (args.length == 2 && args[1].equalsIgnoreCase("reload") && _permissions.permissionsOf("reload") == null)
+		{
+			int players = _permissions.reload();
+			sender.sendMessage(TextUtils.Color("&apermissions.yml read again: &e" + players + " &aplayers with permissions given or taken"));
+			return true;
+		}
+		if (!(sender instanceof Player player))
+		{
+			sender.sendMessage("Only players can open the permissions menu. The console can use /ia perms reload");
+			return true;
+		}
 		if (args.length < 2)
 		{
 			PaperMenus.open(player, new PermissionPluginsMenu(_permissions));

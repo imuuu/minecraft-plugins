@@ -1,6 +1,7 @@
 package me.imu.imusenchants.Commands;
 
 import imu.iAPI.Menus.Paper.PaperMenus;
+import imu.iAPI.Permissions.PaperPermissions;
 import imu.iAPI.Utilities.TextUtils;
 import imu.iAPI.Utilities.InvUtil;
 import me.imu.imusenchants.CONSTANTS;
@@ -227,6 +228,15 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				sender.sendMessage(TextUtils.Color("&cOnly players can open the admin menu"));
 			else
 				PaperMenus.open((Player) sender, new InventoryEnchantAdmin(new PaperEnchantAdminGame()));
+			return true;
+		}
+
+		if (args[0].equalsIgnoreCase("permissions"))
+		{
+			if (!(sender instanceof Player))
+				sender.sendMessage(TextUtils.Color("&cOnly players can open the permissions menu"));
+			else
+				PaperPermissions.open((Player) sender, ImusEnchants.Instance.getName());
 			return true;
 		}
 
@@ -541,6 +551,8 @@ public class ImusEnchantsCmd implements CommandExecutor, TabCompleter
 				options.add("config");
 				options.add("reload");
 			}
+			if (sender.hasPermission(PaperPermissions.USE_PERMISSION))
+				options.add("permissions");
 		}
 		else if (args.length == 2 && args[0].equalsIgnoreCase("help"))
 		{

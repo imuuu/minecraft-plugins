@@ -226,6 +226,7 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
 
         handler.registerSubCmd(cmd1, "perms", new Sub_Cmd_Permissions(_permissions));
         handler.setPermissionOnLastCmd(PaperPermissions.USE_PERMISSION);
+        handler.allowConsole(cmd1, "perms");
 
         cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config", "npc", "perms"});
         cmd1AndArguments.put("npc", new String[]{"create"});

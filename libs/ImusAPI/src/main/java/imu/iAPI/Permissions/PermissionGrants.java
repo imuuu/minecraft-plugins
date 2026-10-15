@@ -69,6 +69,14 @@ public final class PermissionGrants
         return entry == null ? null : entry.name;
     }
 
+    /**
+     * How many players have something given or taken.
+     */
+    public int size()
+    {
+        return _players.size();
+    }
+
     // Permission nodes are case-insensitive in Bukkit
     private static String key(String node)
     {

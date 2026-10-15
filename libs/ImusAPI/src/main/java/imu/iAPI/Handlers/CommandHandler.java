@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import imu.iAPI.Interfaces.CommandInterface;
+import imu.iAPI.Permissions.PaperPermissions;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -59,6 +60,29 @@ public class CommandHandler implements CommandExecutor
     		
     }
     
+    /**
+     * "/&lt;mainCmd&gt; permissions": imusAPI's permissions menu of this plugin, the players close by first
+     * (the same as /ia perms &lt;plugin&gt;).
+     */
+    public void registerPermissionsCmd(String mainCmd)
+    {
+        registerSubCmd(mainCmd, "permissions", new CommandInterface()
+        {
+            @Override
+            public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+            {
+                PaperPermissions.open((Player) sender, _main.getName());
+                return true;
+            }
+
+            @Override
+            public void FailedMsg(CommandSender sender, String msg)
+            {
+            }
+        });
+        setPermissionOnLastCmd(PaperPermissions.USE_PERMISSION);
+    }
+
     public void setPermissionOnLastCmd(String permissionName)
     {
     	if(lastCmdName == "") 		

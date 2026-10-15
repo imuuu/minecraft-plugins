@@ -85,6 +85,19 @@ public final class PaperPermissions implements PermissionGame, Listener
             apply(player);
     }
 
+    /**
+     * Reads permissions.yml again after it was edited by hand, and applies it to everyone online.
+     *
+     * @return how many players have something given or taken
+     */
+    public int reload()
+    {
+        _grants.load(YamlConfiguration.loadConfiguration(_file));
+        for (Player player : Bukkit.getOnlinePlayers())
+            apply(player);
+        return _grants.size();
+    }
+
     public void disable()
     {
         HandlerList.unregisterAll(this);
@@ -349,7 +362,7 @@ public final class PaperPermissions implements PermissionGame, Listener
     {
         YamlConfiguration file = new YamlConfiguration();
         file.options().setHeader(List.of("Permissions given (and taken away, with a -) in /ia perms.",
-                "Edit in game; a change here needs a restart."));
+                "Edit in game, or here and then /ia perms reload."));
         _grants.save(file);
         try
         {

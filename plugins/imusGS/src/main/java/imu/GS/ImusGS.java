@@ -162,10 +162,11 @@ public class ImusGS extends JavaPlugin
         sub(handler, gs, "village", "gs.create.shop", village::village);
         sub(handler, gs, "presets", "gs.create.shop", village::presets);
         consoleSub(handler, gs, "remove shop", "gs.remove.shop", village::removeShop);
+        handler.registerPermissionsCmd(gs);
         getCommand(gs).setExecutor(handler);
 
         Map<String, String[]> arguments = new HashMap<>();
-        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove", "customprices" });
+        arguments.put(gs, new String[] { "create", "open", "modify", "add", "set", "unset", "tag", "config", "profile", "limits", "reset", "peek", "flash", "wanted", "restock", "progress", "stats", "village", "presets", "remove", "customprices", "permissions" });
         arguments.put("profile", new String[] { "list", "apply" });
         arguments.put("create", new String[] { "shop", "unique", "npc", "preset" });
         arguments.put("open", new String[] { "shop" });

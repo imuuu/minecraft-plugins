@@ -235,11 +235,16 @@ permissions:
 - **Komennot:** `/ia perms` (plugarilista), `/ia perms <plugari>` (lähellä olevat pelaajat), `/ia perms <plugari> <pelaaja>`
   (suoraan pelaajan permissionit, myös offline). Oikeus `ia.permissions`. Etäisyys: `permissions.nearby-range` imusAPI:n
   configissa (oletus 32).
-- **Omaan komentoon** yksi rivi: `PaperPermissions.open(player, getName())`, esim. `/imustnt permissions`.
+- **Jokaisella plugarilla** on oma `permissions`-alikomento: `/gs`, `/ic`, `/imq`, `/ien`, `/imustnt`, `/spawners`,
+  `/waystones permissions`. `CommandHandler`illa yksi rivi: `handler.registerPermissionsCmd("gs")`; omassa
+  komentoluokassa `PaperPermissions.open(player, getName())`. Plugarit ilman pääkomentoa (HomeTele, ImusDifficult,
+  ImusHellGear…) löytyvät `/ia perms`ista.
+- **Ilman restarttia:** menusta vaihdettu permission on voimassa heti, myös komentojen tab-täydennys. Käsin muokattu
+  `permissions.yml` luetaan uudelleen komennolla `/ia perms reload` (myös konsolista).
 - **Klikkaus** antaa tai ottaa pois, **oikea klikkaus** palauttaa plugarin oletukseen, **Reset all** kaikki kerralla.
   `high` ja `very_high` kysyvät ennen antamista. Kukaan ei voi antaa permissionia, jota hänellä itsellään ei ole.
 - **Tallennus:** `plugins/imusAPI/permissions.yml` (UUID, nimi, `[node, -pois_otettu]`). Ne annetaan pelaajalle
-  `PermissionAttachment`ina liittyessä ja heti muutettaessa; komentojen tab-täydennys päivittyy samalla. Pois otettu
+  `PermissionAttachment`ina liittyessä ja heti muutettaessa. Pois otettu
   voittaa myös yläpermissionin (`gs.admin`) lapset ja op-oletuksen. LuckPermsin kanssa Bukkit laskee molemmat yhteen.
 - **Koodista** voi lisätä permissioneita, joita `plugin.yml` ei listaa:
   `Permissions.register(PluginPermissions.of("MyPlugin", PermissionInfo.of("my.node", "Mitä antaa", PermissionLevel.LOW)))`.
