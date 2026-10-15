@@ -1,6 +1,7 @@
 package imu.iAPI.Permissions;
 
 import imu.iAPI.Menus.Viewer;
+import org.bukkit.permissions.PermissionDefault;
 
 import java.util.List;
 
@@ -24,6 +25,25 @@ public interface PermissionGame
      * Whether the player has the permission now: given here, through another permission or by default.
      */
     boolean has(PermissionTarget target, PermissionInfo permission);
+
+    /**
+     * Who has the permission without being given it, now: a plugin may change it while running (ImusChallenges'
+     * first advancement race), so plugin.yml's default is only where it starts.
+     */
+    default PermissionDefault defaultOf(PermissionInfo permission)
+    {
+        return permission.byDefault();
+    }
+
+    boolean isOp(Viewer viewer);
+
+    /**
+     * Whether the player may change permissions themselves; only ops change theirs.
+     */
+    default boolean managesPermissions(PermissionTarget target)
+    {
+        return has(target, PermissionInfo.of(PaperPermissions.USE_PERMISSION, "", PermissionLevel.VERY_HIGH));
+    }
 
     /**
      * True when given in the menu, false when taken away there, null when left to the plugin's default.

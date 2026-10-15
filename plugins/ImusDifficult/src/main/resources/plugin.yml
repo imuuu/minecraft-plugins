@@ -10,6 +10,7 @@ commands:
   imusdifficult:
     description: ImusDifficult's permissions menu
     usage: /<command> perms
+    aliases: [difficult]
 permissions:
   imusdifficult.config:
     level: very_high

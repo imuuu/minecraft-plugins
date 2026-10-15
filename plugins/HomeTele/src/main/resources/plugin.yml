@@ -9,6 +9,7 @@ commands:
   hometele:
     description: HomeTele's permissions menu
     usage: /<command> perms
+    aliases: [ht]
   sethome:
     description: Set a home where you stand
     usage: /<command> [name]

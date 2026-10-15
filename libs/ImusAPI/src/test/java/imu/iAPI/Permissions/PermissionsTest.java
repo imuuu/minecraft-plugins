@@ -58,6 +58,8 @@ class PermissionsTest
         final List<PermissionTarget> players = new ArrayList<>();
         final Map<String, PermissionTarget> known = new HashMap<>();
         final List<String> changes = new ArrayList<>();
+        final List<UUID> ops = new ArrayList<>();
+        final Map<String, PermissionDefault> defaults = new HashMap<>();
         PluginPermissions plugin;
 
         PermissionTarget add(String name, boolean op, boolean nearby)
@@ -84,8 +86,15 @@ class PermissionsTest
                 if (Boolean.TRUE.equals(grants.get(target.id(), parent.node())) && parent.children().contains(permission.node()))
                     return true;
             }
-            return permission.hasByDefault(target.op());
+            return defaultOf(permission).getValue(target.op());
         }
+
+        public PermissionDefault defaultOf(PermissionInfo permission)
+        {
+            return defaults.getOrDefault(permission.node(), permission.byDefault());
+        }
+
+        public boolean isOp(Viewer viewer) { return ops.contains(viewer.id()); }
 
         public Boolean grant(PermissionTarget target, String node) { return grants.get(target.id(), node); }
 
@@ -336,6 +345,44 @@ class PermissionsTest
         assertTrue(_game.grants.of(_steve.id()).isEmpty());
         assertEquals("1 of Steve's imusTNT permissions back to default", menu.viewer().lastMessage());
         assertEquals(-1, menu.find("Reset all"), "nothing left to reset");
+    }
+
+    @Test
+    void onlyOpsChangeOpsAndPermissionAdmins()
+    {
+        PermissionTarget op = _game.add("Owner", true, true);
+        TestViewer mod = TestViewer.admin("Mod");
+        MenuTester menu = MenuTester.open(new PlayerPermissionsMenu(_game, _tnt, op), mod);
+        assertTrue(menu.lore(PlayerPermissionsMenu.PLAYER).contains("Only ops can change the permissions"));
+        assertTrue(menu.lore(menu.slotOf("imustnt.admin")).contains("Only ops can change it for Owner"));
+        menu.click("imustnt.admin");
+        assertEquals("Only ops can change the permissions of ops and of players who change permissions.", mod.lastMessage());
+        assertTrue(_game.changes.isEmpty());
+
+        // A non-op who changes permissions is protected the same way
+        _game.grants.set(_steve.id(), "Steve", PaperPermissions.USE_PERMISSION, true);
+        MenuTester steve = MenuTester.open(new PlayerPermissionsMenu(_game, _tnt, _steve), mod);
+        steve.click("imustnt.use");
+        assertTrue(_game.changes.isEmpty());
+
+        // An op changes them, and everyone changes their own
+        TestViewer owner = TestViewer.admin("Boss");
+        _game.ops.add(owner.id());
+        MenuTester byOp = MenuTester.open(new PlayerPermissionsMenu(_game, _tnt, op), owner);
+        byOp.click("imustnt.use");
+        assertEquals(Boolean.FALSE, _game.grants.get(op.id(), "imustnt.use"));
+        MenuTester self = MenuTester.open(new PlayerPermissionsMenu(_game, _tnt, _steve), TestViewer.admin("Steve"));
+        self.click("imustnt.use");
+        assertEquals(Boolean.FALSE, _game.grants.get(_steve.id(), "imustnt.use"));
+    }
+
+    @Test
+    void theDefaultShownIsTheOneNow()
+    {
+        _game.defaults.put("imustnt.everything", PermissionDefault.NOT_OP);
+        MenuTester menu = MenuTester.open(new PlayerPermissionsMenu(_game, _tnt, _steve), TestViewer.admin("Admin"));
+        assertTrue(menu.lore(menu.slotOf("imustnt.everything")).contains("Has it: Yes (default: everyone but ops)"),
+                menu.lore(menu.slotOf("imustnt.everything")).toString());
     }
 
     @Test

@@ -125,9 +125,9 @@ test('a high permission given in the menu works at once, and taking it away too'
 test('every plugin\'s command opens its own permissions', async () => {
   for (const [command, plugin] of [['gs perms', 'imusGS'], ['waystones perms', 'imusWaystones'],
     ['spawners perms', 'ImusSpawners'], ['imq perms', 'ImusMiniQuests'], ['ic permissions', 'ImusChallenges'],
-    ['ien perms', 'ImusEnchants'], ['imustnt perms', 'imusTNT'], ['hometele perms', 'HomeTele'],
-    ['imusdifficult perms', 'ImusDifficult'], ['imusdontloseitems perms', 'ImusDontLoseItems'],
-    ['imushellgear perms', 'ImusHellGear'], ['imusunstablefearsystem perms', 'ImusUnstableFearSystem']]) {
+    ['ien perms', 'ImusEnchants'], ['imustnt perms', 'imusTNT'], ['ht perms', 'HomeTele'],
+    ['difficult perms', 'ImusDifficult'], ['dontlose perms', 'ImusDontLoseItems'],
+    ['hellgear perms', 'ImusHellGear'], ['fear perms', 'ImusUnstableFearSystem']]) {
     const opened = admin.nextWindow(5000, `/${command} opened nothing`)
     await admin.command(command)
     await opened
@@ -149,4 +149,28 @@ test('permissions.yml edited by hand applies with /ia perms reload, no restart',
     await rcon.command('ia perms reload')
   }
   assert.equal(await playerGetsTnt(), false, `${PLAYER} could still use /imustnt`)
+})
+
+test('a non-op who changes permissions can\'t change an op\'s', async () => {
+  const uuid = player.bot.player.uuid
+  const before = fs.readFileSync(FILE, 'utf8')
+  fs.writeFileSync(FILE, `players:\n  ${uuid}:\n    name: ${PLAYER}\n    grants:\n    - ia.permissions\n    - imustnt.admin\n`)
+  try {
+    await rcon.command('ia perms reload')
+    await sleep(500)
+    const opened = player.nextWindow(5000, `/ia perms imusTNT ${ADMIN} opened nothing`)
+    await player.command(`ia perms imusTNT ${ADMIN}`)
+    await opened
+    const window = player.bot.currentWindow
+    const slot = window.slots.slice(0, window.inventoryStart).findIndex(item => /imustnt\.admin/.test(nameOf(item)))
+    assert.ok(slot >= 0, 'imustnt.admin is not in the menu')
+    player.clearMessages()
+    await player.click(slot)
+    await player.waitForMessage(/Only ops can change/)
+    assert.equal(player.slot(slot)?.name, 'lime_dye', `${ADMIN} lost the permission`)
+    player.closeWindow()
+  } finally {
+    fs.writeFileSync(FILE, before)
+    await rcon.command('ia perms reload')
+  }
 })

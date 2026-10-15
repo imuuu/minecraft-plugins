@@ -8,6 +8,7 @@ import imu.iAPI.Menus.ConfirmMenu;
 import imu.iAPI.Menus.Icon;
 import imu.iAPI.Menus.Menu;
 import imu.iAPI.Menus.Pager;
+import imu.iAPI.Menus.Viewer;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
@@ -43,24 +44,45 @@ public class PlayerPermissionsMenu extends Menu
     protected void render(Canvas canvas)
     {
         canvas.fillRow(5, Icon.filler(Material.BLACK_STAINED_GLASS_PANE));
-        List<PermissionInfo> permissions = _plugin.permissions();
-        _pager.render(canvas, permissions, permission -> Button.of(icon(permission), click -> clicked(click, permission)),
+        List<PermissionInfo> permissions = _plugin.permissions().stream().map(this::live).toList();
+        boolean locked = locked(canvas.viewer());
+        _pager.render(canvas, permissions, permission -> Button.of(icon(permission, locked), click -> clicked(click, permission)),
                 PREVIOUS, NEXT);
 
         long on = permissions.stream().filter(permission -> _game.has(_target, permission)).count();
-        canvas.set(PLAYER, _target.icon().name("&e&l" + _target.name()).lore(
+        Icon player = _target.icon().name("&e&l" + _target.name()).lore(
                 "&7Has &a" + on + "&7/" + permissions.size() + " &7of " + _plugin.plugin() + "'s permissions",
                 _target.op() ? "&cOp: &7has every op permission by default" : "&7Not op",
-                _target.online() ? "&aOnline" : "&7Offline, applies when they join"));
+                _target.online() ? "&aOnline" : "&7Offline, applies when they join");
+        if (locked)
+            player = player.addLore(" ", "&cOnly ops can change the permissions", "&cof ops and of players who change permissions");
+        canvas.set(PLAYER, player);
         canvas.set(LEVELS, levelsIcon());
-        if (permissions.stream().anyMatch(permission -> _game.grant(_target, permission.node()) != null))
+        if (!locked && permissions.stream().anyMatch(permission -> _game.grant(_target, permission.node()) != null))
             canvas.set(RESET_ALL, Buttons.confirm(Icon.of(Material.LAVA_BUCKET, "&cReset all",
                             "&7Everything given or taken here", "&7goes back to the plugin's defaults"),
                     "&cReset " + _target.name() + "'s permissions?", this::resetAll));
         Buttons.back(canvas, BACK);
     }
 
-    private Icon icon(PermissionInfo permission)
+    // The default the plugin gives it now, not only the one plugin.yml starts with
+    private PermissionInfo live(PermissionInfo permission)
+    {
+        return permission.withDefault(_game.defaultOf(permission));
+    }
+
+    /**
+     * Ops, and players who change permissions themselves, are changed only by ops: nobody can take an admin's
+     * permissions away from below. Everyone may change their own.
+     */
+    private boolean locked(Viewer viewer)
+    {
+        if (viewer.id().equals(_target.id()) || _game.isOp(viewer))
+            return false;
+        return _target.op() || _game.managesPermissions(_target);
+    }
+
+    private Icon icon(PermissionInfo permission, boolean locked)
     {
         boolean on = _game.has(_target, permission);
         Boolean grant = _game.grant(_target, permission.node());
@@ -77,8 +99,11 @@ public class PlayerPermissionsMenu extends Menu
         if (!permission.children().isEmpty())
             lore.add("&9Gives also: &7" + shortList(permission.children(), 3));
         lore.add(" ");
-        lore.add(on ? "&bClick &7to take it away" : "&bClick &7to give it");
-        if (grant != null)
+        if (locked)
+            lore.add("&8Only ops can change it for " + _target.name());
+        else
+            lore.add(on ? "&bClick &7to take it away" : "&bClick &7to give it");
+        if (grant != null && !locked)
             lore.add("&bRight click &7to reset to the default (" + permission.defaultText() + ")");
 
         Icon icon = permission.icon() != null ? Icon.of(permission.icon()).glow(on)
@@ -96,6 +121,11 @@ public class PlayerPermissionsMenu extends Menu
 
     private void clicked(Click click, PermissionInfo permission)
     {
+        if (locked(click.viewer()))
+        {
+            click.message("&cOnly ops can change the permissions of ops and of players who change permissions.");
+            return;
+        }
         Boolean grant = _game.grant(_target, permission.node());
         if (click.isRight())
         {
@@ -115,7 +145,7 @@ public class PlayerPermissionsMenu extends Menu
         if (give && permission.level() != null && permission.level().asksFirst())
         {
             click.open(new ConfirmMenu(permission.level().colour() + "Give " + permission.level().label().toLowerCase()
-                    + " permission?", icon(permission), yes -> set(yes, permission, value)));
+                    + " permission?", icon(permission, false), yes -> set(yes, permission, value)));
             return;
         }
         set(click, permission, value);
@@ -132,6 +162,8 @@ public class PlayerPermissionsMenu extends Menu
 
     private void resetAll(Click click)
     {
+        if (locked(click.viewer()))
+            return;
         int reset = 0;
         for (PermissionInfo permission : _plugin.permissions())
         {

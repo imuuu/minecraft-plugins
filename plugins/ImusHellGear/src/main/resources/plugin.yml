@@ -12,6 +12,7 @@ commands:
   imushellgear:
     description: ImusHellGear's permissions menu
     usage: /<command> perms
+    aliases: [hellgear]
 permissions:
   imushellgear.config:
     level: very_high

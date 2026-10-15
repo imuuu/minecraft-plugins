@@ -238,14 +238,16 @@ permissions:
   (suoraan pelaajan permissionit, myös offline). Oikeus `ia.permissions`. Etäisyys: `permissions.nearby-range` imusAPI:n
   configissa (oletus 32).
 - **Jokaisella plugarilla** on oma `perms`-alikomento (myös `permissions`): `/gs`, `/ic`, `/imq`, `/ien`, `/imustnt`,
-  `/spawners`, `/waystones`, sekä `/hometele`, `/imusdifficult`, `/imusdontloseitems`, `/imushellgear` ja
-  `/imusunstablefearsystem perms`. `CommandHandler`illa yksi rivi: `handler.registerPermissionsCmd("gs")`; omassa
+  `/spawners`, `/waystones`, sekä `/ht` (HomeTele), `/difficult`, `/dontlose`, `/hellgear` ja `/fear perms`
+  (pitkät nimet `/imusdifficult` jne. toimivat myös). `CommandHandler`illa yksi rivi: `handler.registerPermissionsCmd("gs")`; omassa
   komentoluokassa `PaperPermissions.open(player, getName())`; plugari ilman pääkomentoa saa sen
   `PermissionsCommand.register(this, "<komento>")`-rivillä ja komennolla `plugin.yml`:ssä.
 - **Ilman restarttia:** menusta vaihdettu permission on voimassa heti, myös komentojen tab-täydennys. Käsin muokattu
   `permissions.yml` luetaan uudelleen komennolla `/ia perms reload` (myös konsolista).
 - **Klikkaus** antaa tai ottaa pois, **oikea klikkaus** palauttaa plugarin oletukseen, **Reset all** kaikki kerralla.
-  `high` ja `very_high` kysyvät ennen antamista. Kukaan ei voi antaa permissionia, jota hänellä itsellään ei ole.
+  `high` ja `very_high` kysyvät ennen antamista. Kukaan ei voi antaa permissionia, jota hänellä itsellään ei ole, ja
+  vain op voi muuttaa opien ja muiden permission-adminien (`ia.permissions`) permissioneita; omiaan saa muuttaa aina.
+  Menu näyttää oletuksen sellaisena kuin se on nyt (plugari voi muuttaa sitä ajon aikana).
 - **Tallennus:** `plugins/imusAPI/permissions.yml` (UUID, nimi, `[node, -pois_otettu]`). Ne annetaan pelaajalle
   `PermissionAttachment`ina liittyessä ja heti muutettaessa. Pois otettu
   voittaa myös yläpermissionin (`gs.admin`) lapset ja op-oletuksen. LuckPermsin kanssa Bukkit laskee molemmat yhteen.

@@ -10,6 +10,7 @@ commands:
   imusdontloseitems:
     description: ImusDontLoseItems's permissions menu
     usage: /<command> perms
+    aliases: [dontlose]
 permissions:
   imusdontloseitems.config:
     level: very_high

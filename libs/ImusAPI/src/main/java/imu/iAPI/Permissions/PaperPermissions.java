@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -322,8 +323,7 @@ public final class PaperPermissions implements PermissionGame, Listener
             if (given.getValue() && givesChild(given.getKey(), permission.node(), 8))
                 return true;
         }
-        Permission bukkit = Bukkit.getPluginManager().getPermission(permission.node());
-        return bukkit != null ? bukkit.getDefault().getValue(target.op()) : permission.hasByDefault(target.op());
+        return defaultOf(permission).getValue(target.op());
     }
 
     private static boolean givesChild(String parent, String node, int depth)
@@ -337,6 +337,20 @@ public final class PaperPermissions implements PermissionGame, Listener
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public PermissionDefault defaultOf(PermissionInfo permission)
+    {
+        Permission bukkit = Bukkit.getPluginManager().getPermission(permission.node());
+        return bukkit != null ? bukkit.getDefault() : permission.byDefault();
+    }
+
+    @Override
+    public boolean isOp(Viewer viewer)
+    {
+        Player player = Bukkit.getPlayer(viewer.id());
+        return player != null && player.isOp();
     }
 
     @Override

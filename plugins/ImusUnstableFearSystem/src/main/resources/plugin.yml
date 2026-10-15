@@ -13,6 +13,7 @@ commands:
   imusunstablefearsystem:
     description: ImusUnstableFearSystem's permissions menu
     usage: /<command> perms
+    aliases: [unstablefear, fear]
 permissions:
   imusunstablefearsystem.config:
     level: very_high
