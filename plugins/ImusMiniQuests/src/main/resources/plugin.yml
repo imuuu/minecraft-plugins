@@ -31,6 +31,38 @@ permissions:
     level: medium
     description: Getting netherite, elytra, mending... never unlocks them for quest rewards (admins)
     default: op
+  imq.give:
+    level: high
+    description: /imq give, give quest panels to players
+    default: op
+  imq.menu:
+    level: high
+    description: /imq menu, browse every quest and take panels for free
+    default: op
+  imq.list:
+    level: medium
+    description: /imq list, every quest with its objective and drop weight
+    default: op
+  imq.complete:
+    level: high
+    description: /imq complete, fill the quest panel in your hand (for testing rewards)
+    default: op
+  imq.economy:
+    level: medium
+    description: /imq economy, the balances money rewards are based on, and count them again
+    default: op
+  imq.reload:
+    level: very_high
+    description: /imq reload, reload the quests and settings
+    default: op
+  imq.config:
+    level: very_high
+    description: /imq config, change the settings in game
+    default: op
+  imq.tabcompleter:
+    level: low
+    description: Tab completion for /imq
+    default: op
 commands:
   imusminiquests:
     description: ImusMiniQuests
