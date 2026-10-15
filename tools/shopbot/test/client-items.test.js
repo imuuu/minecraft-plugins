@@ -1,13 +1,14 @@
 'use strict'
-// Items shown on the player's screen only (ImusAPI ClientItems): a shop covers the player's own inventory with black
-// panes, and the enchanting table blinks the items that fit it as lime panes. The real items never change and are
-// back on the screen when the menu closes. Not in creative, where the client decides what its inventory holds.
+// Items shown on the player's screen only (ImusAPI ClientItems): a shop fills the empty slots of the player's own
+// inventory with black panes while their items show as they are, and the enchanting table blinks the items that fit
+// it as lime panes. The real items never change and the panes are gone when the menu closes. Not in creative, where
+// the client decides what its inventory holds.
 const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const { Vec3 } = require('vec3')
 const { Rcon } = require('../lib/rcon')
 const { joinServer, sleep } = require('../lib/shopbot')
-const { resetPlayer, openShop } = require('../lib/fixture')
+const { resetPlayer, setHandPrice, openShop } = require('../lib/fixture')
 const { count } = require('../lib/enchant-fixture')
 
 const BOT = 'FakeBot'
@@ -24,6 +25,8 @@ before(async () => {
   bot = await joinServer(BOT)
   await resetPlayer(rcon, BOT)
   await rcon.command(`minecraft:give ${BOT} diamond 5`)
+  await sleep(300)
+  await setHandPrice(bot, 10)
   await bot.command(`gs create shop ${SHOP}`)
   await sleep(500)
 })
@@ -43,15 +46,43 @@ function ownSlots () {
   return window.slots.slice(window.inventoryStart, window.inventoryEnd).map(item => item?.name ?? null)
 }
 
-test('a shop covers the own inventory on the screen, and the items are back after', async () => {
+const PANE = 'black_stained_glass_pane'
+
+/**
+ * Waits until the own slots show these items, one slot each, and every other slot is a black pane.
+ */
+async function untilOwnSlotsShow (...items) {
+  await bot.until(() => {
+    const names = ownSlots()
+    return items.every(item => names.filter(name => name === item).length === 1) &&
+      names.filter(name => name === PANE).length === names.length - items.length
+  }, 3000, () => `own slots: ${ownSlots().map(name => name ?? '-').join(', ')}`)
+}
+
+test('a shop covers the empty slots of the own inventory on the screen, and they are empty again after', async () => {
   await openShop(rcon, bot, SHOP, { includeHotbar: false })
-  await bot.until(() => ownSlots().every(name => name === 'black_stained_glass_pane'), 3000,
-    () => `own slots: ${ownSlots().filter(Boolean).join(', ')}`)
+  await untilOwnSlotsShow('diamond')
   assert.equal(await count(rcon, BOT, 'diamond'), 5, 'the real diamonds are still there')
 
   bot.closeWindow()
-  await bot.until(() => bot.count('diamond') === 5 && bot.count('black_stained_glass_pane') === 0, 3000,
+  await bot.until(() => bot.count('diamond') === 5 && bot.count(PANE) === 0, 3000,
     () => `after closing the bot has ${bot.bot.inventory.items().map(item => item.name).join(', ')}`)
+})
+
+test('items show as they come and go: a sold-out slot turns to a pane, a bought item shows at once', async () => {
+  await openShop(rcon, bot, SHOP)
+  await untilOwnSlotsShow('diamond')
+
+  await bot.click(await bot.waitForCustomerSlot('diamond'), 'shiftRight')
+  await untilOwnSlotsShow()
+  assert.equal(await count(rcon, BOT, 'diamond'), 0, 'every diamond was sold')
+
+  await bot.click(await bot.waitForShopSlot('diamond'), 'left')
+  await untilOwnSlotsShow('diamond')
+  assert.equal(await count(rcon, BOT, 'diamond'), 1, 'one diamond was bought')
+
+  bot.closeWindow()
+  await bot.until(() => bot.count('diamond') === 1 && bot.count(PANE) === 0, 3000, 'Panes left after closing')
 })
 
 test('in creative nothing is covered', async () => {
@@ -60,7 +91,7 @@ test('in creative nothing is covered', async () => {
     await openShop(rcon, bot, SHOP, { includeHotbar: false })
     await sleep(1500)
     assert.ok(ownSlots().includes('diamond'), 'the diamonds show')
-    assert.ok(!ownSlots().includes('black_stained_glass_pane'))
+    assert.ok(!ownSlots().includes(PANE))
     bot.closeWindow()
   } finally {
     await rcon.command(`gamemode survival ${BOT}`)

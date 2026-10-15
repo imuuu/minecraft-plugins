@@ -75,9 +75,10 @@ public abstract class Menu
     }
 
     /**
-     * An item shown in every slot of the player's own inventory while the menu is open, or null for none. Shown on
-     * the player's screen only: their real items don't change and come back when the menu closes. E.g. a shop that
-     * shows the player's items in the menu itself covers the inventory below with black panes.
+     * An item shown in the empty slots of the player's own inventory while the menu is open, or null for none; slots
+     * that hold something show their item, kept up to date as items come and go. Shown on the player's screen only:
+     * the real slots don't change and are empty again when the menu closes. E.g. a shop fills the gaps of the
+     * inventory below with black panes, so the player still sees how much of each item they have.
      */
     public Icon ownInventoryCover()
     {

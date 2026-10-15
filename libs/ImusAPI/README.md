@@ -121,11 +121,13 @@ PaperMenus.open(player, new ShopMenu());
   suljetaan sen koodin vielä toimiessa (`PaperMenus.closeAll(plugin)`), ja ImusAPI sulkee lopuksi kaikki.
 - **Feikki-itemit pelaajan ruudulla (`imu.iAPI.Packets.ClientItems`).** Näyttää slotissa eri itemin vain pelaajan
   ruudulla pakettina; oikea item serverillä ei muutu. `showOwn(player, slot, item)` oman inventoryn slottiin (0–8
-  hotbar, 9–35 muut), `coverOwn(player, item)` kaikkiin 36:een ja `restore(player)` lähettää oikeat takaisin. Menu,
-  jonka `ownInventoryCover()` palauttaa ikonin, peittää pelaajan oman inventoryn sillä koko ajan kun se on auki
-  (imusGS:n kaupat mustilla paneeleilla); oikeat itemit palaavat sulkiessa ja promptin ajaksi. Enchant-pöytä
-  vilkuttaa pöytään sopivia itemeitä vihreinä paneeleina. Ei koskaan creativessa, jossa client päättää itemeistä
-  itse. Paperilla ei ole tähän API:a, joten se käyttää Paperin sisäosia reflektiolla; jos ne muuttuvat
+  hotbar, 9–35 muut), `coverOwn(player, item)` kaikkiin 36:een, `coverEmptyOwn(player, item)` vain tyhjiin ja
+  `restore(player)` lähettää oikeat takaisin. Menu, jonka `ownInventoryCover()` palauttaa ikonin, täyttää sillä
+  pelaajan oman inventoryn tyhjät slotit koko ajan kun se on auki; slotit, joissa on jotain, näyttävät itemin
+  sellaisenaan. imusGS:n kaupoissa tyhjät ovat mustia paneeleita: ostettu item näkyy heti omassa inventoryssä, ja
+  loppuun myyty slotti muuttuu paneeliksi kauppaa sulkematta. Oikeat itemit palaavat sulkiessa ja promptin ajaksi.
+  Enchant-pöytä vilkuttaa pöytään sopivia itemeitä vihreinä paneeleina. Ei koskaan creativessa, jossa client päättää
+  itemeistä itse. Paperilla ei ole tähän API:a, joten se käyttää Paperin sisäosia reflektiolla; jos ne muuttuvat
   päivityksessä, `ClientItems.available()` on `false`, mitään ei näytetä ja konsoliin tulee yksi varoitus.
 
 Testissä:

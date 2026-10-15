@@ -134,6 +134,23 @@ public final class ClientItems
     }
 
     /**
+     * Covers the empty slots of the player's own inventory with the item; slots that hold something show it as it
+     * is. A slot that fills shows its real item on its own, so call this again after the player's items change to
+     * cover the slots that emptied.
+     */
+    public static void coverEmptyOwn(Player player, ItemStack cover)
+    {
+        if (!allowed(player))
+            return;
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        for (int slot = 0; slot < Math.min(36, contents.length); slot++)
+        {
+            if (contents[slot] == null || contents[slot].getType().isAir())
+                showOwn(player, slot, cover);
+        }
+    }
+
+    /**
      * Sends the player their real items again.
      */
     public static void restore(Player player)

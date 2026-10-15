@@ -180,6 +180,9 @@ public final class PaperMenus implements Listener
                 || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
                 || event.getAction() == InventoryAction.COLLECT_TO_CURSOR)
             event.setCancelled(true);
+        // A cancelled click sends the real items again, empty slots too; the cover goes back at the end of the tick
+        if (event.isCancelled() && host._covered)
+            Bukkit.getScheduler().runTask(_plugin, host::cover);
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -325,7 +328,7 @@ public final class PaperMenus implements Listener
             {
                 _clicking = false;
             }
-            // A trade may have changed the player's items; the real ones go out at the end of the tick
+            // A trade may have emptied slots of the player's own inventory; they are covered at the end of the tick
             if (_covered)
                 Bukkit.getScheduler().runTask(_plugin, this::cover);
         }
@@ -375,13 +378,13 @@ public final class PaperMenus implements Listener
             int ticks = menu.refreshTicks();
             if (ticks > 0)
                 _ticker = Bukkit.getScheduler().runTaskTimer(_plugin, _session::tick, ticks, ticks);
-            // Anything that changes the player's items sends the real ones; cover them again now and then
+            // A slot that empties shows nothing; cover the empty ones again now and then
             if (menu.ownInventoryCover() != null)
                 _coverTask = Bukkit.getScheduler().runTaskTimer(_plugin, this::cover, 20, 20);
         }
 
         /**
-         * Covers the player's own inventory with the menu's cover, on their screen only.
+         * Covers the empty slots of the player's own inventory with the menu's cover, on their screen only.
          */
         private void cover()
         {
@@ -391,7 +394,7 @@ public final class PaperMenus implements Listener
             Icon cover = menu.ownInventoryCover();
             if (cover != null && ClientItems.allowed(_player))
             {
-                ClientItems.coverOwn(_player, PaperIcons.stack(cover));
+                ClientItems.coverEmptyOwn(_player, PaperIcons.stack(cover));
                 _covered = true;
             }
         }

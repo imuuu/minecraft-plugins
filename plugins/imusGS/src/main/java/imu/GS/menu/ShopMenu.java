@@ -94,7 +94,7 @@ public class ShopMenu extends GsMenu implements ShopListener
         _shop.removeViewer();
     }
 
-    // The player's own items are shown in the menu, so the inventory below is covered on their screen
+    // The empty slots of the inventory below are black panes on the player's screen; their items show as they are
     @Override
     public Icon ownInventoryCover()
     {
