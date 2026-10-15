@@ -10,6 +10,7 @@ softdepend:
   - GadgedMenu
 permissions:
   ic.create.npc:
+    level: high
     description: /ic create npc, an NPC that opens the challenge shop
     default: op
 commands:

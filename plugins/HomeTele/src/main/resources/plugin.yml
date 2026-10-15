@@ -32,13 +32,16 @@ commands:
     permission: hometele.admin
 permissions:
   hometele.use:
+    level: low
     description: Set and use homes
     default: true
   hometele.admin:
+    level: high
     description: List and visit everyone's homes, and change the settings
     default: op
     children:
       hometele.use: true
   hometele.bypass:
+    level: medium
     description: No cooldowns
     default: op

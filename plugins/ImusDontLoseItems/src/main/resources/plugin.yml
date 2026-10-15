@@ -8,5 +8,6 @@ depend:
   - imusAPI
 permissions:
   imusdontloseitems.config:
+    level: very_high
     description: Change the settings with /ia config imusdontloseitems
     default: op

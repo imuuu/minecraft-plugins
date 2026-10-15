@@ -7,6 +7,10 @@ npc:
   # How close a player must be, in blocks
   look-range: 8
 
+permissions:
+  # /ia perms lists the players this close to you, in blocks; anyone else can be searched by name
+  nearby-range: 32
+
 # Where imusAPI and the plugins built on it (imusGS, imusWaystones, ImusChallenges...) keep their data.
 # Changes take effect after a restart.
 database:

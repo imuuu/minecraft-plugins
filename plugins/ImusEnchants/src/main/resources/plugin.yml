@@ -14,5 +14,6 @@ commands:
       - ien
 permissions:
   imusenchants.admin:
+    level: high
     description: "Admin commands: give Slot Cores and custom books, /ien admin menu"
     default: op

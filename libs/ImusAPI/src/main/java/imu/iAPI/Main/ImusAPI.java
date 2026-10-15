@@ -17,10 +17,13 @@ import imu.iAPI.Menus.Paper.PaperMenus;
 import imu.iAPI.Other.*;
 import imu.iAPI.Config.ConfigMenu;
 import imu.iAPI.Npc.NpcManager;
+import imu.iAPI.Permissions.PaperPermissions;
+import imu.iAPI.Permissions.Permissions;
 import imu.iAPI.SubCommands.Sub_Cmd_CreateNpc;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenConfigMenus;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenLootTablesInvs;
 import imu.iAPI.SubCommands.Sub_Cmd_OpenNamedInvs;
+import imu.iAPI.SubCommands.Sub_Cmd_Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -44,6 +47,7 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
     private Manager_CommandSender _commandSenderManager;
     private NpcManager _npcManager;
     private ConfigMenu _configMenu;
+    private PaperPermissions _permissions;
 
     private Database _database;
 
@@ -92,7 +96,10 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
         _npcManager.loadSettings();
 
         PaperMenus.enable(this);
+        _permissions = new PaperPermissions(this, () -> getConfig().getDouble("permissions.nearby-range", 32));
         RegisterCommands();
+        Permissions.onChange(names -> _tab_cmd1.SetRule("/ia perms", 2, new ArrayList<>(names)));
+        _permissions.enable();
         _configMenu = createConfigMenu();
         _configMenu.register();
         AirHashSet = new HashSet<>();
@@ -112,6 +119,9 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
     {
         if (_configMenu != null)
             _configMenu.unregister();
+        if (_permissions != null)
+            _permissions.disable();
+        Permissions.onChange(null);
         PaperMenus.disable();
 
         if (_database != null)
@@ -214,7 +224,10 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
         handler.registerSubCmd(cmd1, cmd1_sub4, new Sub_Cmd_CreateNpc(_npcManager));
         handler.setPermissionOnLastCmd("ia.npc.create");
 
-        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config", "npc"});
+        handler.registerSubCmd(cmd1, "perms", new Sub_Cmd_Permissions(_permissions));
+        handler.setPermissionOnLastCmd(PaperPermissions.USE_PERMISSION);
+
+        cmd1AndArguments.put(cmd1, new String[]{"inv", "lootTables", "config", "npc", "perms"});
         cmd1AndArguments.put("npc", new String[]{"create"});
 
         // register cmds
@@ -239,6 +252,9 @@ public class ImusAPI extends JavaPlugin implements IHasSqlSource
                 .note("now");
         menu.addDouble("npc.look-range", "NPC look range", Material.SPYGLASS, 1, 32)
                 .description("How close a player must be, in blocks")
+                .note("now");
+        menu.addDouble("permissions.nearby-range", "Permissions menu range", Material.PLAYER_HEAD, 1, 256)
+                .description("How close players are listed in /ia perms, in blocks")
                 .note("now");
         return menu;
     }

@@ -10,12 +10,35 @@ commands:
      description: ia
      usage: /<command>
 permissions:
+   ia.permissions:
+     description: /ia perms, give and take every plugin's permissions in a menu (only ones you have yourself)
+     default: op
+     level: very_high
+   ia.config:
+     description: /ia config, open the plugin settings; changing them needs each plugin's own permission too
+     default: op
+     level: high
    ia.npc.create:
      description: /ia npc create, an NPC that runs commands
      default: op
+     level: high
    ia.npc.edit:
      description: Sneak + click any NPC to open its settings
      default: op
+     level: high
    ia.npc.commands:
      description: Set the commands an NPC runs. They run as the server, so only give this to admins
      default: op
+     level: very_high
+   ia.inv:
+     description: /ia inv, lists of every item, enchant and material
+     default: op
+     level: high
+   ia.lootTables:
+     description: /ia lootTables, edit the loot tables
+     default: op
+     level: high
+   ia.tabcompleter:
+     description: Tab completion of /ia
+     default: op
+     level: low

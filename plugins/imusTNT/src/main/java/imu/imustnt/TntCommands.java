@@ -2,6 +2,7 @@ package imu.imustnt;
 
 import imu.iAPI.Menus.Paper.PaperIcons;
 import imu.iAPI.Menus.Paper.PaperMenus;
+import imu.iAPI.Permissions.PaperPermissions;
 import imu.iAPI.Utilities.InvUtil;
 import imu.imustnt.engine.TntType;
 import org.bukkit.Bukkit;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * /imustnt (/it): menu, and give &lt;type&gt; [player] [amount].
+ * /imustnt (/it): menu, give &lt;type&gt; [player] [amount], and permissions (who may use imusTNT, in imusAPI's menu).
  */
 class TntCommands implements TabExecutor
 {
@@ -43,6 +44,13 @@ class TntCommands implements TabExecutor
                     _plugin.send(sender, "usage");
             }
             case "give" -> give(sender, args);
+            case "permissions", "perms" ->
+            {
+                if (sender instanceof Player player)
+                    PaperPermissions.open(player, _plugin.getName());
+                else
+                    _plugin.send(sender, "usage");
+            }
             default -> _plugin.send(sender, "usage");
         }
         return true;
@@ -85,7 +93,7 @@ class TntCommands implements TabExecutor
     {
         List<String> options = new ArrayList<>();
         if (args.length == 1)
-            options.addAll(List.of("menu", "give"));
+            options.addAll(List.of("menu", "give", "permissions"));
         else if (args.length == 2 && args[0].equalsIgnoreCase("give"))
             options.addAll(keys());
         else if (args.length == 3 && args[0].equalsIgnoreCase("give"))

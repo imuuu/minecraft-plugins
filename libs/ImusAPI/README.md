@@ -21,6 +21,7 @@ käytetään** ja mitä vältetään.
 | Menu / GUI | `Menu` + `PaperMenus` (`imu.iAPI.Menus`) | omia `InventoryClickEvent`-kuuntelijoita |
 | Komennot | `CommandHandler` + `CommandInterface` | omaa `CommandExecutor`-sekamelskaa |
 | Asetukset pelissä ja konsolista | `ConfigMenu` | omia asetusmenuja |
+| Permissionit: kuvaus, vaarallisuus, antaminen menusta | `plugin.yml`:n `level:` + `/ia perms` (`imu.iAPI.Permissions`) | permissioneiden muistelua ja komentoja |
 | Tekstin kysyminen pelaajalta | `TextInputDialog.show(...)` | chat-keskustelut |
 | NPC, joka tekee jotain klikattaessa | `NpcManager` + `NpcAction` | Citizens-riippuvuutta |
 | Custom-enchantit tai -itemit muiden käyttöön | `CustomEnchants`, `CustomItems` | suoria riippuvuuksia plugarista toiseen |
@@ -200,6 +201,50 @@ uudelleenlataus). Väärä arvo (alueen ulkopuolella, ei numero) hylätään vie
 
 Testeissä `ConfigMenu` saa plugarin tilalle `ConfigMenu.Store`n (esim. `YamlConfiguration`), ja sen menut
 (`ConfigEntriesMenu`, `ConfigListMenu`) toimivat `MenuTester`illa, katso `ConfigMenusTest`.
+
+---
+
+## Permissionit: `/ia perms` (`imu.iAPI.Permissions`)
+
+Jokaisen plugarin permissionit näkyvät yhdessä menussa: admin valitsee plugarin, sitten pelaajan lähellä olevista
+(tai hakee nimellä), ja klikkaa permissionit päälle tai pois. Jokaisessa näkyy kuvaus, vaarallisuus ja onko se
+pelaajalla nyt (annettu täällä, otettu pois täällä vai oletus). Erillistä permissions-plugaria ei tarvita.
+
+Plugari ei kirjoita koodia: imusAPI lukee permissionit plugarin `plugin.yml`:stä, kun plugari riippuu imusAPI:sta
+(`depend`/`softdepend`) tai sen permissioneilla on `level`. Bukkit ei välitä ylimääräisistä avaimista.
+
+```yaml
+permissions:
+  imustnt.admin:
+    description: Take and give special TNT, change the settings   # näkyy menussa
+    default: op
+    level: high          # low, medium, high, very_high
+    icon: tnt            # valinnainen; muuten vihreä/harmaa väriaine päällä/pois
+  it.inv:
+    description: Same as imustnt.admin
+    hidden: true         # vanha alias, ei näy menussa
+```
+
+| Taso | Mitä yleensä |
+|---|---|
+| `low` | Arjen ominaisuudet, eivät haittaa muita (kodit, waystonen rakentaminen) |
+| `medium` | Pieniä etuja tai muiden huomattavissa (cooldownin ohitus, kauppa mistä vain) |
+| `high` | Admin-työkalut: ilmaiset itemit, muiden data, NPC:t |
+| `very_high` | Täysi valta: asetukset, serverin komennot, permissionit itse |
+
+- **Komennot:** `/ia perms` (plugarilista), `/ia perms <plugari>` (lähellä olevat pelaajat), `/ia perms <plugari> <pelaaja>`
+  (suoraan pelaajan permissionit, myös offline). Oikeus `ia.permissions`. Etäisyys: `permissions.nearby-range` imusAPI:n
+  configissa (oletus 32).
+- **Omaan komentoon** yksi rivi: `PaperPermissions.open(player, getName())`, esim. `/imustnt permissions`.
+- **Klikkaus** antaa tai ottaa pois, **oikea klikkaus** palauttaa plugarin oletukseen, **Reset all** kaikki kerralla.
+  `high` ja `very_high` kysyvät ennen antamista. Kukaan ei voi antaa permissionia, jota hänellä itsellään ei ole.
+- **Tallennus:** `plugins/imusAPI/permissions.yml` (UUID, nimi, `[node, -pois_otettu]`). Ne annetaan pelaajalle
+  `PermissionAttachment`ina liittyessä ja heti muutettaessa; komentojen tab-täydennys päivittyy samalla. Pois otettu
+  voittaa myös yläpermissionin (`gs.admin`) lapset ja op-oletuksen. LuckPermsin kanssa Bukkit laskee molemmat yhteen.
+- **Koodista** voi lisätä permissioneita, joita `plugin.yml` ei listaa:
+  `Permissions.register(PluginPermissions.of("MyPlugin", PermissionInfo.of("my.node", "Mitä antaa", PermissionLevel.LOW)))`.
+- Menut ovat `PermissionGame`-rajapinnan takana (`PaperPermissions` serverillä), joten niitä testataan `MenuTester`illa
+  (`PermissionsTest`) ja pelissä botilla (`permissions.test.js`).
 
 ---
 

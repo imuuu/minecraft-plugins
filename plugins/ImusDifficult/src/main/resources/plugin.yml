@@ -8,5 +8,6 @@ depend:
   - imusAPI
 permissions:
   imusdifficult.config:
+    level: very_high
     description: Change the settings with /ia config imusdifficult
     default: op

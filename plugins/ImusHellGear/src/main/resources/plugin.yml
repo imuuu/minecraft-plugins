@@ -10,5 +10,6 @@ softdepend:
   - ImusEnchants
 permissions:
   imushellgear.config:
+    level: very_high
     description: Change the settings with /ia config imushellgear
     default: op

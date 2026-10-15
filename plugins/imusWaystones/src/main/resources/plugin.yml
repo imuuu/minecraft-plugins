@@ -12,29 +12,36 @@ commands:
     aliases: [iw, waystone]
 permissions:
   imuswaystones.use:
+    level: low
     description: Build waystones
     default: true
   imuswaystones.admin:
+    level: high
     description: List, remove and set up any waystone, upgrade free, change the settings
     default: op
   imuswaystones.build-anywhere:
+    level: medium
     description: Build own waystones close to each other
     default: op
   imuswaystones.bypass:
+    level: medium
     description: One second teleports without cooldowns or XP
     default: op
   # The old imusWaystones' permissions
   iw.build.ingnore:
+    hidden: true
     description: Same as imuswaystones.build-anywhere
     default: false
     children:
       imuswaystones.build-anywhere: true
   iw.list:
+    hidden: true
     description: Same as imuswaystones.admin
     default: false
     children:
       imuswaystones.admin: true
   iw.reload:
+    hidden: true
     description: Same as imuswaystones.admin
     default: false
     children:

@@ -12,5 +12,6 @@ commands:
     aliases: [imusspawners]
 permissions:
   imusspawners.admin:
+    level: high
     description: Give spawners, see anyone's chance, change the settings
     default: op

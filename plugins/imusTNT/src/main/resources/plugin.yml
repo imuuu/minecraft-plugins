@@ -8,15 +8,17 @@ depend: [imusAPI]
 commands:
   imustnt:
     description: Special TNT for admins
-    usage: /<command> menu | give <type> [player] [amount]
+    usage: /<command> menu | give <type> [player] [amount] | permissions
     aliases: [it]
     permission: imustnt.admin
 permissions:
   imustnt.admin:
+    level: high
     description: Take and give special TNT, change the settings
     default: op
   # The old imusTNT's permission
   it.inv:
+    hidden: true
     description: Same as imustnt.admin
     default: false
     children:

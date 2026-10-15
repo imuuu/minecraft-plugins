@@ -11,5 +11,6 @@ softdepend:
   - BetterStructures
 permissions:
   imusunstablefearsystem.config:
+    level: very_high
     description: Change the settings with /ia config imusunstablefearsystem
     default: op

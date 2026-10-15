@@ -41,7 +41,7 @@ items:
 # Texts players see. & colour codes and {placeholders} work; an empty text ("") isn't sent.
 messages:
   menu-title: "&3Special &4TNT &3- &bclick &3to take"
-  usage: "&e/imustnt menu &7| &e/imustnt give <type> [player] [amount]"
+  usage: "&e/imustnt menu &7| &e/imustnt give <type> [player] [amount] &7| &e/imustnt permissions"
   unknown-type: "&cNo such TNT. Types: &e{types}"
   unknown-player: "&cNo player &e{player} &conline"
   given: "&aGave &e{amount} {item} &ato &e{player}"

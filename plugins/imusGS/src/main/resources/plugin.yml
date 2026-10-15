@@ -19,6 +19,7 @@ commands:
      permission: gs.openfor
 permissions:
    gs.admin:
+     level: very_high
      description: Every imusGS admin command
      default: op
      children:
@@ -47,71 +48,94 @@ permissions:
        gs.remove.shop: true
        ia.npc.edit: true
    gs.create.shop:
+     level: high
      description: /gs create shop
      default: op
    gs.open.shop:
+     level: medium
      description: /gs open shop, open any shop anywhere. Players normally open shops through an NPC instead.
      default: op
    gs.openfor:
+     level: high
      description: /gsopenfor, open a shop for another player
      default: op
    gs.add:
+     level: high
      description: /gs add, add stockable items to a shop
      default: op
    gs.create.uniques:
+     level: high
      description: /gs create unique
      default: op
    gs.modify.uniques:
+     level: high
      description: /gs modify uniques
      default: op
    gs.modify.shop:
+     level: high
      description: /gs modify shop
      default: op
    gs.modify.enchants:
+     level: high
      description: /gs modify enchantments
      default: op
    gs.set.material.price:
+     level: high
      description: /gs set material price
      default: op
    gs.set.material.overflow:
+     level: high
      description: /gs set material overflow
      default: op
    gs.unset.material.overflow:
+     level: high
      description: /gs unset material overflow
      default: op
    gs.set.material.smart_price:
+     level: high
      description: /gs set material smart_price
      default: op
    gs.unset.material.smart_price:
+     level: high
      description: /gs unset material smart_price
      default: op
    gs.tag:
+     level: high
      description: /gs tag, tag materials and shop items and change their prices
      default: op
    gs.config:
+     level: very_high
      description: /gs config, the in-game settings menu
      default: op
    gs.tabcompleter:
+     level: low
      description: Tab completion of /gs
      default: op
    gs.create.npc:
+     level: high
      description: /gs create npc, spawn an NPC that opens a shop, and link an NPC to a shop in its settings
      default: op
    gs.profile:
+     level: high
      description: /gs profile, price every material with a price profile
      default: op
    gs.limits:
+     level: high
      description: /gs limits and /gs reset limits, see and reset a shop's sell limits
      default: op
    gs.flash:
+     level: high
      description: /gs flash start|end, /gs wanted start|end and /gs restock, start live events by hand
      default: op
    gs.remove.shop:
+     level: high
      description: /gs remove shop <name> confirm, remove a shop and its NPCs
      default: op
    gs.stats:
+     level: medium
      description: /gs stats [days] [shop], where the money went and what live events are doing
      default: op
    gs.peek:
+     level: low
      description: /gs peek, a look at a few flash deals from anywhere
      default: true
