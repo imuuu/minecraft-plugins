@@ -13,6 +13,50 @@ permissions:
     level: high
     description: /ic create npc, an NPC that opens the challenge shop
     default: op
+  ic.view.points:
+    level: medium
+    description: /ic view points, see your own or another player's challenge points
+    default: op
+  ic.view.advancements:
+    level: medium
+    description: /ic view advancements, see your own or another player's advancements
+    default: op
+  ic.view.materials:
+    level: low
+    description: /ic view materials, open the researched materials menu
+    default: op
+  ic.collection.admin:
+    level: high
+    description: In the researched materials menu, exclude materials from the research
+    default: op
+  ic.shop:
+    level: medium
+    description: /ic shop, open the challenge shop from anywhere
+    default: op
+  ic.add.points:
+    level: high
+    description: /ic add points, give challenge points to a player
+    default: op
+  ic.set.points:
+    level: high
+    description: /ic set points and /ic set lifetime, set a player's challenge points
+    default: op
+  ic.reset.points:
+    level: high
+    description: /ic reset points, reset the points of a player or everyone
+    default: op
+  ic.reload:
+    level: very_high
+    description: /ic reload, reload the settings
+    default: op
+  ic.config:
+    level: very_high
+    description: /ic config, change the settings in game
+    default: op
+  ic.tabcompleter:
+    level: low
+    description: Tab completion for /ic
+    default: op
 commands:
   imuschallenges:
     description: imusChallenges
