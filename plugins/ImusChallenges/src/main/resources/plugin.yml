@@ -9,6 +9,30 @@ depend:
 softdepend:
   - GadgedMenu
 permissions:
+  imuschallenges.server.collection.material:
+    level: low
+    description: Take part in the server wide research of materials (points for the first to collect each one)
+    default: not op
+  imuschallenges.server.collection.broadcast:
+    level: low
+    description: Hear what other players research first
+    default: not op
+  imuschallenges.server.achievement.achievement:
+    level: low
+    description: Take part in the first advancement race (everyone but ops when points.first-advancement-everyone is on)
+    default: false
+  imuschallenges.server.achievement.broadcast:
+    level: low
+    description: Hear who completes an advancement first
+    default: false
+  imuschallenges.broadcast.leader:
+    level: low
+    description: Hear when someone takes the lead in challenge points
+    default: true
+  imuschallenges.broadcast.challengeshop:
+    level: low
+    description: Hear when the challenge shop gets new items
+    default: op
   ic.create.npc:
     level: high
     description: /ic create npc, an NPC that opens the challenge shop

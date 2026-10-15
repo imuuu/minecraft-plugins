@@ -61,7 +61,6 @@ public class ImusChallenges extends JavaPlugin
         _configMenu = createConfigMenu();
         registerCommands();
         System.out.println("ImusChallenges has been enabled!");
-        registerPermissions();
         applyFirstAdvancementDefault();
 
 
@@ -201,32 +200,6 @@ public class ImusChallenges extends JavaPlugin
                 .note("now");
     }
 
-    private void registerPermissions()
-    {
-        String permissionNode = CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE;
-        Permission permission = new Permission(permissionNode, "Allows compete server wide research materials competition", PermissionDefault.NOT_OP);
-        Bukkit.getPluginManager().addPermission(permission);
-
-        permissionNode = CONSTANTS.PERM_SERVER_WIDE_COLLECTION_CHALLENGE_BROADCAST;
-        permission = new Permission(permissionNode, "Allows hear other research findings", PermissionDefault.NOT_OP);
-        Bukkit.getPluginManager().addPermission(permission);
-
-        permissionNode = CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE;
-        permission = new Permission(permissionNode, "Allows compete server wide achievement competition", PermissionDefault.FALSE);
-        Bukkit.getPluginManager().addPermission(permission);
-
-        permissionNode = CONSTANTS.PERM_SERVER_WIDE_ACHIEVEMENT_CHALLENGE_BROADCAST;
-        permission = new Permission(permissionNode, "Allows hear other achievement findings", PermissionDefault.FALSE);
-        Bukkit.getPluginManager().addPermission(permission);
-
-        permissionNode = CONSTANTS.PERM_BROADCAST_LEADER;
-        permission = new Permission(permissionNode, "Hear when someone takes the lead in challenge points", PermissionDefault.TRUE);
-        Bukkit.getPluginManager().addPermission(permission);
-
-        permissionNode = CONSTANTS.PERM_BROADCAST_CHALLENGE_SHOP_UPDATE;
-        permission = new Permission(permissionNode, "Allows broadcast challenge shop update", PermissionDefault.OP);
-        Bukkit.getPluginManager().addPermission(permission);
-    }
     // Every table is made before the managers read anything, so a copy from the other database comes first
     private static final Class<?>[] TABLES = { TablePlayers.class, TablePointType.class, TablePlayerPoints.class,
             TableCollected_materials.class, TableExludedCollectMaterials.class, TablePlayerAchievements.class, TablePlayerShopStats.class };
